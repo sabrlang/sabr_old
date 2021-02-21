@@ -6,7 +6,7 @@
 
 #include "opcode.h"
 
-size_t operation_len;
+extern size_t operation_len;
 extern const char* operation_names[];
 extern const opcode operation_indices[];
 

@@ -15,7 +15,7 @@ typedef enum control_enum {
 	CTRL_FUNC
 } control;
 
-size_t control_len;
+extern size_t control_len;
 extern const char* control_names[];
 
 typedef struct control_data_struct {

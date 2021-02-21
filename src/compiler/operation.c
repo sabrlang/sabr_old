@@ -136,4 +136,4 @@ const opcode operation_indices[] = {
 	OP_SHOW
 };
 
-operation_len = sizeof(operation_names) / sizeof(char*);
+size_t operation_len = sizeof(operation_names) / sizeof(char*);

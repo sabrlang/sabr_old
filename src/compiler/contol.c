@@ -11,4 +11,4 @@ const char* control_names[] = {
 	"func"
 };
 
-control_len = sizeof(control_names) / sizeof(char*);
+size_t control_len = sizeof(control_names) / sizeof(char*);
