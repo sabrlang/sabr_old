@@ -671,7 +671,7 @@ bool compiler_parse_char(compiler* comp, char* token) {
 	vector_init(value, &value_reverser);
 
 	while (*token) {
-		if (((signed char) *token) > -1) {
+		if (((signed char)*token) > -1) {
 			char* num_pasre_stop = NULL;
 			char num_parse[9] = {0, };
 			num_parse_count = 0;
