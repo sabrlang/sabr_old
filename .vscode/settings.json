@@ -1,9 +1,0 @@
-{
-	"files.associations": {
-		"*.fs": "forth",
-		"compiler.h": "c",
-		"control.h": "c",
-		"interpreter.h": "c",
-		"interpreter_cctl_define.h": "c"
-	}
-}
