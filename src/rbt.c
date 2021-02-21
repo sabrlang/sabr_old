@@ -122,7 +122,7 @@ void rbt_insert(rbt* t, rbt_node* z) {
 }
 
 void rbt_transplant(rbt* t, rbt_node* u, rbt_node* v) {
-	if (u->parent = t->nil) t->root = v;
+	if (u->parent == t->nil) t->root = v;
 	else if (u == u->parent->left) u->parent->left = v;
 	else u->parent->right = v;
 	v->parent = u->parent;
