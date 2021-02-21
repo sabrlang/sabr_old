@@ -6,6 +6,7 @@ Sabr is simple stack-oriented programming language.
 # build from source
 ```
 git clone https://github.com/mhcoma/sabr.git
+cd sabr
 mkdir build
 cd build
 cmake ..
