@@ -762,9 +762,10 @@ bool compiler_parse_char(compiler* comp, char* token) {
 		}
 		else {
 			char32_t out;
+			char* end = token + strlen(token) + 1;
 			size_t rc;
 			mbstate_t state;
-			rc = mbrtoc32(&out, token, 100, &state);
+			rc = mbrtoc32(&out, token, end - token, &state);
 			if ((rc > -4) || (rc == 0)) goto FAILURE_UNICODE;
 			token += rc;
 			v.u = out;
