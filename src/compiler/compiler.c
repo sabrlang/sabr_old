@@ -749,6 +749,7 @@ bool compiler_parse_char(compiler* comp, char* token) {
 				}
 			}
 			else if ((*token == '\'') || (*token == '\"')) {
+				
 				vector_free(value, &value_reverser);
 				fputs("error : String parse failure\n", stderr);
 				return false;
