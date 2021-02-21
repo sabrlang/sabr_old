@@ -1,6 +1,8 @@
 #include "compiler.h"
 
 bool compiler_init(compiler* comp) {
+	setlocale(LC_ALL, "en_US.utf8");
+
 	vector_init(cctl_ptr(char), &comp->textcode_vector);
 	vector_init(cctl_ptr(char), &comp->filename_vector);
 	vector_init(uint8_t, &comp->bytecode);
@@ -749,7 +751,6 @@ bool compiler_parse_char(compiler* comp, char* token) {
 				}
 			}
 			else if ((*token == '\'') || (*token == '\"')) {
-				
 				vector_free(value, &value_reverser);
 				fputs("error : String parse failure\n", stderr);
 				return false;
@@ -763,8 +764,8 @@ bool compiler_parse_char(compiler* comp, char* token) {
 			char32_t out;
 			size_t rc;
 			mbstate_t state;
-			rc = mbrtoc32(&out, token, -1, &state);
-			if ((rc < 0) && (rc > -4)) goto FAILURE_UNICODE;
+			rc = mbrtoc32(&out, token, 100, &state);
+			if ((rc > -4) || (rc == 0)) goto FAILURE_UNICODE;
 			token += rc;
 			v.u = out;
 		}

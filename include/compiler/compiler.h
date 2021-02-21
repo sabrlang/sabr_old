@@ -3,12 +3,14 @@
 
 #include <errno.h>
 #include <limits.h>
+#include <locale.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <uchar.h>
+
 
 
 #include "opcode.h"
