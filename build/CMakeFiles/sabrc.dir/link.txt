@@ -1,0 +1,3 @@
+"C:\Program Files\CMake\bin\cmake.exe" -E rm -f CMakeFiles\sabrc.dir/objects.a
+C:\TDM-GCC-64\bin\ar.exe cr CMakeFiles\sabrc.dir/objects.a @CMakeFiles\sabrc.dir\objects1.rsp
+C:\TDM-GCC-64\bin\x86_64-w64-mingw32-gcc.exe -g -Wl,--whole-archive CMakeFiles\sabrc.dir/objects.a -Wl,--no-whole-archive -o sabrc.exe -Wl,--out-implib,libsabrc.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\sabrc.dir\linklibs.rsp

@@ -1,0 +1,62 @@
+[
+{
+  "directory": "C:/Project/csabr/build",
+  "command": "C:\\TDM-GCC-64\\bin\\x86_64-w64-mingw32-gcc.exe  @CMakeFiles/sabre.dir/includes_C.rsp -g -o CMakeFiles\\sabre.dir\\src\\interpreter\\interpreter.obj -c C:\\Project\\csabr\\src\\interpreter\\interpreter.c",
+  "file": "C:/Project/csabr/src/interpreter/interpreter.c"
+},
+{
+  "directory": "C:/Project/csabr/build",
+  "command": "C:\\TDM-GCC-64\\bin\\x86_64-w64-mingw32-gcc.exe  @CMakeFiles/sabre.dir/includes_C.rsp -g -o CMakeFiles\\sabre.dir\\src\\interpreter\\interpreter_cctl_define.obj -c C:\\Project\\csabr\\src\\interpreter\\interpreter_cctl_define.c",
+  "file": "C:/Project/csabr/src/interpreter/interpreter_cctl_define.c"
+},
+{
+  "directory": "C:/Project/csabr/build",
+  "command": "C:\\TDM-GCC-64\\bin\\x86_64-w64-mingw32-gcc.exe  @CMakeFiles/sabre.dir/includes_C.rsp -g -o CMakeFiles\\sabre.dir\\src\\interpreter\\interpreter_main.obj -c C:\\Project\\csabr\\src\\interpreter\\interpreter_main.c",
+  "file": "C:/Project/csabr/src/interpreter/interpreter_main.c"
+},
+{
+  "directory": "C:/Project/csabr/build",
+  "command": "C:\\TDM-GCC-64\\bin\\x86_64-w64-mingw32-gcc.exe  @CMakeFiles/sabre.dir/includes_C.rsp -g -o CMakeFiles\\sabre.dir\\src\\rbt.obj -c C:\\Project\\csabr\\src\\rbt.c",
+  "file": "C:/Project/csabr/src/rbt.c"
+},
+{
+  "directory": "C:/Project/csabr/build",
+  "command": "C:\\TDM-GCC-64\\bin\\x86_64-w64-mingw32-gcc.exe  @CMakeFiles/sabre.dir/includes_C.rsp -g -o CMakeFiles\\sabre.dir\\src\\trie.obj -c C:\\Project\\csabr\\src\\trie.c",
+  "file": "C:/Project/csabr/src/trie.c"
+},
+{
+  "directory": "C:/Project/csabr/build",
+  "command": "C:\\TDM-GCC-64\\bin\\x86_64-w64-mingw32-gcc.exe  @CMakeFiles/sabrc.dir/includes_C.rsp -g -o CMakeFiles\\sabrc.dir\\src\\compiler\\compiler.obj -c C:\\Project\\csabr\\src\\compiler\\compiler.c",
+  "file": "C:/Project/csabr/src/compiler/compiler.c"
+},
+{
+  "directory": "C:/Project/csabr/build",
+  "command": "C:\\TDM-GCC-64\\bin\\x86_64-w64-mingw32-gcc.exe  @CMakeFiles/sabrc.dir/includes_C.rsp -g -o CMakeFiles\\sabrc.dir\\src\\compiler\\compiler_cctl_define.obj -c C:\\Project\\csabr\\src\\compiler\\compiler_cctl_define.c",
+  "file": "C:/Project/csabr/src/compiler/compiler_cctl_define.c"
+},
+{
+  "directory": "C:/Project/csabr/build",
+  "command": "C:\\TDM-GCC-64\\bin\\x86_64-w64-mingw32-gcc.exe  @CMakeFiles/sabrc.dir/includes_C.rsp -g -o CMakeFiles\\sabrc.dir\\src\\compiler\\compiler_main.obj -c C:\\Project\\csabr\\src\\compiler\\compiler_main.c",
+  "file": "C:/Project/csabr/src/compiler/compiler_main.c"
+},
+{
+  "directory": "C:/Project/csabr/build",
+  "command": "C:\\TDM-GCC-64\\bin\\x86_64-w64-mingw32-gcc.exe  @CMakeFiles/sabrc.dir/includes_C.rsp -g -o CMakeFiles\\sabrc.dir\\src\\compiler\\contol.obj -c C:\\Project\\csabr\\src\\compiler\\contol.c",
+  "file": "C:/Project/csabr/src/compiler/contol.c"
+},
+{
+  "directory": "C:/Project/csabr/build",
+  "command": "C:\\TDM-GCC-64\\bin\\x86_64-w64-mingw32-gcc.exe  @CMakeFiles/sabrc.dir/includes_C.rsp -g -o CMakeFiles\\sabrc.dir\\src\\compiler\\operation.obj -c C:\\Project\\csabr\\src\\compiler\\operation.c",
+  "file": "C:/Project/csabr/src/compiler/operation.c"
+},
+{
+  "directory": "C:/Project/csabr/build",
+  "command": "C:\\TDM-GCC-64\\bin\\x86_64-w64-mingw32-gcc.exe  @CMakeFiles/sabrc.dir/includes_C.rsp -g -o CMakeFiles\\sabrc.dir\\src\\rbt.obj -c C:\\Project\\csabr\\src\\rbt.c",
+  "file": "C:/Project/csabr/src/rbt.c"
+},
+{
+  "directory": "C:/Project/csabr/build",
+  "command": "C:\\TDM-GCC-64\\bin\\x86_64-w64-mingw32-gcc.exe  @CMakeFiles/sabrc.dir/includes_C.rsp -g -o CMakeFiles\\sabrc.dir\\src\\trie.obj -c C:\\Project\\csabr\\src\\trie.c",
+  "file": "C:/Project/csabr/src/trie.c"
+}
+]

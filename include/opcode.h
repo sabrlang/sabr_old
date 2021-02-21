@@ -1,0 +1,87 @@
+#ifndef __OPCODES_H__
+#define __OPCODES_H__
+
+typedef enum opcode_enum {
+	OP_NONE,
+	OP_VALUE,
+	OP_IF,
+	OP_JUMP,
+	OP_FUNC,
+	OP_RETURN,
+	OP_VAR,
+	OP_SET,
+	OP_CALL,
+
+	OP_ADD,
+	OP_SUB,
+	OP_MUL,
+	OP_DIV,
+	OP_MOD,
+	OP_UDIV,
+	OP_UMOD,
+	OP_NEG,
+	OP_INC,
+	OP_DEC,
+
+	OP_EQU,
+	OP_NEQ,
+	OP_GRT,
+	OP_GEQ,
+	OP_LST,
+	OP_LEQ,
+	OP_UGRT,
+	OP_UGEQ,
+	OP_ULST,
+	OP_ULEQ,
+
+	OP_FADD,
+	OP_FSUB,
+	OP_FMUL,
+	OP_FDIV,
+	OP_FMOD,
+	OP_FNEG,
+
+	OP_FEQU,
+	OP_FNEQ,
+	OP_FGRT,
+	OP_FGEQ,
+	OP_FLST,
+	OP_FLEQ,
+
+	OP_AND,
+	OP_OR,
+	OP_XOR,
+	OP_NOT,
+	OP_LSFT,
+	OP_RSFT,
+
+	OP_DROP,
+	OP_NIP,
+	OP_DUP,
+	OP_OVER,
+	OP_TUCK,
+	OP_SWAP,
+	OP_ROT,
+
+	OP_TDROP,
+	OP_TNIP,
+	OP_TDUP,
+	OP_TOVER,
+	OP_TTUCK,
+	OP_TSWAP,
+	OP_TROT,
+
+	OP_ALLOC,
+	OP_RESIZE,
+	OP_FREE,
+	OP_FETCH,
+	OP_STORE,
+
+	OP_PUTC,
+	OP_PUTD,
+	OP_PUTU,
+	OP_PUTF,
+	OP_SHOW
+} opcode;
+
+#endif

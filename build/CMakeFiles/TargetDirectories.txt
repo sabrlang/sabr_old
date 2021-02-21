@@ -1,0 +1,4 @@
+C:/Project/csabr/build/CMakeFiles/sabre.dir
+C:/Project/csabr/build/CMakeFiles/sabrc.dir
+C:/Project/csabr/build/CMakeFiles/edit_cache.dir
+C:/Project/csabr/build/CMakeFiles/rebuild_cache.dir

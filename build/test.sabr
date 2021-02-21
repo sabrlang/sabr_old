@@ -1,0 +1,46 @@
+$true func -1 end
+$false func 0 end
+
+$putcl func
+	loop dup 0 != while putc end drop
+end
+
+$cr func 10 putc end
+
+$bob func
+	$i dup var =
+	i 0 == if
+		if 'N' else 'n' end putc
+		0 'o more ' putcl
+	else
+		i putd
+	end
+	0 'bottle' putcl
+	i 1 != if 's' putc end
+	0 ' of beer' putcl
+end
+
+$otw func
+	0 ' on the wall' putcl
+end
+
+$main func
+	99 $i dup var =
+	loop
+		i -1 >
+	while
+		true i bob otw 0 ', ' putcl
+		false i bob
+		'.' putc cr
+		0 i 0 == if
+			'Go to the store and buy some more'
+		else
+			'Take it down and pass it around'
+		end
+		putcl 0 ', ' putcl
+		i 1- $i =
+		false i 0 < if 99 else i end bob otw '.' putc cr cr
+	end
+end
+
+main

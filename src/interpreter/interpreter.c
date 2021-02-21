@@ -1,0 +1,711 @@
+#include "interpreter.h"
+
+void interpreter_init(interpreter* inter) {
+	vector_init(value, &inter->data_stack);
+	vector_init(size_t, &inter->call_stack);
+
+	vector_init(cctl_ptr(rbt), &inter->local_words_stack);
+	inter->global_words = rbt_new();
+}
+
+void interpreter_del(interpreter* inter) {
+	vector_init(value, &inter->data_stack);
+	vector_init(size_t, &inter->call_stack);
+
+	for (size_t i = 0; i < inter->local_words_stack.size; i++) {
+		rbt_free(*vector_at(cctl_ptr(rbt), &inter->local_words_stack, i));
+	}
+	vector_free(cctl_ptr(rbt), &inter->local_words_stack);
+	rbt_free(inter->global_words);
+}
+
+bool interpreter_load_code(interpreter* inter, char* filename) {
+	FILE* file;
+	size_t size;
+
+	file = fopen(filename, "rb");
+	if (!file) {
+		fputs("error : File reading failure\n", stderr);
+		return false;
+	}
+
+	fseek(file, 0, SEEK_END);
+	size = ftell(file);
+	rewind(file);
+
+	char* code = (char*) malloc(size);
+	if (!code) {
+		fclose(file);
+		fputs("error : Memory allocation failure\n", stderr);
+		return false;
+	}
+
+	int a = fread(code, size, 1, file);
+	if (a != 1) {
+		free(code);
+		fclose(file);
+		fputs("error : Entire reading failure\n", stderr);
+		return false;
+	}
+
+	inter->bytecode = code;
+	inter->bytecode_size = size;
+
+	fclose(file);
+	return true;
+}
+
+bool interpreter_run(interpreter* inter) {
+	uint8_t* code;
+
+	for (size_t index = 0; index < inter->bytecode_size; index++) {
+		code = inter->bytecode + index;
+		switch (*code) {
+			case OP_VALUE: {
+				value v;
+				for (int i = 0; i < 8; i++) {
+					v.bytes[i] = inter->bytecode[++index];
+				}
+				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
+			} break;
+			case OP_IF: {
+				value pos;
+				value v;
+				for (int i = 0; i < 8; i++) {
+					pos.bytes[i] = inter->bytecode[++index];
+				}
+				if (!interpreter_pop(inter, &v)) goto FAILURE_STACK;
+				if (!v.u) index = pos.u - 1;
+			} break;
+			case OP_JUMP: {
+				value pos;
+				for (int i = 0; i < 8; i++) {
+					pos.bytes[i] = inter->bytecode[++index];
+				}
+				index = pos.u - 1;
+			} break;
+			case OP_FUNC: {
+				value kwrd;
+				value pos;
+				if (!interpreter_pop(inter, &kwrd)) goto FAILURE_STACK;
+				rbt_node* node;
+				node = rbt_search(inter->global_words, kwrd.u);
+				if (node) goto FAILURE_REDEFINE;
+				node = rbt_node_new(kwrd.u);
+				if (!node) goto FAILURE_DEFINE;
+
+				node->data = index + 9;
+				node->type = KWRD_FUNC;
+				rbt_insert(inter->global_words, node);
+
+				for (int i = 0; i < 8; i++) {
+					pos.bytes[i] = inter->bytecode[++index];
+				}
+				index = pos.u - 1;
+			} break;
+			case OP_RETURN: {
+				if (inter->call_stack.size < 1) goto FAILURE_CALL;
+				size_t pos = *vector_back(size_t, &inter->call_stack);
+				if (!vector_pop_back(size_t, &inter->call_stack)) goto FAILURE_CALL;
+				rbt* local_words = *vector_back(cctl_ptr(rbt), &inter->local_words_stack);
+				rbt_free(local_words);
+				if (!vector_pop_back(cctl_ptr(rbt), &inter->local_words_stack)) goto FAILURE_CALL;
+				index = pos - 1;
+			} break;
+			case OP_VAR: {
+				value kwrd;
+				rbt* words;
+				if (!interpreter_pop(inter, &kwrd)) goto FAILURE_STACK;
+
+				rbt_node* node;
+				node = rbt_search(inter->global_words, kwrd.u);
+				if (node) goto FAILURE_REDEFINE;
+				if (inter->local_words_stack.size > 0) {
+					words = *vector_back(cctl_ptr(rbt), &inter->local_words_stack);
+					node = rbt_search(words, kwrd.u);
+					if (node) goto FAILURE_REDEFINE;
+				}
+				else {
+					words = inter->global_words;
+				}
+
+				node = rbt_node_new(kwrd.u);
+				if (!node) goto FAILURE_DEFINE;
+
+				node->data = 0;
+				node->type = KWRD_VAR;
+				rbt_insert(words, node);
+			} break;
+			case OP_SET: {
+				value kwrd;
+				value v;
+				rbt* local_words;
+				rbt_node* node;
+				if (!interpreter_pop(inter, &kwrd)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &v)) goto FAILURE_STACK;
+
+				node = rbt_search(inter->global_words, kwrd.u);
+				if (!node) {
+					if (inter->local_words_stack.size > 0) {
+						local_words = *vector_back(cctl_ptr(rbt), &inter->local_words_stack);
+						node = rbt_search(local_words, kwrd.u);
+					}
+				}
+				if (!node) goto FAILURE_UNDEFINED;
+
+				if (node->type == KWRD_VAR) {
+					node->data = v.u;
+				}
+				else goto FAILURE_INVALID;
+			} break;
+			case OP_CALL: {
+				value kwrd;
+				rbt* local_words;
+				rbt_node* node;
+				for (int i = 0; i < 8; i++) {
+					kwrd.bytes[i] = inter->bytecode[++index];
+				}
+				node = rbt_search(inter->global_words, kwrd.u);
+				if (!node) {
+					if (inter->local_words_stack.size > 0) {
+						local_words = *vector_back(cctl_ptr(rbt), &inter->local_words_stack);
+						node = rbt_search(local_words, kwrd.u);
+					}
+				}
+
+				if (!node) goto FAILURE_UNDEFINED;
+
+				switch (node->type) {
+					case KWRD_FUNC: {
+						if (!vector_push_back(size_t, &inter->call_stack, index + 1)) goto FAILURE_CALL;
+						local_words = rbt_new();
+						if (!local_words) goto FAILURE_CALL;
+						if (!vector_push_back(cctl_ptr(rbt), &inter->local_words_stack, local_words)) goto FAILURE_CALL;
+						index = node->data - 1;
+					} break;
+					case KWRD_VAR: {
+						value v;
+						v.u = node->data;
+						if (!interpreter_push(inter, v)) goto FAILURE_STACK;
+					} break;
+				}
+			} break;
+			case OP_ADD: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				a.i = a.i + b.i;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_SUB: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				a.i = a.i - b.i;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_MUL: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				a.i = a.i * b.i;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_DIV: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				if (!b.i) {
+					fputs("error : Division by zero\n", stderr);
+				}
+				a.i = a.i / b.i;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_MOD: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				if (!b.i) {
+					fputs("error : Division by zero\n", stderr);
+				}
+				a.i = a.i % b.i;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_UDIV: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				if (!b.u) {
+					fputs("error : Division by zero\n", stderr);
+				}
+				a.u = a.u / b.u;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_UMOD: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				if (!b.u) {
+					fputs("error : Division by zero\n", stderr);
+				}
+				a.u = a.u % b.u;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_NEG: {
+				value v;
+				if (!interpreter_pop(inter, &v)) goto FAILURE_STACK;
+				v.u = -v.u;
+				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
+			} break;
+			case OP_INC: {
+				value v;
+				if (!interpreter_pop(inter, &v)) goto FAILURE_STACK;
+				v.i++;
+				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
+			} break;
+			case OP_DEC: {
+				value v;
+				if (!interpreter_pop(inter, &v)) goto FAILURE_STACK;
+				v.i--;
+				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
+			} break;
+			case OP_EQU: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				a.u = (a.i == b.i) ? -1 : 0;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_NEQ: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				a.u = (a.i != b.i) ? -1 : 0;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_GRT: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				a.u = (a.i > b.i) ? -1 : 0;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_GEQ: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				a.u = (a.i >= b.i) ? -1 : 0;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_LST: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				a.u = (a.i < b.i) ? -1 : 0;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_LEQ: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				a.u = (a.i <= b.i) ? -1 : 0;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_UGRT: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				a.u = (a.u < b.u) ? -1 : 0;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_UGEQ: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				a.u = (a.u <= b.u) ? -1 : 0;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_ULST: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				a.u = (a.u > b.u) ? -1 : 0;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_ULEQ: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				a.u = (a.u >= b.u) ? -1 : 0;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_FADD: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				a.f = a.f + b.f;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_FSUB: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				a.f = a.f - b.f;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_FMUL: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				a.f = a.f * b.f;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_FDIV: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				if (b.f == 0) {
+					fputs("error : Division by zero\n", stderr);
+				}
+				a.f = a.f / b.f;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_FMOD: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				if (b.f == 0) {
+					fputs("error : Division by zero\n", stderr);
+				}
+				a.f = fmod(a.f, b.f);
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_FNEG: {
+				value v;
+				if (!interpreter_pop(inter, &v)) goto FAILURE_STACK;
+				v.f = -v.f;
+				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
+			} break;
+			case OP_FEQU: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				a.u = (a.f == b.f) ? -1 : 0;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_FNEQ: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				a.u = (a.f != b.f) ? -1 : 0;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_FGRT: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				a.u = (a.f > b.f) ? -1 : 0;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_FGEQ: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				a.u = (a.f >= b.f) ? -1 : 0;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_FLST: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				a.u = (a.f < b.f) ? -1 : 0;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_FLEQ: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				a.u = (a.f <= b.f) ? -1 : 0;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_AND: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				a.u = a.u & b.u;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_OR: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				a.u = a.u | b.u;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_XOR: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				a.u = a.u ^ b.u;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_NOT: {
+				value v;
+				if (!interpreter_pop(inter, &v)) goto FAILURE_STACK;
+				v.u = ~v.u;
+				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
+			} break;
+			case OP_LSFT: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				a.u = a.u << b.u;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_RSFT: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				a.u = a.u >> b.u;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_DROP: {
+				value v;
+				if (!interpreter_pop(inter, &v)) goto FAILURE_STACK;
+			} break;
+			case OP_NIP: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_DUP: {
+				value v;
+				if (!interpreter_pop(inter, &v)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
+			} break;
+			case OP_OVER: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, b)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_TUCK: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, b)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, b)) goto FAILURE_STACK;
+			} break;
+			case OP_SWAP: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, b)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_ROT: {
+				value a, b, c;
+				if (!interpreter_pop(inter, &c)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, b)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, c)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_TDROP: {
+				value v;
+				if (!interpreter_pop(inter, &v)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &v)) goto FAILURE_STACK;
+			} break;
+			case OP_TNIP: {
+				value a, b, c;
+				if (!interpreter_pop(inter, &c)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, b)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, c)) goto FAILURE_STACK;
+			} break;
+			case OP_TDUP: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, b)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, b)) goto FAILURE_STACK;
+			} break;
+			case OP_TOVER: {
+				value a, b, c, d;
+				if (!interpreter_pop(inter, &d)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &c)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, b)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, c)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, d)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, b)) goto FAILURE_STACK;
+			} break;
+			case OP_TTUCK: {
+				value a, b, c, d;
+				if (!interpreter_pop(inter, &d)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &c)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, c)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, d)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, b)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, c)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, d)) goto FAILURE_STACK;
+			} break;
+			case OP_TSWAP: {
+				value a, b, c, d;
+				if (!interpreter_pop(inter, &d)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &c)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, c)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, d)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, b)) goto FAILURE_STACK;
+			} break;
+			case OP_TROT: {
+				value a, b, c, d, e, f;
+				if (!interpreter_pop(inter, &f)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &e)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &d)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &c)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, c)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, d)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, e)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, f)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+				if (!interpreter_push(inter, b)) goto FAILURE_STACK;
+			} break;
+			case OP_ALLOC: {
+				value v;
+				if (!interpreter_pop(inter, &v)) goto FAILURE_STACK;
+				if (!v.u) v.p = NULL;
+				else v.p = malloc(v.u * sizeof(value));
+				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
+			} break;
+			case OP_RESIZE: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				if (!b.u) free(a.p);
+				else a.p = realloc((void*) a.u, b.u * sizeof(value));
+				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+			} break;
+			case OP_FREE: {
+				value v;
+				if (!interpreter_pop(inter, &v)) goto FAILURE_STACK;
+				free(v.p);
+			} break;
+			case OP_FETCH: {
+				value v;
+				if (!interpreter_pop(inter, &v)) goto FAILURE_STACK;
+				v.u = *v.p;
+				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
+			} break;
+			case OP_STORE: {
+				value a, b;
+				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
+				*b.p = a.u;
+			} break;
+			case OP_PUTC: {
+				value v;
+				if (!interpreter_pop(inter, &v)) goto FAILURE_STACK;
+				if (v.u < 127) {
+					putchar(v.u);
+				}
+				else {
+					char out[8];
+					mbstate_t state;
+					size_t rc = c32rtomb(out, v.u, &state);
+					if (rc == -1) {
+						fputs("error : Unicode encoding failure\n", stderr);
+						return false;
+					}
+					out[rc] = 0;
+					printf("%s", out);
+				}
+			} break;
+			case OP_PUTD: {
+				value v;
+				if (!interpreter_pop(inter, &v)) goto FAILURE_STACK;
+				printf("%" PRId64 " ", v.i);
+			} break;
+			case OP_PUTU: {
+				value v;
+				if (!interpreter_pop(inter, &v)) goto FAILURE_STACK;
+				printf("%" PRIu64 " ", v.u);
+			} break;
+			case OP_PUTF: {
+				value v;
+				if (!interpreter_pop(inter, &v)) goto FAILURE_STACK;
+				printf("%lf ", v.f);
+			} break;
+			case OP_SHOW: {
+				printf("[%zu] [ ", inter->data_stack.size);
+				for (size_t i = 0; i < inter->data_stack.size; i++) {
+					printf("%" PRId64 " ", (*vector_at(value, &inter->data_stack, i)).i);
+				}
+				printf("]\n");
+			} break;
+			default: {
+				fputs("error : Invalid operation code\n", stderr);
+				return false;
+			}
+		}
+	}
+	return true;
+
+FAILURE_STACK:
+	fputs("error : Stack memory error\n", stderr);
+	return false;
+FAILURE_INVALID:
+	fputs("error : Invalid keyword\n", stderr);
+	return false;
+FAILURE_UNDEFINED:
+	fputs("error : Undefined keyword\n", stderr);
+	return false;
+FAILURE_REDEFINE:
+	fputs("error : Redefined keyword\n", stderr);
+	return false;
+FAILURE_DEFINE:
+	fputs("error : Definition failure\n", stderr);
+	return false;
+FAILURE_CALL:
+	fputs("error : Call stack error\n", stderr);
+	return false;
+}
+
+bool interpreter_pop(interpreter* inter, value* v) {
+	if (!inter->data_stack.size) {
+		fputs("error : Stack underflow\n", stderr);
+		return false;
+	}
+	*v = *vector_back(value, &inter->data_stack);
+	vector_pop_back(value, &inter->data_stack);
+	return true;
+}
+
+bool interpreter_push(interpreter* inter, value v) {
+	if (!vector_push_back(value, &inter->data_stack, v)) {
+		fputs("error : Stack memory allocation failure\n", stderr);
+		return false;
+	}
+	return true;
+}

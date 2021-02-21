@@ -1,0 +1,44 @@
+project(csabr)
+
+include_directories(
+	${PROJECT_SOURCE_DIR}/include
+	${PROJECT_SOURCE_DIR}/include/cctl
+	${PROJECT_SOURCE_DIR}/include/compiler
+	${PROJECT_SOURCE_DIR}/include/interpreter
+	${PROJECT_SOURCE_DIR}/src
+	${PROJECT_SOURCE_DIR}/src/compiler
+	${PROJECT_SOURCE_DIR}/src/interpreter
+)
+
+file(GLOB common_srcs
+	"${PROJECT_SOURCE_DIR}/src/*.c"
+	"${PROJECT_SOURCE_DIR}/include/*.h"
+	"${PROJECT_SOURCE_DIR}/include/cctl/*.h"
+)
+
+file(GLOB inter_srcs
+	
+	"${PROJECT_SOURCE_DIR}/src/interpreter/*.c"
+	"${PROJECT_SOURCE_DIR}/include/interpreter/*.h"
+)
+
+file(GLOB comp_srcs
+	"${PROJECT_SOURCE_DIR}/src/compiler/*.c"
+	"${PROJECT_SOURCE_DIR}/include/compiler/*.h"
+)
+
+add_executable( sabre ${inter_srcs} ${common_srcs} )
+add_executable( sabrc ${comp_srcs} ${common_srcs} )
+
+target_link_libraries( sabre m )
+
+if(WIN32)
+	message("WIN32 build!")
+else()
+	message("UNIX build!")
+	INSTALL (
+		TARGETS sabre sabrc
+		DESTINATION .
+	)
+	SET ( CMAKE_INSTALL_PREFIX /usr/bin )
+endif()
