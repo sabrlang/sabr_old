@@ -1,4 +1,5 @@
-# sabr
+# Sabr
+Sabr is simple stack-oriented programming language.
 
 # build from source
 ```
