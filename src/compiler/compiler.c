@@ -264,7 +264,7 @@ bool compiler_tokenize(compiler* comp, size_t index) {
 		}
 		iterator++;
 		
-		if (*iterator >= -64) {
+		if (((signed char) *iterator) >= -64) {
 			comp->column_count++;
 		}
 		
@@ -624,7 +624,6 @@ bool compiler_parse_base_n_num(compiler* comp, char* token, size_t index, bool n
 		}
 	}
 	if (negate) v.i = -v.i;
-
 	
 	if (*stop) {
 		fputs("error : Number parsing failure\n", stderr);
@@ -672,7 +671,7 @@ bool compiler_parse_char(compiler* comp, char* token) {
 	vector_init(value, &value_reverser);
 
 	while (*token) {
-		if (*token > -1) {
+		if (((signed char) *token) > -1) {
 			char* num_pasre_stop = NULL;
 			char num_parse[9] = {0, };
 			num_parse_count = 0;
