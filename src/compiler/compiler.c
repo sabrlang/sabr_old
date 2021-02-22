@@ -797,7 +797,6 @@ FAILURE_VECTOR:
 }
 
 bool compiler_parsed_num_to_bytecode(compiler* comp, value v) {
-
 	if (!vector_push_back(uint8_t, &comp->bytecode, OP_VALUE)) goto FAILURE;
 
 	for (int i = 0; i < 8; i++) {
