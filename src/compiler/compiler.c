@@ -271,6 +271,12 @@ bool compiler_tokenize(compiler* comp, size_t index) {
 		}
 		
 	}
+
+	if (comp->control_data_stack.size > 0) {
+		fputs("error : Control level does not match\n", stderr);
+		return false;
+	}
+
 	return true;
 }
 
