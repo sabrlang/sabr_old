@@ -766,7 +766,7 @@ bool compiler_parse_char(compiler* comp, char* token) {
 			size_t rc;
 			mbstate_t state;
 			rc = mbrtoc32(&out, token, end - token, &state);
-			if ((rc > -4) || (rc == 0)) goto FAILURE_UNICODE;
+			if ((rc > ((unsigned char) -4)) || (rc == 0)) goto FAILURE_UNICODE;
 			token += rc;
 			v.u = out;
 		}
