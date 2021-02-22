@@ -633,7 +633,7 @@ bool interpreter_run(interpreter* inter) {
 				else {
 					char out[8];
 					mbstate_t state;
-					size_t rc = c32rtomb(out, v.u, &state);
+					size_t rc = c32rtomb(out, (char32_t) v.u, &state);
 					if (rc == -1) {
 						fputs("error : Unicode encoding failure\n", stderr);
 						return false;
