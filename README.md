@@ -14,6 +14,14 @@ make
 ```
 
 # how to use
+
+## compile to bytecode
+```
+sabrc {source file name} {output file name}
 ```
 
+## interprete bytecode
 ```
+sabre {bytecode file name}
+```
+
