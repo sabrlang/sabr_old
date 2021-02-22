@@ -1,6 +1,8 @@
 #include "interpreter.h"
 
 void interpreter_init(interpreter* inter) {
+	setlocale(LC_ALL, "en_US.utf8");
+
 	vector_init(value, &inter->data_stack);
 	vector_init(size_t, &inter->call_stack);
 

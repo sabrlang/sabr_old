@@ -2,6 +2,7 @@
 #define __INTERPRETER_H__
 
 #include <inttypes.h>
+#include <locale.h>
 #include <math.h>
 #include <uchar.h>
 
