@@ -35,7 +35,7 @@ bool interpreter_load_code(interpreter* inter, char* filename) {
 	size = ftell(file);
 	rewind(file);
 
-	char* code = (char*) malloc(size);
+	uint8_t* code = (char*) malloc(size);
 	if (!code) {
 		fclose(file);
 		fputs("error : Memory allocation failure\n", stderr);
