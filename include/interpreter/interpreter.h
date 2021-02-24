@@ -21,7 +21,7 @@ typedef struct interpreter_struct {
 	vector(cctl_ptr(rbt)) local_words_stack;
 } interpreter;
 
-void interpreter_init(interpreter* inter);
+bool interpreter_init(interpreter* inter);
 void interpreter_del(interpreter* inter);
 bool interpreter_load_code(interpreter* inter, char* filename);
 bool interpreter_run(interpreter* inter);

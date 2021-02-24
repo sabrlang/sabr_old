@@ -1,6 +1,6 @@
 #include "interpreter.h"
 
-void interpreter_init(interpreter* inter) {
+bool interpreter_init(interpreter* inter) {
 	setlocale(LC_ALL, "en_US.utf8");
 
 	vector_init(value, &inter->data_stack);
@@ -8,6 +8,11 @@ void interpreter_init(interpreter* inter) {
 
 	vector_init(cctl_ptr(rbt), &inter->local_words_stack);
 	inter->global_words = rbt_new();
+	if (!(inter->global_words)) {
+		fputs("error : Dictionary memory allocation failure\n", stderr);
+		return false;
+	}
+	return true;
 }
 
 void interpreter_del(interpreter* inter) {

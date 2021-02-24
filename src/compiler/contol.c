@@ -8,7 +8,8 @@ const char* control_names[] = {
 	"while",
 	"break",
 	"continue",
-	"func"
+	"func",
+	"macro"
 };
 
 size_t control_len = sizeof(control_names) / sizeof(char*);
