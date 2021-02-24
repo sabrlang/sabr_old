@@ -15,12 +15,12 @@ make
 
 # How to use
 
-## compile to bytecode
+## Compile to bytecode
 ```
 sabrc {source file name} {output file name}
 ```
 
-## interprete bytecode
+## Interprete bytecode
 ```
 sabre {bytecode file name}
 ```
