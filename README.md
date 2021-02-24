@@ -3,7 +3,7 @@
 # Sabr
 Sabr is simple stack-oriented programming language.
 
-# build from source
+# Build from source
 ```
 git clone --depth=1 https://github.com/mhcoma/sabr.git
 cd sabr
@@ -13,7 +13,7 @@ cmake ..
 make
 ```
 
-# how to use
+# How to use
 
 ## compile to bytecode
 ```
