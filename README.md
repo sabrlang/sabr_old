@@ -13,7 +13,7 @@ cmake ..
 make
 ```
 
-# How to use
+# How to run
 
 ## Compile to bytecode
 ```
@@ -24,4 +24,3 @@ sabrc {source file name} {output file name}
 ```
 sabre {bytecode file name}
 ```
-
