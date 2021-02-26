@@ -38,3 +38,7 @@ sabre {bytecode file name}
 * `return`
 * `macro`
 * `end`
+### Literals
+#### Number literals
+#### Character literals
+### Identifiers
