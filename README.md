@@ -130,16 +130,16 @@ These also work for unsigned integers.
 * `\\` -> 92
 * `\'` -> 39
 * `\"` -> 34
-* `\nnn` -> The byte whose numerical value is given by nnn interpreted as an octal number
-* `\xhh` -> The byte whose numerical value is given by hh interpreted as a hexadecimal number
-* `\uhhhh` -> Unicode code point below 10000 hexadecimal
-* `\Uhhhhhhhh` -> Unicode code point where h is a hexadecimal digit
+* `\nnn` -> The byte whose numerical value is given by nnn interpreted as an octal number.
+* `\xhh` -> The byte whose numerical value is given by hh interpreted as a hexadecimal number.
+* `\uhhhh` -> Unicode code point below 10000 hexadecimal.
+* `\Uhhhhhhhh` -> Unicode code point where h is a hexadecimal digit.
 ## Identifiers
 Control keywords, built-in operators, literals cannot become identifiers.
-* Identifier value : `$main`, `$a`  
-Use for define functions, macros, variables. These have unsigned integer value.
-* Identifier call : `main`, `a`  
-Get values of variables or call functions and macros.
+* Identifier name  : `$main`, `$a`  
+Use for define functions, macros, variables. These are unsigned integer value.
+* Call identifiers : `main`, `a`  
+Get variable values or call functions and macros.
 ## Comments
 * Line comments : `\this is a comment`, `\ this is a comment`, `2 5 + \this is a comment`
 
