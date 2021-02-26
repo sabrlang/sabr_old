@@ -13,7 +13,8 @@ typedef enum control_enum {
 	CTRL_BREAK,
 	CTRL_CONTINUE,
 	CTRL_FUNC,
-	CTRL_MACRO
+	CTRL_MACRO,
+	CTRL_RETURN
 } control;
 
 extern size_t control_len;

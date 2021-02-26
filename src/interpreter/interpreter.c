@@ -95,7 +95,7 @@ bool interpreter_run(interpreter* inter) {
 				value kwrd;
 				value pos;
 				if (!interpreter_pop(inter, &kwrd)) goto FAILURE_STACK;
-				rbt_node* node;
+				rbt_node* node = NULL;
 				node = rbt_search(inter->global_words, kwrd.u);
 				if (node) goto FAILURE_REDEFINE;
 				node = rbt_node_new(kwrd.u);
@@ -103,6 +103,25 @@ bool interpreter_run(interpreter* inter) {
 
 				node->data = index + 9;
 				node->type = KWRD_FUNC;
+				rbt_insert(inter->global_words, node);
+
+				for (int i = 0; i < 8; i++) {
+					pos.bytes[i] = inter->bytecode[++index];
+				}
+				index = pos.u - 1;
+			} break;
+			case OP_MACRO: {
+				value kwrd;
+				value pos;
+				if (!interpreter_pop(inter, &kwrd)) goto FAILURE_STACK;
+				rbt_node* node = NULL;
+				node = rbt_search(inter->global_words, kwrd.u);
+				if (node) goto FAILURE_REDEFINE;
+				node = rbt_node_new(kwrd.u);
+				if (!node) goto FAILURE_DEFINE;
+
+				node->data = index + 9;
+				node->type = KWRD_MACRO;
 				rbt_insert(inter->global_words, node);
 
 				for (int i = 0; i < 8; i++) {
@@ -119,12 +138,18 @@ bool interpreter_run(interpreter* inter) {
 				if (!vector_pop_back(cctl_ptr(rbt), &inter->local_words_stack)) goto FAILURE_CALL;
 				index = pos - 1;
 			} break;
+			case OP_ENDMACRO: {
+				if (inter->call_stack.size < 1) goto FAILURE_CALL;
+				size_t pos = *vector_back(size_t, &inter->call_stack);
+				if (!vector_pop_back(size_t, &inter->call_stack)) goto FAILURE_CALL;
+				index = pos - 1;
+			} break;
 			case OP_VAR: {
 				value kwrd;
-				rbt* words;
+				rbt* words = NULL;
 				if (!interpreter_pop(inter, &kwrd)) goto FAILURE_STACK;
 
-				rbt_node* node;
+				rbt_node* node = NULL;
 				node = rbt_search(inter->global_words, kwrd.u);
 				if (node) goto FAILURE_REDEFINE;
 				if (inter->local_words_stack.size > 0) {
@@ -146,8 +171,8 @@ bool interpreter_run(interpreter* inter) {
 			case OP_SET: {
 				value kwrd;
 				value v;
-				rbt* local_words;
-				rbt_node* node;
+				rbt* local_words = NULL;
+				rbt_node* node = NULL;
 				if (!interpreter_pop(inter, &kwrd)) goto FAILURE_STACK;
 				if (!interpreter_pop(inter, &v)) goto FAILURE_STACK;
 
@@ -167,8 +192,8 @@ bool interpreter_run(interpreter* inter) {
 			} break;
 			case OP_CALL: {
 				value kwrd;
-				rbt* local_words;
-				rbt_node* node;
+				rbt* local_words = NULL;
+				rbt_node* node = NULL;
 				for (int i = 0; i < 8; i++) {
 					kwrd.bytes[i] = inter->bytecode[++index];
 				}
@@ -188,6 +213,10 @@ bool interpreter_run(interpreter* inter) {
 						local_words = rbt_new();
 						if (!local_words) goto FAILURE_CALL;
 						if (!vector_push_back(cctl_ptr(rbt), &inter->local_words_stack, local_words)) goto FAILURE_CALL;
+						index = node->data - 1;
+					} break;
+					case KWRD_MACRO: {
+						if (!vector_push_back(size_t, &inter->call_stack, index + 1)) goto FAILURE_CALL;
 						index = node->data - 1;
 					} break;
 					case KWRD_VAR: {

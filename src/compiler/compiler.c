@@ -7,7 +7,6 @@ bool compiler_init(compiler* comp) {
 	vector_init(cctl_ptr(char), &comp->filename_vector);
 	vector_init(uint8_t, &comp->bytecode);
 	vector_init(cctl_ptr(vector(control_data)), &comp->control_data_stack);
-	vector_init(uint64_t, &comp->compile_time_words_stack);
 	trie_init(&comp->dictionary);
 
 	comp->dictionary_keyword_count = 0;
@@ -48,7 +47,6 @@ bool compiler_del(compiler* comp) {
 		vector_free(control_data, *vector_at(cctl_ptr(vector(control_data)), &comp->control_data_stack, i));
 	}
 	vector_free(cctl_ptr(vector(control_data)), &comp->control_data_stack);
-	vector_free(uint64_t, &comp->compile_time_words_stack);
 	trie_del(&comp->dictionary);
 
 	return true;
@@ -310,7 +308,7 @@ bool compiler_parse(compiler* comp, char* begin, char* end) {
 				result = compiler_parse_keyword_value(comp, begin + 1);
 			} break;
 			case '#': {
-				result = compiler_parse_compile_time_keyword(comp, begin + 1);
+				result = false;
 			}
 			case '\'': {
 				char temp_parse_char = *(end - 1);
@@ -428,7 +426,21 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			}
 		} break;
 		case CTRL_MACRO: {
-			
+			temp_ctrl_vec = (vector(control_data)*) malloc(sizeof(vector(control_data)));
+			if (!temp_ctrl_vec) goto FAILURE_CTRL_VECTOR;
+			vector_init(control_data, temp_ctrl_vec);
+			if (!vector_push_back(control_data, temp_ctrl_vec, current_ctrl)) goto FAILURE_CTRL_VECTOR;
+			if (!vector_push_back(cctl_ptr(vector(control_data)), &comp->control_data_stack, temp_ctrl_vec)) goto FAILURE_CTRL_STACK;
+			if (!vector_push_back(uint8_t, &comp->bytecode, OP_MACRO)) goto FAILURE_BYTECODE;
+			for (int i = 0; i < 8; i++) {
+				if (!vector_push_back(uint8_t, &comp->bytecode, 0)) goto FAILURE_BYTECODE;
+			}
+		} break;
+		case CTRL_RETURN: {
+			if (!comp->control_data_stack.size) goto FAILURE_CTRL;
+			temp_ctrl_vec = *vector_back(cctl_ptr(vector(control_data)), &comp->control_data_stack);
+			if (!vector_push_back(control_data, temp_ctrl_vec, current_ctrl)) goto FAILURE_CTRL_VECTOR;
+			if (!vector_push_back(uint8_t, &comp->bytecode, OP_RETURN)) goto FAILURE_BYTECODE;
 		} break;
 		case CTRL_END: {
 			value pos;
@@ -521,6 +533,25 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 					}
 					if (!vector_push_back(uint8_t, &comp->bytecode, OP_RETURN)) goto FAILURE_BYTECODE;
 				} break;
+				case CTRL_MACRO: {
+					for (
+						control_data* iter = vector_at(control_data, temp_ctrl_vec, 1);
+						iter <= vector_back(control_data, temp_ctrl_vec);
+						iter++
+					) {
+						switch (iter->ctrl) {
+							case CTRL_RETURN: {
+								goto FAILURE_CTRL;
+							} break;
+						}
+					}
+					if (temp_ctrl_vec->size > 1) goto FAILURE_CTRL;
+					pos.u = current_ctrl.pos + 1;
+					for (int i = 0; i < 8; i++) {
+						*vector_at(uint8_t, &comp->bytecode, first_ctrl->pos + 1 + i) = pos.bytes[i];
+					}
+					if (!vector_push_back(uint8_t, &comp->bytecode, OP_ENDMACRO)) goto FAILURE_BYTECODE;
+				} break;
 			}
 			vector_free(control_data, temp_ctrl_vec);
 			if (!vector_pop_back(cctl_ptr(vector(control_data)), &comp->control_data_stack)) goto FAILURE_CTRL_STACK;
@@ -595,58 +626,6 @@ bool compiler_parse_keyword_value(compiler* comp, char* token) {
 FAILURE_BYTECODE:
 	fputs("error : Bytecode memory allocation faliure\n", stderr);
 	return false;
-FAILURE_INVALID_KEYWORD:
-	fputs("error : Invalid keyword\n", stderr);
-	return false;
-}
-
-bool compiler_parse_compile_time_keyword(compiler* comp, char* token) {
-	trie* word;
-	word = trie_find(&comp->dictionary, token);
-	if (word->type != WTT_COMP) {
-		fputs("error : Keywords, Control words and built-in-functions cannot be compile-time keyword\n", stderr);
-		return false;
-	}
-	else {
-		char* iter = token;
-		switch (*iter) {
-			case '+':
-			case '-':
-			case '.': {
-				iter++;
-				switch (*iter) {
-					case '0' ... '9': {
-						goto FAILURE_INVALID_KEYWORD;
-					} break;
-				}
-			} break;
-			case '0' ... '9':
-			case '@':
-			case '#':
-			case '$':
-			case '\'':
-			case '\"':
-			case '\0': {
-				goto FAILURE_INVALID_KEYWORD;
-			} break;
-		}
-
-		comp->dictionary_keyword_count++;
-		word = trie_insert(&comp->dictionary, token, WTT_COMP);
-		if (!word) {
-			fputs("error : Dictionary memory allocation failure\n", stderr);
-			return false;
-		}
-		word->data.u = comp->dictionary_keyword_count;
-	}
-
-	if (!vector_push_back(uint64_t, &comp->compile_time_words_stack, word->data.u)) goto FAILURE_WORDS_STACK;
-
-	return true;
-FAILURE_WORDS_STACK:
-	fputs("error : Compile-time words stack memory allocation faliure\n", stderr);
-	return false;
-
 FAILURE_INVALID_KEYWORD:
 	fputs("error : Invalid keyword\n", stderr);
 	return false;
@@ -758,7 +737,6 @@ bool compiler_parse_char(compiler* comp, char* token) {
 					case '\\': v.u = '\\'; break;
 					case '\'': v.u = '\''; break;
 					case '\"': v.u = '\"'; break;
-						break;
 					case '0' ... '7': {
 						while ((*token >= '0') && (*token <= '7') && (num_parse_count < 3)) {
 							num_parse[num_parse_count] = *token;

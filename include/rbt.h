@@ -9,6 +9,7 @@
 typedef enum keyword_type_enum {
 	KWRD_NONE,
 	KWRD_FUNC,
+	KWRD_MACRO,
 	KWRD_VAR
 } keyword_type;
 

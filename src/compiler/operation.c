@@ -1,7 +1,6 @@
 #include "operation.h"
 
 const char* operation_names[] = {
-	"return",
 	"var",
 	"=",
 	"+",
@@ -69,7 +68,6 @@ const char* operation_names[] = {
 };
 
 const opcode operation_indices[] = {
-	OP_RETURN,
 	OP_VAR,
 	OP_SET,
 	OP_ADD,

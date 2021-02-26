@@ -31,7 +31,6 @@ typedef struct compiler_struct {
 	vector(cctl_ptr(char)) filename_vector;
 	vector(uint8_t) bytecode;
 	vector(cctl_ptr(vector(control_data))) control_data_stack;
-	vector(uint64_t) compile_time_words_stack;
 	trie dictionary;
 	size_t dictionary_keyword_count;
 	size_t line_count;
@@ -48,7 +47,6 @@ bool compiler_parse(compiler* comp, char* begin, char* end);
 bool compiler_parse_word_token(compiler* comp, trie* trie_result);
 bool compiler_parse_control_words(compiler* comp, trie* trie_result);
 bool compiler_parse_keyword_value(compiler* comp, char* token);
-bool compiler_parse_compile_time_keyword(compiler* comp, char* token);
 bool compiler_parse_zero_begin_num(compiler* comp, char* token, size_t index, bool negate);
 bool compiler_parse_base_n_num(compiler* comp, char* token, size_t index, bool negate, int base);
 bool compiler_parse_num(compiler* comp, char* token);

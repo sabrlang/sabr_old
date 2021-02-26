@@ -9,7 +9,8 @@ const char* control_names[] = {
 	"break",
 	"continue",
 	"func",
-	"macro"
+	"macro",
+	"return"
 };
 
 size_t control_len = sizeof(control_names) / sizeof(char*);
