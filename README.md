@@ -142,5 +142,5 @@ Use for define functions, macros, variables. These have unsigned integer value.
 * Identifier call : `main`, `a`  
 Get values of variables or call functions and macros.
 ## Comments
-* Line comments : `\this is comment`, `\ this is comment`, `2 5 + \this is comment`
+* Line comments : `\this is a comment`, `\ this is a comment`, `2 5 + \this is a comment`
 
