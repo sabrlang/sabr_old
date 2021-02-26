@@ -14,13 +14,27 @@ make
 ```
 
 # How to run
-
 ## Compile to bytecode
 ```
 sabrc {source file name} {output file name}
 ```
-
 ## Interprete bytecode
 ```
 sabre {bytecode file name}
 ```
+
+# Specification
++ Sabr programs must be written in UTF-8.
+
+## Tokens
+### Control keywords
+* `if`
+* `else`
+* `loop`
+* `while`
+* `break`
+* `continue`
+* `func`
+* `return`
+* `macro`
+* `end`
