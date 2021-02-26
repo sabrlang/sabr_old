@@ -136,7 +136,7 @@ These also work for unsigned integers.
 * `\Uhhhhhhhh` -> Unicode code point where h is a hexadecimal digit.
 ## Identifiers
 Control keywords, built-in operators, literals cannot become identifiers.
-* Identifier name  : `$main`, `$a`  
+* Define identifiers  : `$main`, `$a`  
 Use for define functions, macros, variables. These are unsigned integer value.
 * Call identifiers : `main`, `a`  
 Get variable values or call functions and macros.
