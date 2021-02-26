@@ -25,8 +25,7 @@ sabre {bytecode file name}
 
 # Specification
 Sabr programs must be written in UTF-8.
-## Tokens
-### Control keywords
+## Control keywords
 * `if`
 * `else`
 * `loop`
@@ -37,8 +36,8 @@ Sabr programs must be written in UTF-8.
 * `return`
 * `macro`
 * `end`
-### Built-in operators
-#### Integer arithmetic
+## Built-in operators
+### Integer arithmetic
 These also work for unsigned integers.
 * `+`
 * `-`
@@ -46,12 +45,12 @@ These also work for unsigned integers.
 * `0-`
 * `1+`
 * `1-`
-#### Integer division
+### Integer division
 * `/`
 * `%`
 * `u/`
 * `u%`
-#### Integer comparison
+### Integer comparison
 * `==`
 * `!=`
 * `>`
@@ -62,7 +61,7 @@ These also work for unsigned integers.
 * `u>=`
 * `u<`
 * `u<=`
-#### Floating-point
+### Floating-point
 * `f+`
 * `f-`
 * `f*`
@@ -74,14 +73,14 @@ These also work for unsigned integers.
 * `f>=`
 * `f<`
 * `f<=`
-#### Bitwise operation
+### Bitwise operation
 * `&`
 * `|`
 * `^`
 * `~`
 * `<<`
 * `>>`
-#### Stack manipulation
+### Stack manipulation
 * `drop`
 * `nip`
 * `dup`
@@ -96,30 +95,30 @@ These also work for unsigned integers.
 * `2tuck`
 * `2swap`
 * `2rot`
-#### Variable
+### Variable
 * `var`
 * `=`
-#### Dynamic allocation
+### Dynamic allocation
 * `alloc`
 * `resize`
 * `free`
 * `@`
 * `#`
-#### I/O
+### I/O
 * `putc`
 * `putd`
 * `putu`
 * `putf`
 * `show`
 
-### Literals
-#### Number literals
+## Literals
+### Number literals
 * Integers : `255`, `0255`, `0xff`, `0o377`, `0b11111111`
 * Floating-point : `0.25`, `.25`, `00.250`, `0.25e0`, `2.5e-1`, `0.025e1`
-#### Character literals
+### Character literals
 * Unicode characters : `'가'` -> `[ 44032 ]`
 * Characters sequence : `'Hello\0'` -> `[ 0, 111, 108, 108, 72 ]`
-#### Escape sequences
+### Escape sequences
 * `\a` -> 7
 * `\b` -> 8
 * `\e` -> 27
@@ -135,7 +134,7 @@ These also work for unsigned integers.
 * `\xhh` -> The byte whose numerical value is given by hh interpreted as a hexadecimal number
 * `\uhhhh` -> Unicode code point below 10000 hexadecimal
 * `\Uhhhhhhhh` -> Unicode code point where h is a hexadecimal digit
-### Identifiers
+## Identifiers
 Control keywords, built-in operators, literals cannot become identifiers.
 * Identifier value : `$main`, `$a`  
 Use for define functions, macros, variables. These have unsigned integer value.
