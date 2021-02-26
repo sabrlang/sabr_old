@@ -58,13 +58,13 @@ Sabr programs must be written in UTF-8.
 * `\'` -> 39
 * `\"` -> 34
 * `\nnn` -> The byte whose numerical value is given by nnn interpreted as an octal number
-* `\xhh` -> The byte whose numerical value is given by hh… interpreted as a hexadecimal number
+* `\xhh` -> The byte whose numerical value is given by hh interpreted as a hexadecimal number
 * `\uhhhh` -> Unicode code point below 10000 hexadecimal
 * `\Uhhhhhhhh` -> Unicode code point where h is a hexadecimal digit
 #### Identifiers
-Control keywords, Literals cannot become identifiers.
+Control keywords, built-in operators, literals cannot become identifiers.
 * Identifier value : `$main`, `$a`  
-Use for define functions, macros, variables.
+Use for define functions, macros, variables. These have unsigned integer value.
 * Identifier call : `main`, `a`  
 Get values of variables or call functions and macros.
 ### Comments
