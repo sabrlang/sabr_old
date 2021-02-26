@@ -751,7 +751,7 @@ bool compiler_parse_char(compiler* comp, char* token) {
 					case 'x': {
 						token++;
 						while (
-							(((*token >= '0') && (*token <= '7')) || ((*token >= 'a') && (*token <= 'f')) || ((*token >= 'A') && (*token <= 'F'))) && (num_parse_count < 2))
+							(((*token >= '0') && (*token <= '9')) || ((*token >= 'a') && (*token <= 'f')) || ((*token >= 'A') && (*token <= 'F'))) && (num_parse_count < 2))
 						{
 							num_parse[num_parse_count] = *token;
 							token++;
@@ -765,7 +765,7 @@ bool compiler_parse_char(compiler* comp, char* token) {
 					case 'u': {
 						token++;
 						while (
-							(((*token >= '0') && (*token <= '7')) || ((*token >= 'a') && (*token <= 'f')) || ((*token >= 'A') && (*token <= 'F'))) && (num_parse_count < 4))
+							(((*token >= '0') && (*token <= '9')) || ((*token >= 'a') && (*token <= 'f')) || ((*token >= 'A') && (*token <= 'F'))) && (num_parse_count < 4))
 						{
 							num_parse[num_parse_count] = *token;
 							token++;
@@ -779,7 +779,7 @@ bool compiler_parse_char(compiler* comp, char* token) {
 					case 'U': {
 						token++;
 						while (
-							(((*token >= '0') && (*token <= '7')) || ((*token >= 'a') && (*token <= 'f')) || ((*token >= 'A') && (*token <= 'F'))) && (num_parse_count < 8))
+							(((*token >= '0') && (*token <= '9')) || ((*token >= 'a') && (*token <= 'f')) || ((*token >= 'A') && (*token <= 'F'))) && (num_parse_count < 8))
 						{
 							num_parse[num_parse_count] = *token;
 							token++;
