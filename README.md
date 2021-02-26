@@ -40,5 +40,8 @@ sabre {bytecode file name}
 * `end`
 ### Literals
 #### Number literals
+* Integers : `255` `0255` `0xff` `0o377` `0b11111111`
+* Floating-point : `0.25` `.25` `00.250` `0.25e0` `2.5e-1` `0.025e1`
 #### Character literals
+
 ### Identifiers
