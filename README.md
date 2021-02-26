@@ -24,8 +24,7 @@ sabre {bytecode file name}
 ```
 
 # Specification
-+ Sabr programs must be written in UTF-8.
-
+Sabr programs must be written in UTF-8.
 ## Lexical structure
 ### Tokens
 #### Control keywords
@@ -47,9 +46,10 @@ sabre {bytecode file name}
 * Unicode characters : `가` -> `[ 44032 ]`
 * Characters sequence : `'Hello\0'` -> `[ 0, 111, 108, 108, 72 ]`
 #### Identifiers
+Control keywords, Literals cannot become identifiers.
 * Identifier value : `$main`, `$a`  
 Use for define functions, macros, variables.
 * Identifier call : `main`, `a`  
 Get values of variables or call functions and macros.
 ### Comments
-* Line comment : `\this is comment`, `\ this is comment`, `2 5 + \this is comment`
+* Line comments : `\this is comment`, `\ this is comment`, `2 5 + \this is comment`
