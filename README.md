@@ -49,5 +49,7 @@ sabre {bytecode file name}
 #### Identifiers
 * Identifier value : `$main`, `$a`  
 Use for define functions, macros, variables.
-* Identifier call : `main`, `a`
+* Identifier call : `main`, `a`  
 Get values of variables or call functions and macros.
+### Comments
+* Line comment : `\this is comment`, `\ this is comment`, `2 5 + \this is comment`
