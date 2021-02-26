@@ -26,8 +26,9 @@ sabre {bytecode file name}
 # Specification
 + Sabr programs must be written in UTF-8.
 
-## Tokens
-### Control keywords
+## Lexical structure
+### Tokens
+#### Control keywords
 * `if`
 * `else`
 * `loop`
@@ -38,10 +39,15 @@ sabre {bytecode file name}
 * `return`
 * `macro`
 * `end`
-### Literals
-#### Number literals
-* Integers : `255` `0255` `0xff` `0o377` `0b11111111`
-* Floating-point : `0.25` `.25` `00.250` `0.25e0` `2.5e-1` `0.025e1`
-#### Character literals
-
-### Identifiers
+#### Literals
+##### Number literals
+* Integers : `255`, `0255`, `0xff`, `0o377`, `0b11111111`
+* Floating-point : `0.25`, `.25`, `00.250`, `0.25e0`, `2.5e-1`, `0.025e1`
+##### Character literals
+* Unicode characters : `가` -> `[ 44032 ]`
+* Characters sequence : `'Hello\0'` -> `[ 0, 111, 108, 108, 72 ]`
+#### Identifiers
+* Identifier value : `$main`, `$a`  
+Use for define functions, macros, variables.
+* Identifier call : `main`, `a`
+Get values of variables or call functions and macros.
