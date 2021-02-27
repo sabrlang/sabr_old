@@ -46,70 +46,69 @@ These also work for unsigned integers.
 * `1+` ( n1 -- n ) : n = n1 + 1
 * `1-` ( n1 -- n ) : n = n1 - 1
 ### Integer division
-* `/` ( n1 n2 -- n ) : n = n1 ÷ n2
-* `%` ( n1 n2 -- n ) : n = n1 mod n2
+* `/` ( s1 s2 -- s ) : s = s1 ÷ s2
+* `%` ( s1 s2 -- s ) : s = s1 mod s2
 * `u/` ( u1 u2 -- u ) : u = u1 ÷ u2
 * `u%` ( u1 u2 -- u ) : u = u1 mod u2
+### Numeric comparison
+* `==` ( x1 x2 -- b )
+* `!=` ( x1 x2 -- b )
 ### Integer comparison
-* `==`
-* `!=`
-* `>`
-* `>=`
-* `<`
-* `<=`
-* `u>`
-* `u>=`
-* `u<`
-* `u<=`
+* `>` ( s1 s2 -- b )
+* `>=` ( s1 s2 -- b )
+* `<` ( s1 s2 -- b )
+* `<=` ( s1 s2 -- b )
+* `u>` ( u1 u2 -- b )
+* `u>=` ( u1 u2 -- b )
+* `u<` ( u1 u2 -- b )
+* `u<=` ( u1 u2 -- b )
 ### Floating-point
-* `f+`
-* `f-`
-* `f*`
-* `f/`
-* `f%`
-* `f==`
-* `f!=`
-* `f>`
-* `f>=`
-* `f<`
-* `f<=`
+* `f+` ( f1 f2 -- f ) : f = f1 + f2
+* `f-` ( f1 f2 -- f ) : f = f1 - f2
+* `f*` ( f1 f2 -- f ) : f = f1 × f2
+* `f/` ( f1 f2 -- f ) : f = f1 ÷ f2
+* `f%` ( f1 f2 -- f ) : f = f1 mod f2
+* `f>` ( f1 f2 -- b )
+* `f>=` ( f1 f2 -- b)
+* `f<` ( f1 f2 -- b )
+* `f<=` ( f1 f2 -- b )
 ### Bitwise operation
-* `&`
-* `|`
-* `^`
-* `~`
-* `<<`
-* `>>`
+* `&` ( x1 x2 -- x )
+* `|` ( x1 x2 -- x )
+* `^` ( x1 x2 -- x )
+* `~` ( x1 -- x )
+* `<<` ( x1 u -- x )
+* `>>` ( x1 u -- x )
 ### Stack manipulation
-* `drop`
-* `nip`
-* `dup`
-* `over`
-* `tuck`
-* `swap`
-* `rot`
-* `2drop`
-* `2nip`
-* `2dup`
-* `2over`
-* `2tuck`
-* `2swap`
-* `2rot`
+* `drop` ( x -- )
+* `nip` ( x1 x2 -- x2 )
+* `dup` ( x - x x )
+* `over` ( x1 x2 -- x1 x2 x1 )
+* `tuck` ( x1 x2 -- x2 x1 x2 )
+* `swap`( x1 x2 -- x2 x1 )
+* `rot` ( x1 x2 x3 -- x2 x3 x1 )
+* `2drop` ( x1 x2 --  )
+* `2nip` ( x1 x2 x3 x4 -- x3 x4 )
+* `2dup` ( x1 x2 -- x1 x2 x1 x2 )
+* `2over` ( x1 x2 x3 x4 -- x1 x2 x3 x4 x1 x2 )
+* `2tuck` ( x1 x2 x3 x4 -- x3 x4 x1 x2 x3 x4 )
+* `2swap` ( x1 x2 x3 x4 -- x3 x4 x1 x2 )
+* `2rot` ( x1 x2 x3 x4 x5 x6 -- x3 x4 x5 x6 x1 x2 )
 ### Variable
-* `var`
-* `=`
+* `var` ( i -- )
+* `=` ( x i -- )
 ### Dynamic allocation
-* `alloc`
-* `resize`
-* `free`
-* `@`
-* `#`
+* `alloc` ( u -- a )
+* `resize` ( u a -- a )
+* `free` ( a -- )
+* `@` ( a -- x )
+* `#` ( x a -- )
 ### I/O
-* `putc`
-* `putd`
-* `putu`
-* `putf`
-* `show`
+* `putc` ( u -- )
+* `putd` ( n -- )
+* `putu` ( u -- )
+* `putf` ( f -- )
+* `show` ( -- )
 
 ## Literals
 ### Number literals
