@@ -25,6 +25,16 @@ sabre {bytecode file name}
 
 # Specification
 Sabr programs must be written in UTF-8.
+## Stack-effect comments
+**Not implemented**
+* `x` : Cell (any)
+* `n` : Integer
+* `s` : Signed integer
+* `u` : Unsigned integer
+* `f` : Float-point
+* `b` : Boolean
+* `addr` : Address
+* `id` : Identifier
 ## Control keywords
 * `if`
 * `else`
@@ -95,17 +105,17 @@ These also work for unsigned integers.
 * `2swap` ( x1 x2 x3 x4 -- x3 x4 x1 x2 )
 * `2rot` ( x1 x2 x3 x4 x5 x6 -- x3 x4 x5 x6 x1 x2 )
 ### Variable
-* `var` ( i -- )
-* `=` ( x i -- )
+* `var` ( id -- )
+* `=` ( x id -- )
 ### Dynamic allocation
-* `alloc` ( u -- a )
-* `resize` ( u a -- a )
-* `free` ( a -- )
-* `@` ( a -- x )
-* `#` ( x a -- )
+* `alloc` ( u -- addr )
+* `resize` ( u addr -- addr )
+* `free` ( addr -- )
+* `@` ( addr -- x )
+* `#` ( x addr -- )
 ### I/O
 * `putc` ( u -- )
-* `putd` ( n -- )
+* `putd` ( s -- )
 * `putu` ( u -- )
 * `putf` ( f -- )
 * `show` ( -- )
