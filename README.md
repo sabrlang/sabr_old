@@ -49,17 +49,27 @@ Sabr programs must be written in UTF-8.
 ## Built-in operators
 ### Integer arithmetic
 These also work for unsigned integers.
-* `+` ( n1 n2 -- n ) : n = n1 + n2
-* `-` ( n1 n2 -- n ) : n = n1 - n2
-* `*` ( n1 n2 -- n ) : n = n1 × n2
-* `0-` ( n1 -- n ) : n = －n1
-* `1+` ( n1 -- n ) : n = n1 + 1
-* `1-` ( n1 -- n ) : n = n1 - 1
+* `+` ( n1 n2 -- n )  
+n = n1 + n2
+* `-` ( n1 n2 -- n )  
+n = n1 - n2
+* `*` ( n1 n2 -- n )  
+n = n1 × n2
+* `0-` ( n1 -- n )  
+n = －n1
+* `1+` ( n1 -- n )  
+n = n1 + 1
+* `1-` ( n1 -- n )  
+n = n1 - 1
 ### Integer division
-* `/` ( s1 s2 -- s ) : s = s1 ÷ s2
-* `%` ( s1 s2 -- s ) : s = s1 mod s2
-* `u/` ( u1 u2 -- u ) : u = u1 ÷ u2
-* `u%` ( u1 u2 -- u ) : u = u1 mod u2
+* `/` ( s1 s2 -- s )  
+s = s1 ÷ s2
+* `%` ( s1 s2 -- s )  
+s = s1 mod s2
+* `u/` ( u1 u2 -- u )  
+u = u1 ÷ u2
+* `u%` ( u1 u2 -- u )  
+u = u1 mod u2
 ### Numeric comparison
 * `==` ( x1 x2 -- b )
 * `!=` ( x1 x2 -- b )
