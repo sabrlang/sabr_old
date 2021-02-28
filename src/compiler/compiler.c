@@ -806,7 +806,7 @@ FAILURE_VECTOR:
 }
 
 bool compiler_push_bytecode(compiler* comp, opcode op) {
-	if (!vector_push_back(uint8_t, &comp->bytecode, op)) {
+	if (!vector_push_back(uint8_t, &comp->bytecode, (uint8_t) op)) {
 		fputs("error : Bytecode memory allocation faliure\n", stderr);
 		return false;
 	}
@@ -814,7 +814,7 @@ bool compiler_push_bytecode(compiler* comp, opcode op) {
 }
 
 bool compiler_push_bytecode_with_value(compiler* comp, opcode op, value v) {
-	if (!vector_push_back(uint8_t, &comp->bytecode, op)) goto FAILURE;
+	if (!vector_push_back(uint8_t, &comp->bytecode, (uint8_t) op)) goto FAILURE;
 	for (int i = 0; i < 8; i++) {
 		if (!vector_push_back(uint8_t, &comp->bytecode, v.bytes[i])) goto FAILURE;
 	}

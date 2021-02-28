@@ -4,11 +4,13 @@
 #include <inttypes.h>
 #include <locale.h>
 #include <math.h>
+#include <stdio.h>
 #include <uchar.h>
 
 #include "opcode.h"
 #include "rbt.h"
 #include "value.h"
+#include "win.h"
 
 #include "interpreter_cctl_define.h"
 

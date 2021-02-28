@@ -660,6 +660,58 @@ bool interpreter_run(interpreter* inter) {
 				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
 				*b.p = a.u;
 			} break;
+			case OP_GETD: {
+				value v;
+				if (scanf("%" PRId64, &(v.i)) != 1) goto FAILURE_STDIN;
+				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
+			} break;
+			case OP_GETU: {
+				value v;
+				if (scanf("%" PRIu64, &(v.u)) != 1) goto FAILURE_STDIN;
+				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
+			} break;
+			case OP_GETF: {
+				value v;
+				if (scanf("%lf", &(v.i)) != 1) goto FAILURE_STDIN;
+				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
+			} break;
+			case OP_GETCS: {
+				value v;
+				char* line = NULL;
+				char* line_iterator;
+				size_t len = 0;
+				ssize_t read;
+				mbstate_t state;
+				size_t rc;
+				char32_t out;
+				vector(value) value_reverser;
+				vector_init(value, &value_reverser);
+
+				while (true) {
+					read = getline(&line, &len, stdin);
+					if (read <= 1) continue;
+					if (read == -1) goto FAILURE_STDIN;
+					line_iterator = line;
+					puts(line_iterator);
+					while(rc = mbrtoc32(&out, line_iterator, read - 1, &state)) {
+						if ((rc > ((size_t) -4)) || (rc == 0)) goto FAILURE_STDIN;
+						line_iterator += rc;
+						read -= rc;
+						v.u = out;
+						printf("%p\n", out);
+						vector_push_back(value, &value_reverser, v);
+					}
+					free(line);
+					break;
+				}
+
+				for (int i = 0; i < value_reverser.size; i++) {
+					printf("%u ", *vector_at(value, &value_reverser, i));
+				}
+				puts("");
+
+				vector_free(value, &value_reverser);
+			} break;
 			case OP_PUTC: {
 				value v;
 				if (!interpreter_pop(inter, &v)) goto FAILURE_STACK;
@@ -725,6 +777,9 @@ FAILURE_DEFINE:
 	return false;
 FAILURE_CALL:
 	fputs("error : Call stack error\n", stderr);
+	return false;
+FAILURE_STDIN:
+	fputs("error: Input error\n", stderr);
 	return false;
 }
 
