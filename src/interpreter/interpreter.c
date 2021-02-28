@@ -672,7 +672,7 @@ bool interpreter_run(interpreter* inter) {
 			} break;
 			case OP_GETF: {
 				value v;
-				if (scanf("%lf", &(v.i)) != 1) goto FAILURE_STDIN;
+				if (scanf("%lf", &(v.f)) != 1) goto FAILURE_STDIN;
 				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
 			} break;
 			case OP_GETCS: {
@@ -705,7 +705,7 @@ bool interpreter_run(interpreter* inter) {
 				}
 
 				for (int i = value_reverser.size - 1; i >= 0; i++) {
-					printf("%u ", *vector_at(value, &value_reverser, i));
+					printf("%u ", vector_at(value, &value_reverser, i)->u);
 				}
 
 				vector_free(value, &value_reverser);
