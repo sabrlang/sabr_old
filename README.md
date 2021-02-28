@@ -124,6 +124,10 @@ u = u1 mod u2
 * `@` ( addr -- x )
 * `#` ( x addr -- )
 ### I/O
+* `getd` ( -- s )
+* `getu` ( -- u )
+* `getf` ( -- f )
+* `getcs` ( -- u ... ) : **Not Implmented**
 * `putc` ( u -- )
 * `putd` ( s -- )
 * `putu` ( u -- )
