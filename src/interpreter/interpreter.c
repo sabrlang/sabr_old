@@ -693,7 +693,7 @@ bool interpreter_run(interpreter* inter) {
 					if (read == -1) goto FAILURE_STDIN;
 					line_iterator = line;
 					puts(line_iterator);
-					while(rc = mbrtoc32(&out, line_iterator, read, &state)) {
+					while(rc = mbrtoc32(&out, line_iterator, read + 1, &state)) {
 						if ((rc > ((size_t) -4)) || (rc == 0)) goto FAILURE_STDIN;
 						line_iterator += rc;
 						read -= rc;
