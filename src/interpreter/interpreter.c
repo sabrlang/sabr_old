@@ -693,22 +693,20 @@ bool interpreter_run(interpreter* inter) {
 					if (read == -1) goto FAILURE_STDIN;
 					line_iterator = line;
 					puts(line_iterator);
-					while(rc = mbrtoc32(&out, line_iterator, read - 1, &state)) {
+					while(rc = mbrtoc32(&out, line_iterator, read, &state)) {
 						if ((rc > ((size_t) -4)) || (rc == 0)) goto FAILURE_STDIN;
 						line_iterator += rc;
 						read -= rc;
 						v.u = out;
-						printf("%p\n", out);
 						vector_push_back(value, &value_reverser, v);
 					}
 					free(line);
 					break;
 				}
 
-				for (int i = 0; i < value_reverser.size; i++) {
+				for (int i = value_reverser.size - 1; i >= 0; i++) {
 					printf("%u ", *vector_at(value, &value_reverser, i));
 				}
-				puts("");
 
 				vector_free(value, &value_reverser);
 			} break;
