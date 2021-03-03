@@ -32,6 +32,7 @@ add_executable( sabrc ${comp_srcs} ${common_srcs} )
 
 target_link_libraries( sabre m )
 
+
 if(WIN32)
 	message("WIN32 build!")
 else()
@@ -42,3 +43,5 @@ else()
 	)
 	SET ( CMAKE_INSTALL_PREFIX /usr/bin )
 endif()
+
+message( "CMAKE_BINARY_DIR: " ${CMAKE_BINARY_DIR} )
