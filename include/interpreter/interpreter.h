@@ -1,16 +1,25 @@
 #ifndef __INTERPRETER_H__
 #define __INTERPRETER_H__
 
+
 #include <inttypes.h>
 #include <locale.h>
 #include <math.h>
 #include <stdio.h>
 #include <uchar.h>
 
+#ifdef _WIN32
+	#include <fcntl.h>
+	#include <io.h>
+	#include <windows.h>
+#else
+	#include <sys/types.h>
+#endif
+
 #include "opcode.h"
 #include "rbt.h"
 #include "value.h"
-#include "win.h"
+#include "encoding.h"
 
 #include "interpreter_cctl_define.h"
 

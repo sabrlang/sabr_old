@@ -3,6 +3,14 @@
 bool interpreter_init(interpreter* inter) {
 	setlocale(LC_ALL, "en_US.utf8");
 
+
+#ifdef _WIN32
+	SetConsoleOutputCP(CP_UTF8);
+	SetConsoleCP(CP_UTF8);
+	_setmode( _fileno( stdin ), _O_U16TEXT );
+	fflush(stdin);
+#endif
+
 	vector_init(value, &inter->data_stack);
 	vector_init(size_t, &inter->call_stack);
 
@@ -12,6 +20,9 @@ bool interpreter_init(interpreter* inter) {
 		fputs("error : Dictionary memory allocation failure\n", stderr);
 		return false;
 	}
+
+	
+
 	return true;
 }
 
@@ -677,35 +688,62 @@ bool interpreter_run(interpreter* inter) {
 			} break;
 			case OP_GETCS: {
 				value v;
-				char* line = NULL;
-				char* line_iterator;
-				size_t len = 0;
-				ssize_t read;
-				mbstate_t state;
-				size_t rc;
-				char32_t out;
 				vector(value) value_reverser;
 				vector_init(value, &value_reverser);
 
+				
+				
+			#ifdef _WIN32
+				wint_t result;
+				wint_t next;
+				size_t count = 0;
 				while (true) {
-					read = getline(&line, &len, stdin);
-					if (read <= 1) continue;
-					if (read == -1) goto FAILURE_STDIN;
-					line_iterator = line;
-					puts(line_iterator);
-					while(rc = mbrtoc32(&out, line_iterator, read + 1, &state)) {
-						if ((rc > ((size_t) -4)) || (rc == 0)) goto FAILURE_STDIN;
-						line_iterator += rc;
-						read -= rc;
-						v.u = out;
-						vector_push_back(value, &value_reverser, v);
+					result = fgetwc(stdin);
+					if (result == WEOF) goto FAILURE_STDIN;
+					if (result == 10) {
+						if (count > 0) break;
+						else continue;
 					}
-					free(line);
-					break;
+					if (!is_surrogate(result)) {
+						v.u = result;
+					}
+					else {
+						next = fgetwc(stdin);
+						if (next == WEOF) goto FAILURE_STDIN;
+						if (is_high_surrogate(result) && is_low_surrogate(next)) {
+							v.u = surrogates_to_utf32(result, next);
+						}
+						else goto FAILURE_STDIN;
+					}
+					count++;
+					if (!vector_push_back(value, &value_reverser, v)) goto FAILURE_STDIN;
 				}
+			#else
+				char* line;
+				size_t len, rc;
+				ssize_t read;
+				char32_t out;
 
-				for (int i = value_reverser.size - 1; i >= 0; i++) {
-					printf("%u ", vector_at(value, &value_reverser, i)->u);
+				mbstate_t state;
+				
+				while ((read = getline(&line, &len, stdin)) == -1) {
+					while (rc = mbrtoc32(&out, read, len, &state)) {
+						if ((rc > ((size_t) -4)) || (rc == 0)) goto FAILURE_STDIN;
+						if (out == 10) break;
+						len--;
+						read++;
+						v.u = out;
+						if (!vector_push_back(value, &value_reverser, v)) goto FAILURE_STDIN;
+					}
+				}
+				free(line);
+			#endif
+				v.u = 0;
+				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
+				
+				for (size_t i = value_reverser.size - 1; i < -1; i--) {
+					v = *vector_at(value, &value_reverser, i);
+					if (!interpreter_push(inter, v)) goto FAILURE_STACK;
 				}
 
 				vector_free(value, &value_reverser);

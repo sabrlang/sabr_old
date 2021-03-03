@@ -708,9 +708,7 @@ bool compiler_parse_char(compiler* comp, char* token) {
 							token++;
 							num_parse_count++;
 						}
-						if (num_parse_count != 3) {
-							goto FAILURE_ESCAPE;
-						}
+						token--;
 						v.u = strtoull(num_parse, &num_pasre_stop, 8);
 					} break;
 					case 'x': {
@@ -725,6 +723,7 @@ bool compiler_parse_char(compiler* comp, char* token) {
 						if (num_parse_count != 2) {
 							goto FAILURE_ESCAPE;
 						}
+						token--;
 						v.u = strtoull(num_parse, &num_pasre_stop, 16);
 					} break;
 					case 'u': {
@@ -739,6 +738,7 @@ bool compiler_parse_char(compiler* comp, char* token) {
 						if (num_parse_count != 4) {
 							goto FAILURE_ESCAPE;
 						}
+						token--;
 						v.u = strtoull(num_parse, &num_pasre_stop, 16);
 					} break;
 					case 'U': {
@@ -753,6 +753,7 @@ bool compiler_parse_char(compiler* comp, char* token) {
 						if (num_parse_count != 8) {
 							goto FAILURE_ESCAPE;
 						}
+						token--;
 						v.u = strtoull(num_parse, &num_pasre_stop, 16);
 					} break;
 					default: {
