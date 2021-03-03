@@ -127,7 +127,7 @@ u = u1 mod u2
 * `getd` ( -- s )
 * `getu` ( -- u )
 * `getf` ( -- f )
-* `getcs` ( -- u ... ) : **Not Implmented**
+* `getcs` ( -- u ... )
 * `putc` ( u -- )
 * `putd` ( s -- )
 * `putu` ( u -- )
