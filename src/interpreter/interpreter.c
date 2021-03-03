@@ -691,8 +691,6 @@ bool interpreter_run(interpreter* inter) {
 				vector(value) value_reverser;
 				vector_init(value, &value_reverser);
 
-				
-				
 			#ifdef _WIN32
 				wint_t result;
 				wint_t next;
@@ -726,7 +724,6 @@ bool interpreter_run(interpreter* inter) {
 				char32_t out;
 
 				mbstate_t state;
-
 				
 				while (true) {
 					if ((read = getline(&line, &len, stdin)) == -1) goto FAILURE_STDIN;
@@ -741,7 +738,6 @@ bool interpreter_run(interpreter* inter) {
 						if (!vector_push_back(value, &value_reverser, v)) goto FAILURE_STDIN;
 					}
 					break;
-					
 				}
 				free(temp);
 			#endif
