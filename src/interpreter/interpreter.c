@@ -727,6 +727,7 @@ bool interpreter_run(interpreter* inter) {
 				mbstate_t state;
 				
 				if ((read = getline(&line, &len, stdin)) == -1) {
+					puts(line);
 					while (rc = mbrtoc32(&out, line, len, &state)) {
 						if ((rc > ((size_t) -4)) || (rc == 0)) goto FAILURE_STDIN;
 						if (out == 10) break;
