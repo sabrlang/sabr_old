@@ -727,7 +727,7 @@ bool interpreter_run(interpreter* inter) {
 
 				mbstate_t state;
 
-				/*
+				
 				while (true) {
 					if ((read = getline(&line, &len, stdin)) == -1) goto FAILURE_STDIN;
 					if (len == 0) continue;
@@ -744,7 +744,6 @@ bool interpreter_run(interpreter* inter) {
 					
 				}
 				free(temp);
-				*/
 			#endif
 				v.u = 0;
 				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
