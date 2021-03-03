@@ -719,7 +719,8 @@ bool interpreter_run(interpreter* inter) {
 			#else
 				char* line = NULL;
 				char* temp;
-				size_t len, rc;
+				size_t len;
+				size_t rc;
 				ssize_t read;
 				char32_t out;
 
@@ -730,12 +731,15 @@ bool interpreter_run(interpreter* inter) {
 				
 				while (true) {
 					empty_line = false;
-					if ((read = getline(&line, &len, stdin)) == -1) goto FAILURE_STDIN;
+					read = getline(&line, &len, stdin);
+					if (read == -1) goto FAILURE_STDIN;
 					temp = line;
-					while (rc = mbrtoc32(&out, line, len, &state)) {
+					while (true) {
+						rc = mbrtoc32(&out, line, len, &state);
+						if (!rc) break;
 						if ((rc > ((size_t) -4)) || (rc == 0)) goto FAILURE_STDIN;
 						if (out == 10) {
-							if (count >= 0) empty_line = true;
+							if (count == 0) empty_line = true;
 							break;
 						}
 						len -= rc;
@@ -747,7 +751,9 @@ bool interpreter_run(interpreter* inter) {
 					if (empty_line) continue;
 					break;
 				}
+
 				free(temp);
+				
 			#endif
 				v.u = 0;
 				if (!interpreter_push(inter, v)) goto FAILURE_STACK;

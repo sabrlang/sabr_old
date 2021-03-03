@@ -144,8 +144,8 @@ bool compiler_save_code(compiler* comp, char* filename) {
 
 bool compiler_tokenize(compiler* comp, size_t index) {
 	char* iterator = *vector_at(cctl_ptr(char), &comp->textcode_vector, index);
-	char* begin;
-	char* end;
+	char* begin = NULL;
+	char* end = NULL;
 
 	bool string_escape = false;
 	string_parse_mode string_parse = STR_PARSE_NONE;

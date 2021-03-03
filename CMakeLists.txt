@@ -1,4 +1,14 @@
+cmake_minimum_required(VERSION 3.0)
+
 project(csabr)
+
+add_compile_options(
+	-D_GNU_SOURCE
+)
+
+set(CMAKE_C_FLAGS_DEBUG "-Og")
+set(CMAKE_C_FLAGS_RELEASE "-O0")
+
 
 include_directories(
 	${PROJECT_SOURCE_DIR}/include
