@@ -724,19 +724,27 @@ bool interpreter_run(interpreter* inter) {
 				char32_t out;
 
 				mbstate_t state;
+
+				size_t count = 0;
+				bool empty_line;
 				
 				while (true) {
+					empty_line = false;
 					if ((read = getline(&line, &len, stdin)) == -1) goto FAILURE_STDIN;
-					if (len <= 1) continue;
 					temp = line;
 					while (rc = mbrtoc32(&out, line, len, &state)) {
 						if ((rc > ((size_t) -4)) || (rc == 0)) goto FAILURE_STDIN;
-						if (out == 10) break;
+						if (out == 10) {
+							if (count >= 0) empty_line = true;
+							break;
+						}
 						len -= rc;
 						line += rc;
 						v.u = out;
+						count++;
 						if (!vector_push_back(value, &value_reverser, v)) goto FAILURE_STDIN;
 					}
+					if (empty_line) continue;
 					break;
 				}
 				free(temp);
