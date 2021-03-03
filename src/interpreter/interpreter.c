@@ -726,7 +726,11 @@ bool interpreter_run(interpreter* inter) {
 				char32_t out;
 
 				mbstate_t state;
-				if ((read = getline(&line, &len, stdin)) != -1) {
+
+				/*
+				while (true) {
+					if ((read = getline(&line, &len, stdin)) == -1) goto FAILURE_STDIN;
+					if (len == 0) continue;
 					temp = line;
 					while (rc = mbrtoc32(&out, line, len, &state)) {
 						if ((rc > ((size_t) -4)) || (rc == 0)) goto FAILURE_STDIN;
@@ -736,8 +740,11 @@ bool interpreter_run(interpreter* inter) {
 						v.u = out;
 						if (!vector_push_back(value, &value_reverser, v)) goto FAILURE_STDIN;
 					}
+					break;
+					
 				}
 				free(temp);
+				*/
 			#endif
 				v.u = 0;
 				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
