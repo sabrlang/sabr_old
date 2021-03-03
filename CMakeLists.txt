@@ -17,7 +17,6 @@ file(GLOB common_srcs
 )
 
 file(GLOB inter_srcs
-	
 	"${PROJECT_SOURCE_DIR}/src/interpreter/*.c"
 	"${PROJECT_SOURCE_DIR}/include/interpreter/*.h"
 )
@@ -31,7 +30,6 @@ add_executable( sabre ${inter_srcs} ${common_srcs} )
 add_executable( sabrc ${comp_srcs} ${common_srcs} )
 
 target_link_libraries( sabre m )
-
 
 if(WIN32)
 	message("WIN32 build!")
