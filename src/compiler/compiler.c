@@ -435,7 +435,8 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 								while_else_ctrl = iter;
 							} break;
 							case CTRL_BREAK:
-							case CTRL_CONTINUE: {
+							case CTRL_CONTINUE:
+							case CTRL_RETURN: {
 								vector(control_data)* next_ctrl_vec;
 								if (comp->control_data_stack.size < 2) goto FAILURE_CTRL_STACK;
 								next_ctrl_vec = *vector_at(cctl_ptr(vector(control_data)), &comp->control_data_stack, comp->control_data_stack.size - 2);
@@ -489,6 +490,12 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 									*vector_at(uint8_t, &comp->bytecode, iter->pos + 1 + i) = pos.bytes[i];
 								}
 							} break;
+							case CTRL_RETURN: {
+								vector(control_data)* next_ctrl_vec;
+								if (comp->control_data_stack.size < 2) goto FAILURE_CTRL_STACK;
+								next_ctrl_vec = *vector_at(cctl_ptr(vector(control_data)), &comp->control_data_stack, comp->control_data_stack.size - 2);
+								if (!vector_push_back(control_data, next_ctrl_vec, *iter)) goto FAILURE_CTRL_VECTOR;
+							} break;
 							default: {
 								goto FAILURE_CTRL;
 							}
@@ -498,7 +505,19 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 					if (!compiler_push_bytecode_with_value(comp, OP_JUMP, pos)) return false;
 				} break;
 				case CTRL_FUNC: {
-					if (temp_ctrl_vec->size > 1) goto FAILURE_CTRL;
+					for (
+						control_data* iter = vector_at(control_data, temp_ctrl_vec, 1);
+						iter <= vector_back(control_data, temp_ctrl_vec);
+						iter++
+					) {
+						switch (iter->ctrl) {
+							case CTRL_RETURN: {
+							} break;
+							default: {
+								goto FAILURE_CTRL;
+							}
+						}
+					}
 					pos.u = current_ctrl.pos + 1;
 					for (int i = 0; i < 8; i++) {
 						*vector_at(uint8_t, &comp->bytecode, first_ctrl->pos + 1 + i) = pos.bytes[i];
@@ -513,11 +532,13 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 					) {
 						switch (iter->ctrl) {
 							case CTRL_RETURN: {
-								goto FAILURE_CTRL;
+								*vector_at(uint8_t, &comp->bytecode, iter->pos) = OP_ENDMACRO;
 							} break;
+							default: {
+								goto FAILURE_CTRL;
+							}
 						}
 					}
-					if (temp_ctrl_vec->size > 1) goto FAILURE_CTRL;
 					pos.u = current_ctrl.pos + 1;
 					for (int i = 0; i < 8; i++) {
 						*vector_at(uint8_t, &comp->bytecode, first_ctrl->pos + 1 + i) = pos.bytes[i];

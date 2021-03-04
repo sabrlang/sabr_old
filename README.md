@@ -13,6 +13,71 @@ cmake ..
 make
 ```
 
+# Example
+## Arithmetic
+```
+2 5 + putd 2.5 3.14 f* putf
+```
+```
+7 7.850000
+```
+
+## Print "Hello, world!" with macro
+```
+$putcs macro
+    loop dup 0 != while putc end drop
+end
+
+'Hello, world!\0' putcs
+```
+```
+Hello, world!
+```
+
+## Simple loop with local variables
+```
+$var= macro dup var = end
+$cr macro '\n' putc end
+$draw func
+	$count var= 
+	0 $i var=
+	$j var
+	loop
+		i count <
+	while
+		0 $j =
+		loop
+			j i <=
+		while
+			'*' putc
+			j 1 + $j =
+		end
+		cr
+		i 1 + $i =
+	end
+end
+
+5 draw
+10 draw
+```
+```
+*
+**
+***
+****
+*****
+*
+**
+***
+****
+*****
+******
+*******
+********
+*********
+**********
+```
+
 # How to run
 ## Compile to bytecode
 ```
@@ -89,7 +154,7 @@ u = u1 mod u2
 * `f/` ( f1 f2 -- f ) : f = f1 ÷ f2
 * `f%` ( f1 f2 -- f ) : f = f1 mod f2
 * `f>` ( f1 f2 -- b )
-* `f>=` ( f1 f2 -- b)
+* `f>=` ( f1 f2 -- b )
 * `f<` ( f1 f2 -- b )
 * `f<=` ( f1 f2 -- b )
 ### Bitwise operation
