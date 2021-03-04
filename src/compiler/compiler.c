@@ -176,6 +176,7 @@ bool compiler_tokenize(compiler* comp, size_t index) {
 							end = iterator;
 							result = compiler_parse(comp, begin, end);
 							if (!result) {
+								fprintf(stderr, "from file " console_yellow "%s" console_reset "\n", *vector_at(cctl_ptr(char), &comp->filename_vector, index));
 								fputs("error : Parse failure\n", stderr);
 								return false;
 							}
@@ -324,7 +325,7 @@ bool compiler_parse(compiler* comp, char* begin, char* end) {
 	}
 
 	if (!result) {
-		fprintf(stderr, "\'\'\'%s\'\'\' in line %zu, column %zu\n", begin, comp->line_count, comp->column_count);
+		fprintf(stderr, console_yellow "%s" console_reset " in line %zu, column %zu\n", begin, comp->line_count, comp->column_count);
 	}
 
 	*end = temp;

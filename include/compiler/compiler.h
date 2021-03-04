@@ -11,6 +11,7 @@
 #include <string.h>
 #include <uchar.h>
 
+#include "color.h"
 #include "opcode.h"
 #include "rbt.h"
 #include "trie.h"
