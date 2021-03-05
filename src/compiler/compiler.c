@@ -78,7 +78,7 @@ size_t compiler_load_code(compiler* comp, char* filename) {
 #ifdef _WIN32
 	if (!(_fullpath(filename_full, filename, PATH_MAX))) goto FAILURE_FILEPATH;
 #else
-	if (!(realpath(filenmae, filename_full))) goto FAILURE_FILEPATH;
+	if (!(realpath(filename, filename_full))) goto FAILURE_FILEPATH;
 #endif
 
 	file = fopen(filename_full, "rb");
