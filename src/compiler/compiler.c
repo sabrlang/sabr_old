@@ -73,7 +73,15 @@ size_t compiler_load_code(compiler* comp, char* filename) {
 	FILE* file;
 	size_t size;
 
-	file = fopen(filename, "rb");
+	char filename_full[PATH_MAX];
+
+#ifdef _WIN32
+	if (!(_fullpath(filename_full, filename, PATH_MAX))) goto FAILURE_FILEPATH;
+#else
+	if (!(realpath(filenmae, filename_full))) goto FAILURE_FILEPATH;
+#endif
+
+	file = fopen(filename_full, "rb");
 	if (!file) {
 		fputs("error : File reading failure\n", stderr);
 		return 0;
@@ -83,7 +91,7 @@ size_t compiler_load_code(compiler* comp, char* filename) {
 	size = ftell(file);
 	rewind(file);
 
-	int filename_size = strlen(filename) + 1;
+	int filename_size = strlen(filename_full) + 1;
 
 	char* textcode = (char*) malloc(size + 2);
 	char* filename_new = (char*) malloc(filename_size);
@@ -105,9 +113,9 @@ size_t compiler_load_code(compiler* comp, char* filename) {
 	textcode[size + 1] = '\0';
 
 #ifdef _WIN32
-	memcpy_s(filename_new, filename_size, filename, filename_size);
+	memcpy_s(filename_new, filename_size, filename_full, filename_size);
 #else
-	memcpy(filename_new, filename, filename_size);
+	memcpy(filename_new, filename_size, filename_size);
 #endif
 
 	if (!(
@@ -124,6 +132,10 @@ size_t compiler_load_code(compiler* comp, char* filename) {
 	fclose(file);
 
 	return comp->textcode_vector.size;
+
+FAILURE_FILEPATH:
+
+	return 0;
 }
 
 bool compiler_save_code(compiler* comp, char* filename) {
