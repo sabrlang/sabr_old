@@ -115,7 +115,7 @@ size_t compiler_load_code(compiler* comp, char* filename) {
 #ifdef _WIN32
 	memcpy_s(filename_new, filename_size, filename_full, filename_size);
 #else
-	memcpy(filename_new, filename_size, filename_size);
+	memcpy(filename_new, filename_full, filename_size);
 #endif
 
 	if (!(
