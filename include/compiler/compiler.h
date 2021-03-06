@@ -14,11 +14,9 @@
 #ifdef _WIN32
 #elif defined __linux__
 	#include <linux/limits.h>
-#else
-	#include <limits.h>
 #endif
 
-#include "color.h"
+#include "console.h"
 #include "opcode.h"
 #include "rbt.h"
 #include "trie.h"

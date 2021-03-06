@@ -1,6 +1,7 @@
-#ifndef __COLOR_H__
-#define __COLOR_H__
+#ifndef __CONSOLE_H__
+#define __CONSOLE_H__
 
+#define console_black "\x1B[30m"
 #define console_red "\x1B[31m"
 #define console_green "\x1B[32m"
 #define console_yellow "\x1B[33m"
