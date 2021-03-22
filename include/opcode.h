@@ -79,6 +79,11 @@ typedef enum opcode_enum {
 	OP_FETCH,
 	OP_STORE,
 
+	OP_STOF,
+	OP_UTOF,
+	OP_FTOS,
+	OP_FTOU,
+
 	OP_GETD,
 	OP_GETU,
 	OP_GETF,

@@ -671,6 +671,30 @@ bool interpreter_run(interpreter* inter) {
 				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
 				*b.p = a.u;
 			} break;
+			case OP_STOF: {
+				value v;
+				if (!interpreter_pop(inter, &v)) goto FAILURE_STACK;
+				v.f = (double) v.i;
+				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
+			} break;
+			case OP_UTOF: {
+				value v;
+				if (!interpreter_pop(inter, &v)) goto FAILURE_STACK;
+				v.f = (double) v.u;
+				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
+			} break;
+			case OP_FTOS: {
+				value v;
+				if (!interpreter_pop(inter, &v)) goto FAILURE_STACK;
+				v.i = (int64_t) v.f;
+				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
+			} break;
+			case OP_FTOU: {
+				value v;
+				if (!interpreter_pop(inter, &v)) goto FAILURE_STACK;
+				v.u = (uint64_t) v.f;
+				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
+			} break;
 			case OP_GETD: {
 				value v;
 				if (scanf("%" PRId64, &(v.i)) != 1) goto FAILURE_STDIN;

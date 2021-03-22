@@ -64,6 +64,10 @@ resize	OP_RESIZE
 free	OP_FREE
 @		OP_FETCH
 #		OP_STORE
+s>f		OP_STOF
+u>f		OP_UTOF
+f>s		OP_FTOS
+f>u		OP_FTOU
 putc	OP_PUTC
 putd	OP_PUTD
 putu	OP_PUTU
