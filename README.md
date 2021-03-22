@@ -189,10 +189,10 @@ u = u1 mod u2
 * `@` ( addr -- x )
 * `#` ( x addr -- )
 ### Type conversion
-* `stof` ( s -- f )
-* `utof` ( u -- f )
-* `ftos` ( f -- s )
-* `ftou` ( f -- u )
+* `s>f` ( s -- f )
+* `u>f` ( u -- f )
+* `f>s` ( f -- s )
+* `f>u` ( f -- u )
 ### I/O
 * `getd` ( -- s )
 * `getu` ( -- u )
