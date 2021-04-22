@@ -113,7 +113,6 @@ Sabr programs must be written in UTF-8.
 * `end`
 ## Built-in operators
 ### Integer arithmetic
-These also work for unsigned integers.
 * `+` ( n1 n2 -- n )  
 n = n1 + n2
 * `-` ( n1 n2 -- n )  
@@ -230,7 +229,7 @@ u = u1 mod u2
 ## Identifiers
 Control keywords, built-in operators, literals cannot become identifiers.
 * Define identifiers  : `$main`, `$a`  
-Use for define functions, macros, variables. These are unsigned integer value.
+Use for define functions, macros, variables. These are unique unsigned integer value.
 * Call identifiers : `main`, `a`  
 Get variable values or call functions and macros.
 ## Comments
