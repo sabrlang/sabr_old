@@ -147,17 +147,17 @@ u = u1 mod u2
 * `u<` ( u1 u2 -- b )
 * `u<=` ( u1 u2 -- b )
 ### Floating-point
-* `f+` ( f1 f2 -- f )
+* `f+` ( f1 f2 -- f )  
 f = f1 + f2
-* `f-` ( f1 f2 -- f )
+* `f-` ( f1 f2 -- f )  
 f = f1 - f2
-* `f*` ( f1 f2 -- f )
+* `f*` ( f1 f2 -- f )  
 f = f1 × f2
-* `f/` ( f1 f2 -- f )
+* `f/` ( f1 f2 -- f )  
 f = f1 ÷ f2
-* `f%` ( f1 f2 -- f )
+* `f%` ( f1 f2 -- f )  
 f = f1 mod f2
-* `f0-` ( f1 -- f )
+* `f0-` ( f1 -- f )  
 f = -f1
 * `f=` ( f1 f2 -- b )
 * `f!=` ( f1 f2 -- b )
