@@ -135,7 +135,7 @@ u = u1 ÷ u2
 * `u%` ( u1 u2 -- u )  
 u = u1 mod u2
 ### Numeric comparison
-* `==` ( x1 x2 -- b )
+* `=` ( x1 x2 -- b )
 * `!=` ( x1 x2 -- b )
 ### Integer comparison
 * `>` ( s1 s2 -- b )
@@ -147,11 +147,20 @@ u = u1 mod u2
 * `u<` ( u1 u2 -- b )
 * `u<=` ( u1 u2 -- b )
 ### Floating-point
-* `f+` ( f1 f2 -- f ) : f = f1 + f2
-* `f-` ( f1 f2 -- f ) : f = f1 - f2
-* `f*` ( f1 f2 -- f ) : f = f1 × f2
-* `f/` ( f1 f2 -- f ) : f = f1 ÷ f2
-* `f%` ( f1 f2 -- f ) : f = f1 mod f2
+* `f+` ( f1 f2 -- f )
+f = f1 + f2
+* `f-` ( f1 f2 -- f )
+f = f1 - f2
+* `f*` ( f1 f2 -- f )
+f = f1 × f2
+* `f/` ( f1 f2 -- f )
+f = f1 ÷ f2
+* `f%` ( f1 f2 -- f )
+f = f1 mod f2
+* `f0-` ( f1 -- f )
+f = -f1
+* `f=` ( f1 f2 -- b )
+* `f!=` ( f1 f2 -- b )
 * `f>` ( f1 f2 -- b )
 * `f>=` ( f1 f2 -- b )
 * `f<` ( f1 f2 -- b )
@@ -180,7 +189,7 @@ u = u1 mod u2
 * `2rot` ( x1 x2 x3 x4 x5 x6 -- x3 x4 x5 x6 x1 x2 )
 ### Variable
 * `var` ( id -- )
-* `=` ( x id -- )
+* `set` ( x id -- )
 ### Dynamic allocation
 * `alloc` ( u -- addr )
 * `resize` ( u addr -- addr )

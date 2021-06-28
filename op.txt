@@ -5,7 +5,7 @@
 		OP_FUNC
 return	OP_RETURN
 var		OP_VAR
-=		OP_SET
+set		OP_SET
 		OP_CALL
 +		OP_ADD
 -		OP_SUB
@@ -17,7 +17,7 @@ u%		OP_UMOD
 0-		OP_NEG
 1+		OP_INC
 1-		OP_DEC
-==		OP_EQU
+=		OP_EQU
 !=		OP_NEQ
 >		OP_GRT
 >=		OP_GEQ
@@ -33,7 +33,7 @@ f*		OP_FMUL
 f/		OP_FDIV
 f%		OP_FMOD
 f0-		OP_FNEG
-f==		OP_FEQU
+f=		OP_FEQU
 f!=		OP_FNEQ
 f>		OP_FGRT
 f>=		OP_FGEQ

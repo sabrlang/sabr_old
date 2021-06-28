@@ -2,7 +2,7 @@
 
 const char* operation_names[] = {
 	"var",
-	"=",
+	"set",
 	"+",
 	"-",
 	"*",
@@ -13,7 +13,7 @@ const char* operation_names[] = {
 	"0-",
 	"1+",
 	"1-",
-	"==",
+	"=",
 	"!=",
 	">",
 	">=",
@@ -29,7 +29,7 @@ const char* operation_names[] = {
 	"f/",
 	"f%",
 	"f0-",
-	"f==",
+	"f=",
 	"f!=",
 	"f>",
 	"f>=",
