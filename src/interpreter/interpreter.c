@@ -692,7 +692,7 @@ bool interpreter_run(interpreter* inter) {
 				v.u = (uint64_t) v.f;
 				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
 			} break;
-			case OP_GETD: {
+			case OP_GETI: {
 				value v;
 				if (scanf("%" PRId64, &(v.i)) != 1) goto FAILURE_STDIN;
 				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
@@ -707,7 +707,7 @@ bool interpreter_run(interpreter* inter) {
 				if (scanf("%lf", &(v.f)) != 1) goto FAILURE_STDIN;
 				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
 			} break;
-			case OP_GETCS: {
+			case OP_GETS: {
 				value v;
 				vector(value) value_reverser;
 				vector_init(value, &value_reverser);
@@ -776,13 +776,13 @@ bool interpreter_run(interpreter* inter) {
 				free(temp);
 				
 			#endif
-				v.u = 0;
-				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
-				
 				for (size_t i = value_reverser.size - 1; i < -1; i--) {
 					v = *vector_at(value, &value_reverser, i);
 					if (!interpreter_push(inter, v)) goto FAILURE_STACK;
 				}
+
+				v.u = value_reverser.size;
+				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
 
 				vector_free(value, &value_reverser);
 			} break;
@@ -804,7 +804,7 @@ bool interpreter_run(interpreter* inter) {
 					printf("%s", out);
 				}
 			} break;
-			case OP_PUTD: {
+			case OP_PUTI: {
 				value v;
 				if (!interpreter_pop(inter, &v)) goto FAILURE_STACK;
 				printf("%" PRId64 " ", v.i);

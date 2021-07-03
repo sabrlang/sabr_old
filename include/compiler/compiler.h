@@ -56,7 +56,7 @@ bool compiler_parse_keyword_value(compiler* comp, char* token);
 bool compiler_parse_zero_begin_num(compiler* comp, char* token, size_t index, bool negate);
 bool compiler_parse_base_n_num(compiler* comp, char* token, size_t index, bool negate, int base);
 bool compiler_parse_num(compiler* comp, char* token);
-bool compiler_parse_char(compiler* comp, char* token);
+bool compiler_parse_char(compiler* comp, char* token, bool push_length);
 bool compiler_parsed_num_to_bytecode(compiler* comp, value v);
 bool compiler_push_bytecode(compiler* comp, opcode op);
 bool compiler_push_bytecode_with_value(compiler* comp, opcode op, value v);

@@ -68,8 +68,12 @@ s>f		OP_STOF
 u>f		OP_UTOF
 f>s		OP_FTOS
 f>u		OP_FTOU
+geti	OP_GETI
+getu	OP_GETU
+getf	OP_GETF
+gets	OP_GETS
 putc	OP_PUTC
-putd	OP_PUTD
+puti	OP_PUTI
 putu	OP_PUTU
 putf	OP_PUTF
 show	OP_SHOW

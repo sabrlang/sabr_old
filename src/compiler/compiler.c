@@ -322,11 +322,18 @@ bool compiler_parse(compiler* comp, char* begin, char* end) {
 			} break;
 			case '#': {
 				result = false;
-			}
+				fputs("error : Unknown keyword\n", stderr);
+			} break;
 			case '\'': {
 				char temp_parse_char = *(end - 1);
 				*(end - 1) = 0;
-				result = compiler_parse_char(comp, begin + 1);
+				result = compiler_parse_char(comp, begin + 1, false);
+				*(end - 1) = temp_parse_char;
+			} break;
+			case '\"': {
+				char temp_parse_char = *(end - 1);
+				*(end - 1) = 0;
+				result = compiler_parse_char(comp, begin + 1, true);
 				*(end - 1) = temp_parse_char;
 			} break;
 			default: {
@@ -706,7 +713,7 @@ bool compiler_parse_num(compiler* comp, char* token) {
 	return result;
 }
 
-bool compiler_parse_char(compiler* comp, char* token) {
+bool compiler_parse_char(compiler* comp, char* token, bool push_length) {
 	value v;
 
 	int num_parse_count;
@@ -748,8 +755,8 @@ bool compiler_parse_char(compiler* comp, char* token) {
 					case 'x': {
 						token++;
 						while (
-							(((*token >= '0') && (*token <= '9')) || ((*token >= 'a') && (*token <= 'f')) || ((*token >= 'A') && (*token <= 'F'))) && (num_parse_count < 2))
-						{
+							(((*token >= '0') && (*token <= '9')) || ((*token >= 'a') && (*token <= 'f')) || ((*token >= 'A') && (*token <= 'F'))) && (num_parse_count < 2)
+						) {
 							num_parse[num_parse_count] = *token;
 							token++;
 							num_parse_count++;
@@ -763,8 +770,8 @@ bool compiler_parse_char(compiler* comp, char* token) {
 					case 'u': {
 						token++;
 						while (
-							(((*token >= '0') && (*token <= '9')) || ((*token >= 'a') && (*token <= 'f')) || ((*token >= 'A') && (*token <= 'F'))) && (num_parse_count < 4))
-						{
+							(((*token >= '0') && (*token <= '9')) || ((*token >= 'a') && (*token <= 'f')) || ((*token >= 'A') && (*token <= 'F'))) && (num_parse_count < 4)
+						) {
 							num_parse[num_parse_count] = *token;
 							token++;
 							num_parse_count++;
@@ -778,8 +785,8 @@ bool compiler_parse_char(compiler* comp, char* token) {
 					case 'U': {
 						token++;
 						while (
-							(((*token >= '0') && (*token <= '9')) || ((*token >= 'a') && (*token <= 'f')) || ((*token >= 'A') && (*token <= 'F'))) && (num_parse_count < 8))
-						{
+							(((*token >= '0') && (*token <= '9')) || ((*token >= 'a') && (*token <= 'f')) || ((*token >= 'A') && (*token <= 'F'))) && (num_parse_count < 8)
+						) {
 							num_parse[num_parse_count] = *token;
 							token++;
 							num_parse_count++;
@@ -819,6 +826,11 @@ bool compiler_parse_char(compiler* comp, char* token) {
 	
 	for (size_t i = value_reverser.size - 1; i < -1; i--) {
 		if (!compiler_push_bytecode_with_value(comp, OP_VALUE, *vector_at(value, &value_reverser, i))) return false;
+	}
+
+	if (push_length) {
+		v.u = value_reverser.size;
+		if (!compiler_push_bytecode_with_value(comp, OP_VALUE, v)) return false;
 	}
 
 	vector_free(value, &value_reverser);

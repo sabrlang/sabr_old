@@ -12,6 +12,4 @@
 #define console_reset "\x1B[0m"
 #define console_bold "\x1B[1m"
 
-
-
 #endif

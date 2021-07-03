@@ -85,13 +85,13 @@ typedef enum opcode_enum {
 	OP_FTOS,
 	OP_FTOU,
 
-	OP_GETD,
+	OP_GETI,
 	OP_GETU,
 	OP_GETF,
-	OP_GETCS,
+	OP_GETS,
 
 	OP_PUTC,
-	OP_PUTD,
+	OP_PUTI,
 	OP_PUTU,
 	OP_PUTF,
 	OP_SHOW
