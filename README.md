@@ -90,8 +90,8 @@ sabre {bytecode file name}
 
 # Specification
 Sabr programs must be written in UTF-8.
-## Stack-effect comments
-**Not implemented**
+## Data types
+Sabr has no type checking. All stack values are 8 bytes wide.
 * `x` : Cell (any)
 * `n` : Integer
 * `s` : Signed integer
@@ -243,4 +243,5 @@ Use for define functions, macros, variables. These are unique unsigned integer v
 Get variable values or call functions and macros.
 ## Comments
 * Line comments : `\this is a comment`, `\ this is a comment`, `2 5 + \this is a comment`
+* 
 
