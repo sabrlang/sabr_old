@@ -187,15 +187,15 @@ f = -f1
 * `2tuck` ( x1 x2 x3 x4 -- x3 x4 x1 x2 x3 x4 )
 * `2swap` ( x1 x2 x3 x4 -- x3 x4 x1 x2 )
 * `2rot` ( x1 x2 x3 x4 x5 x6 -- x3 x4 x5 x6 x1 x2 )
-### Variable
+### Variables
 * `var` ( id -- )
-* `set` ( x id -- )
+* `to` ( x id -- )
 ### Dynamic allocation
 * `alloc` ( u -- addr )
 * `resize` ( u addr -- addr )
 * `free` ( addr -- )
-* `@` ( addr -- x )
-* `#` ( x addr -- )
+* `fetch` ( addr -- x )
+* `store` ( x addr -- )
 ### Type conversion
 * `s>f` ( s -- f )
 * `u>f` ( u -- f )

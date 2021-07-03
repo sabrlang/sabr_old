@@ -11,7 +11,7 @@ typedef enum opcode_enum {
 	OP_RETURN,
 	OP_ENDMACRO,
 	OP_VAR,
-	OP_SET,
+	OP_TO,
 	OP_CALL,
 
 	OP_ADD,
@@ -76,6 +76,7 @@ typedef enum opcode_enum {
 	OP_ALLOC,
 	OP_RESIZE,
 	OP_FREE,
+
 	OP_FETCH,
 	OP_STORE,
 

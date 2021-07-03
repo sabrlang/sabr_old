@@ -199,7 +199,7 @@ bool compiler_tokenize(compiler* comp, size_t index) {
 			} break;
 			case '\'': {
 				if (comment) {
-
+					
 				}
 				else {
 					if (string_parse) {

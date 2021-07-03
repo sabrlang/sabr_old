@@ -53,7 +53,7 @@
 	bool list_func(push_front, TYPE)(list(TYPE)* p_l, TYPE item); \
 	bool list_func(push_back, TYPE)(list(TYPE)* p_l, TYPE item); \
 	void list_func(pop_back, TYPE)(list(TYPE)* p_l); \
-	void list_func(pop_front, TYPE)(list(TYPE)* p_l); \
+	void list_func(pop_front, TYPE)(list(TYPE)* p_l);
 
 #define list_imp_c(TYPE) \
 	node_imp_c(TYPE) \

@@ -5,7 +5,7 @@
 		OP_FUNC
 return	OP_RETURN
 var		OP_VAR
-set		OP_SET
+to		OP_TO
 		OP_CALL
 +		OP_ADD
 -		OP_SUB
@@ -62,8 +62,8 @@ rot		OP_ROT
 alloc	OP_ALLOC
 resize	OP_RESIZE
 free	OP_FREE
-@		OP_FETCH
-#		OP_STORE
+fetch	OP_FETCH
+store	OP_STORE
 s>f		OP_STOF
 u>f		OP_UTOF
 f>s		OP_FTOS

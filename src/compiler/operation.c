@@ -2,7 +2,7 @@
 
 const char* operation_names[] = {
 	"var",
-	"set",
+	"to",
 	"+",
 	"-",
 	"*",
@@ -58,8 +58,8 @@ const char* operation_names[] = {
 	"alloc",
 	"resize",
 	"free",
-	"@",
-	"#",
+	"fetch",
+	"store",
 	"s>f",
 	"u>f",
 	"f>s",
@@ -77,7 +77,7 @@ const char* operation_names[] = {
 
 const opcode operation_indices[] = {
 	OP_VAR,
-	OP_SET,
+	OP_TO,
 	OP_ADD,
 	OP_SUB,
 	OP_MUL,

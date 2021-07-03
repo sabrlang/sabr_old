@@ -3,7 +3,6 @@
 bool interpreter_init(interpreter* inter) {
 	setlocale(LC_ALL, "en_US.utf8");
 
-
 #ifdef _WIN32
 	SetConsoleOutputCP(CP_UTF8);
 	SetConsoleCP(CP_UTF8);
@@ -20,16 +19,13 @@ bool interpreter_init(interpreter* inter) {
 		fputs("error : Dictionary memory allocation failure\n", stderr);
 		return false;
 	}
-
-	
-
 	return true;
 }
 
 void interpreter_del(interpreter* inter) {
 	vector_init(value, &inter->data_stack);
 	vector_init(size_t, &inter->call_stack);
-
+	
 	for (size_t i = 0; i < inter->local_words_stack.size; i++) {
 		rbt_free(*vector_at(cctl_ptr(rbt), &inter->local_words_stack, i));
 	}
@@ -179,7 +175,7 @@ bool interpreter_run(interpreter* inter) {
 				node->type = KWRD_VAR;
 				rbt_insert(words, node);
 			} break;
-			case OP_SET: {
+			case OP_TO: {
 				value kwrd;
 				value v;
 				rbt* local_words = NULL;
@@ -239,6 +235,7 @@ bool interpreter_run(interpreter* inter) {
 			} break;
 			case OP_ADD: {
 				value a, b;
+				
 				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
 				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
 				a.i = a.i + b.i;
