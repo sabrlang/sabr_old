@@ -16,7 +16,7 @@ make
 # Example
 ## Arithmetic
 ```
-2 5 + putd 2.5 3.14 f* putf
+2 5 + puti 2.5 3.14 f* putf
 ```
 ```
 7 7.850000
@@ -24,11 +24,11 @@ make
 
 ## Print "Hello, world!" with macro
 ```
-$putcs macro
-    loop dup 0 != while putc end drop
+$puts macro
+	loop dup 0 > while swap putc 1- end drop
 end
 
-'Hello, world!\0' putcs
+"Hello, world!" puts
 ```
 ```
 Hello, world!
@@ -36,24 +36,24 @@ Hello, world!
 
 ## Simple loop with local variables
 ```
-$var= macro dup var = end
+$varto macro dup var to end
 $cr macro '\n' putc end
 $draw func
-	$count var= 
-	0 $i var=
+	$count varto
+	0 $i varto
 	$j var
 	loop
 		i count <
 	while
-		0 $j =
+		0 $j to
 		loop
 			j i <=
 		while
 			'*' putc
-			j 1 + $j =
+			j 1 + $j to
 		end
 		cr
-		i 1 + $i =
+		i 1 + $i to
 	end
 end
 

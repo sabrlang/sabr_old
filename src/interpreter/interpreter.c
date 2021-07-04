@@ -801,7 +801,7 @@ bool interpreter_run(interpreter* inter) {
 						return false;
 					}
 					out[rc] = 0;
-					printf("%s", out);
+					fputs(out, stdout);
 				}
 			} break;
 			case OP_PUTI: {
