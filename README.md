@@ -248,7 +248,7 @@ Get variable values or call functions and macros.
 (this is a comment)
 ( this is
 a comment )
-$main func ( n1 n2 -- x ) \ this is a stack-effect comment
+$add func ( n1 n2 -- x ) \ this is a stack-effect comment
     +
 end
 ```
