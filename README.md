@@ -245,10 +245,9 @@ Get variable values or call functions and macros.
 * Line comments : `\this is a comment`, `\ this is a comment`, `2 5 + \this is a comment`
 * Multiline / Stack-Effect comment : 
 ```
-(this is comment)
-( this
-is
-comment )
+(this is a comment)
+( this is
+a comment )
 $main func ( n1 n2 -- x ) \ this is a stack-effect comment
     +
 end
