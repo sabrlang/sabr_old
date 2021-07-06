@@ -821,6 +821,7 @@ bool compiler_parse_char(compiler* comp, char* token, bool push_length) {
 			char32_t out;
 			size_t rc;
 			mbstate_t state;
+			puts(token);
 			rc = mbrtoc32(&out, token, end - token, &(comp->convert_state));
 			if ((rc > ((size_t) -4)) || (rc == 0)) {
 				printf("%d\n", (ssize_t) rc);
