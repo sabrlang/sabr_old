@@ -32,6 +32,12 @@ typedef enum string_parse_mode_enum {
 	STR_PARSE_DOUBLE
 } string_parse_mode;
 
+typedef enum comment_parse_mode_enum {
+	CMNT_PARSE_NONE,
+	CMNT_PARSE_LINE,
+	CMNT_PARSE_STACK
+} comment_parse_mode;
+
 typedef struct compiler_struct {
 	vector(cctl_ptr(char)) textcode_vector;
 	vector(cctl_ptr(char)) filename_vector;

@@ -163,7 +163,7 @@ bool compiler_tokenize(compiler* comp, size_t index) {
 	bool string_escape = false;
 	string_parse_mode string_parse = STR_PARSE_NONE;
 	bool space = true;
-	bool comment = false;
+	comment_parse_mode comment = CMNT_PARSE_NONE;
 	bool result;
 
 	bool u8check = false;
@@ -174,16 +174,13 @@ bool compiler_tokenize(compiler* comp, size_t index) {
 				comp->line_count++;
 			case '\r':
 				comp->column_count = 0;
-				if (comment) {
+				if (comment == CMNT_PARSE_LINE) {
 					space = true;
-					comment = false;
+					comment = CMNT_PARSE_NONE;
 				}
 			case '\t':
 			case ' ': {
-				if (comment) {
-
-				}
-				else {
+				if (!comment) {
 					if (!space) {
 						if (!string_parse) {
 							end = iterator;
@@ -199,10 +196,7 @@ bool compiler_tokenize(compiler* comp, size_t index) {
 				}
 			} break;
 			case '\'': {
-				if (comment) {
-					
-				}
-				else {
+				if (!comment) {
 					if (string_parse) {
 						if (string_escape) {
 							string_escape = false;
@@ -222,10 +216,7 @@ bool compiler_tokenize(compiler* comp, size_t index) {
 				}
 			} break;
 			case '\"': {
-				if (comment) {
-
-				}
-				else {
+				if (!comment) {
 					if (string_parse) {
 						if (string_escape) {
 							string_escape = false;
@@ -245,10 +236,7 @@ bool compiler_tokenize(compiler* comp, size_t index) {
 				}
 			} break;
 			case '\\': {
-				if (comment) {
-
-				}
-				else {
+				if (!comment) {
 					if (string_parse) {
 						if (!string_escape) {
 							string_parse = true;
@@ -256,15 +244,31 @@ bool compiler_tokenize(compiler* comp, size_t index) {
 					}
 					if (space) {
 						space = false;
-						comment = true;
+						comment = CMNT_PARSE_LINE;
 					}
 				}
 			} break;
-			default: {
-				if (comment) {
-					
+			case '(': {
+				if (!comment) {
+					if (string_parse) {
+						if (!string_escape) {
+							string_parse = true;
+						}
+					}
+					if (space) {
+						space = false;
+						comment = CMNT_PARSE_STACK;
+					}
 				}
-				else {
+			} break;
+			case ')': {
+				if (comment == CMNT_PARSE_STACK) {
+					space = true;
+					comment = CMNT_PARSE_NONE;
+				}
+			} break;
+			default: {
+				if (!comment) {
 					if (string_parse) {
 						if (string_escape) {
 							string_escape = false;
