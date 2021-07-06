@@ -13,7 +13,7 @@ cmake ..
 make
 ```
 
-# Example
+# Examples
 ## Arithmetic
 ```
 2 5 + puti 2.5 3.14 f* putf
