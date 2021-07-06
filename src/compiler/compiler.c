@@ -822,7 +822,10 @@ bool compiler_parse_char(compiler* comp, char* token, bool push_length) {
 			size_t rc;
 			mbstate_t state;
 			rc = mbrtoc32(&out, token, end - token, &(comp->convert_state));
-			if ((rc > ((size_t) -4)) || (rc == 0)) goto FAILURE_UNICODE;
+			if ((rc > ((size_t) -4)) || (rc == 0)) {
+				printf("%d\n", (ssize_t) rc);
+				goto FAILURE_UNICODE;
+			}
 			token += rc;
 			v.u = out;
 		}
