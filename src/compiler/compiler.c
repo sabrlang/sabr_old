@@ -134,7 +134,8 @@ size_t compiler_load_code(compiler* comp, char* filename) {
 	return comp->textcode_vector.size;
 
 FAILURE_FILEPATH:
-
+	fprintf(stderr, console_yellow console_bold "%s" console_reset "\n", filename_full);
+	fprintf(stderr, "error : %s\n", strerror(errno));
 	return 0;
 }
 
@@ -816,7 +817,7 @@ bool compiler_parse_char(compiler* comp, char* token, bool push_length) {
 			char32_t out;
 			size_t rc;
 			mbstate_t state;
-			rc = mbrtoc32(&out, token, end - token, &state);
+			rc = mbrtoc32(&out, token, end - token, &(comp->convert_state));
 			if ((rc > ((size_t) -4)) || (rc == 0)) goto FAILURE_UNICODE;
 			token += rc;
 			v.u = out;

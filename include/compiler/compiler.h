@@ -41,6 +41,7 @@ typedef struct compiler_struct {
 	size_t dictionary_keyword_count;
 	size_t line_count;
 	size_t column_count;
+	mbstate_t convert_state;
 } compiler;
 
 bool compiler_init(compiler* comp);
