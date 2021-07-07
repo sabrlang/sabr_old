@@ -41,6 +41,7 @@ typedef enum comment_parse_mode_enum {
 typedef struct compiler_struct {
 	vector(cctl_ptr(char)) textcode_vector;
 	vector(cctl_ptr(char)) filename_vector;
+	vector(cctl_ptr(char)) preproc_tokens_vector;
 	vector(uint8_t) bytecode;
 	vector(cctl_ptr(vector(control_data))) control_data_stack;
 	trie dictionary;
@@ -68,5 +69,6 @@ bool compiler_parsed_num_to_bytecode(compiler* comp, value v);
 bool compiler_push_bytecode(compiler* comp, opcode op);
 bool compiler_push_bytecode_with_value(compiler* comp, opcode op, value v);
 bool compiler_push_bytecode_with_null(compiler* comp, opcode op);
+bool compiler_push_preproc_token(compiler* comp, char* token);
 
 #endif

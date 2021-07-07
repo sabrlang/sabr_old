@@ -5,6 +5,7 @@ bool compiler_init(compiler* comp) {
 
 	vector_init(cctl_ptr(char), &comp->textcode_vector);
 	vector_init(cctl_ptr(char), &comp->filename_vector);
+	vector_init(cctl_ptr(char), &comp->preproc_tokens_vector);
 	vector_init(uint8_t, &comp->bytecode);
 	vector_init(cctl_ptr(vector(control_data)), &comp->control_data_stack);
 	trie_init(&comp->dictionary);
@@ -35,9 +36,13 @@ FAILURE_DICT:
 }
 
 bool compiler_del(compiler* comp) {
-	for (int i = 0; i < comp->textcode_vector.size; i++) {
+	for (size_t i = 0; i < comp->textcode_vector.size; i++) {
 		free(*vector_at(cctl_ptr(char), &comp->textcode_vector, i));
 		free(*vector_at(cctl_ptr(char), &comp->filename_vector, i));
+	}
+
+	for (size_t i = 0; i < comp->preproc_tokens_vector.size; i++) {
+		free(*vector_at(cctl_ptr(char), &comp->preproc_tokens_vector, i));
 	}
 
 	vector_free(cctl_ptr(char), &comp->textcode_vector);
@@ -161,8 +166,8 @@ bool compiler_tokenize(compiler* comp, size_t index) {
 	char* end = NULL;
 
 	bool string_escape = false;
-	string_parse_mode string_parse = STR_PARSE_NONE;
 	bool space = true;
+	string_parse_mode string_parse = STR_PARSE_NONE;
 	comment_parse_mode comment = CMNT_PARSE_NONE;
 	bool result;
 
@@ -182,7 +187,10 @@ bool compiler_tokenize(compiler* comp, size_t index) {
 			case ' ': {
 				if (!comment) {
 					if (!space) {
-						if (!string_parse) {
+						if (string_parse) {
+							if (string_escape) string_escape = false;
+						}
+						else {
 							end = iterator;
 							result = compiler_parse(comp, begin, end);
 							if (!result) {
@@ -198,9 +206,7 @@ bool compiler_tokenize(compiler* comp, size_t index) {
 			case '\'': {
 				if (!comment) {
 					if (string_parse) {
-						if (string_escape) {
-							string_escape = false;
-						}
+						if (string_escape) string_escape = false;
 						else {
 							if (string_parse == STR_PARSE_SINGLE) {
 								string_parse = STR_PARSE_NONE;
@@ -218,9 +224,7 @@ bool compiler_tokenize(compiler* comp, size_t index) {
 			case '\"': {
 				if (!comment) {
 					if (string_parse) {
-						if (string_escape) {
-							string_escape = false;
-						}
+						if (string_escape) string_escape = false;
 						else {
 							if (string_parse == STR_PARSE_DOUBLE) {
 								string_parse = STR_PARSE_NONE;
@@ -238,11 +242,10 @@ bool compiler_tokenize(compiler* comp, size_t index) {
 			case '\\': {
 				if (!comment) {
 					if (string_parse) {
-						if (!string_escape) {
-							string_parse = true;
-						}
+						if (string_escape) string_parse = false;
+						else string_parse = true;
 					}
-					if (space) {
+					else if (space) {
 						space = false;
 						comment = CMNT_PARSE_LINE;
 					}
@@ -251,17 +254,20 @@ bool compiler_tokenize(compiler* comp, size_t index) {
 			case '(': {
 				if (!comment) {
 					if (string_parse) {
-						if (!string_escape) {
-							string_parse = true;
-						}
+						if (string_escape) string_escape = false;
 					}
-					if (space) {
+					else if (space) {
 						space = false;
 						comment = CMNT_PARSE_STACK;
 					}
 				}
 			} break;
 			case ')': {
+				if (!comment) {
+					if (string_parse) {
+						if (string_escape) string_escape = false;
+					}
+				}
 				if (comment == CMNT_PARSE_STACK) {
 					space = true;
 					comment = CMNT_PARSE_NONE;
@@ -326,8 +332,7 @@ bool compiler_parse(compiler* comp, char* begin, char* end) {
 				result = compiler_parse_keyword_value(comp, begin + 1);
 			} break;
 			case '#': {
-				result = false;
-				fputs("error : Unknown keyword\n", stderr);
+				result = compiler_push_preproc_token(comp, begin + 1);
 			} break;
 			case '\'': {
 				char temp_parse_char = *(end - 1);
@@ -883,4 +888,22 @@ bool compiler_push_bytecode_with_null(compiler* comp, opcode op) {
 	value v;
 	v.u = 0;
 	return compiler_push_bytecode_with_value(comp, op, v);
+}
+
+bool compiler_push_preproc_token(compiler* comp, char* token) {
+	size_t len = strlen(token) + 1;
+	char* temp = (char*) malloc(len * sizeof(char));
+	if (!temp) goto FAILURE_ALLOC;
+	strcpy(temp, token);
+	if (!vector_push_back(cctl_ptr(char), &comp->preproc_tokens_vector, temp)) goto FAILURE_VECTOR;
+	return true;
+
+FAILURE_ALLOC:
+	fputs("error : Preprocessor token memory allocation failure\n", stderr);
+	return false;
+	
+FAILURE_VECTOR:
+	fputs("error : Preprocessor tokens vector memory allocation failure\n", stderr);
+	free(temp);
+	return false;
 }
