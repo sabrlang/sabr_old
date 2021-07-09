@@ -10,10 +10,10 @@ bool interpreter_init(interpreter* inter) {
 	fflush(stdin);
 #endif
 
-	vector_init(value, &inter->data_stack);
-	vector_init(size_t, &inter->call_stack);
+	deque_init(value, &inter->data_stack);
+	deque_init(size_t, &inter->call_stack);
 
-	vector_init(cctl_ptr(rbt), &inter->local_words_stack);
+	deque_init(cctl_ptr(rbt), &inter->local_words_stack);
 	inter->global_words = rbt_new();
 	if (!(inter->global_words)) {
 		fputs("error : Dictionary memory allocation failure\n", stderr);
@@ -23,13 +23,13 @@ bool interpreter_init(interpreter* inter) {
 }
 
 void interpreter_del(interpreter* inter) {
-	vector_init(value, &inter->data_stack);
-	vector_init(size_t, &inter->call_stack);
+	deque_free(value, &inter->data_stack);
+	deque_free(size_t, &inter->call_stack);
 	
 	for (size_t i = 0; i < inter->local_words_stack.size; i++) {
-		rbt_free(*vector_at(cctl_ptr(rbt), &inter->local_words_stack, i));
+		rbt_free(*deque_at(cctl_ptr(rbt), &inter->local_words_stack, i));
 	}
-	vector_free(cctl_ptr(rbt), &inter->local_words_stack);
+	deque_free(cctl_ptr(rbt), &inter->local_words_stack);
 	rbt_free(inter->global_words);
 }
 
@@ -138,17 +138,17 @@ bool interpreter_run(interpreter* inter) {
 			} break;
 			case OP_RETURN: {
 				if (inter->call_stack.size < 1) goto FAILURE_CALL;
-				size_t pos = *vector_back(size_t, &inter->call_stack);
-				if (!vector_pop_back(size_t, &inter->call_stack)) goto FAILURE_CALL;
-				rbt* local_words = *vector_back(cctl_ptr(rbt), &inter->local_words_stack);
+				size_t pos = *deque_back(size_t, &inter->call_stack);
+				if (!deque_pop_back(size_t, &inter->call_stack)) goto FAILURE_CALL;
+				rbt* local_words = *deque_back(cctl_ptr(rbt), &inter->local_words_stack);
 				rbt_free(local_words);
-				if (!vector_pop_back(cctl_ptr(rbt), &inter->local_words_stack)) goto FAILURE_CALL;
+				if (!deque_pop_back(cctl_ptr(rbt), &inter->local_words_stack)) goto FAILURE_CALL;
 				index = pos - 1;
 			} break;
 			case OP_ENDMACRO: {
 				if (inter->call_stack.size < 1) goto FAILURE_CALL;
-				size_t pos = *vector_back(size_t, &inter->call_stack);
-				if (!vector_pop_back(size_t, &inter->call_stack)) goto FAILURE_CALL;
+				size_t pos = *deque_back(size_t, &inter->call_stack);
+				if (!deque_pop_back(size_t, &inter->call_stack)) goto FAILURE_CALL;
 				index = pos - 1;
 			} break;
 			case OP_VAR: {
@@ -158,9 +158,10 @@ bool interpreter_run(interpreter* inter) {
 
 				rbt_node* node = NULL;
 				node = rbt_search(inter->global_words, kwrd.u);
+				puts("!");
 				if (node) goto FAILURE_REDEFINE;
 				if (inter->local_words_stack.size > 0) {
-					words = *vector_back(cctl_ptr(rbt), &inter->local_words_stack);
+					words = *deque_back(cctl_ptr(rbt), &inter->local_words_stack);
 					node = rbt_search(words, kwrd.u);
 					if (node) goto FAILURE_REDEFINE;
 				}
@@ -186,7 +187,7 @@ bool interpreter_run(interpreter* inter) {
 				node = rbt_search(inter->global_words, kwrd.u);
 				if (!node) {
 					if (inter->local_words_stack.size > 0) {
-						local_words = *vector_back(cctl_ptr(rbt), &inter->local_words_stack);
+						local_words = *deque_back(cctl_ptr(rbt), &inter->local_words_stack);
 						node = rbt_search(local_words, kwrd.u);
 					}
 				}
@@ -207,7 +208,7 @@ bool interpreter_run(interpreter* inter) {
 				node = rbt_search(inter->global_words, kwrd.u);
 				if (!node) {
 					if (inter->local_words_stack.size > 0) {
-						local_words = *vector_back(cctl_ptr(rbt), &inter->local_words_stack);
+						local_words = *deque_back(cctl_ptr(rbt), &inter->local_words_stack);
 						node = rbt_search(local_words, kwrd.u);
 					}
 				}
@@ -216,14 +217,14 @@ bool interpreter_run(interpreter* inter) {
 
 				switch (node->type) {
 					case KWRD_FUNC: {
-						if (!vector_push_back(size_t, &inter->call_stack, index + 1)) goto FAILURE_CALL;
+						if (!deque_push_back(size_t, &inter->call_stack, index + 1)) goto FAILURE_CALL;
 						local_words = rbt_new();
 						if (!local_words) goto FAILURE_CALL;
-						if (!vector_push_back(cctl_ptr(rbt), &inter->local_words_stack, local_words)) goto FAILURE_CALL;
+						if (!deque_push_back(cctl_ptr(rbt), &inter->local_words_stack, local_words)) goto FAILURE_CALL;
 						index = node->data - 1;
 					} break;
 					case KWRD_MACRO: {
-						if (!vector_push_back(size_t, &inter->call_stack, index + 1)) goto FAILURE_CALL;
+						if (!deque_push_back(size_t, &inter->call_stack, index + 1)) goto FAILURE_CALL;
 						index = node->data - 1;
 					} break;
 					case KWRD_VAR: {
@@ -709,8 +710,8 @@ bool interpreter_run(interpreter* inter) {
 			} break;
 			case OP_GETS: {
 				value v;
-				vector(value) value_reverser;
-				vector_init(value, &value_reverser);
+				deque(value) value_reverser;
+				deque_init(value, &value_reverser);
 
 			#ifdef _WIN32
 				wint_t result;
@@ -735,7 +736,7 @@ bool interpreter_run(interpreter* inter) {
 						else goto FAILURE_STDIN;
 					}
 					count++;
-					if (!vector_push_back(value, &value_reverser, v)) goto FAILURE_STDIN;
+					if (!deque_push_back(value, &value_reverser, v)) goto FAILURE_STDIN;
 				}
 			#else
 				char* line = NULL;
@@ -767,7 +768,7 @@ bool interpreter_run(interpreter* inter) {
 						line += rc;
 						v.u = out;
 						count++;
-						if (!vector_push_back(value, &value_reverser, v)) goto FAILURE_STDIN;
+						if (!deque_push_back(value, &value_reverser, v)) goto FAILURE_STDIN;
 					}
 					if (empty_line) continue;
 					break;
@@ -777,14 +778,14 @@ bool interpreter_run(interpreter* inter) {
 				
 			#endif
 				for (size_t i = value_reverser.size - 1; i < -1; i--) {
-					v = *vector_at(value, &value_reverser, i);
+					v = *deque_at(value, &value_reverser, i);
 					if (!interpreter_push(inter, v)) goto FAILURE_STACK;
 				}
 
 				v.u = value_reverser.size;
 				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
 
-				vector_free(value, &value_reverser);
+				deque_free(value, &value_reverser);
 			} break;
 			case OP_PUTC: {
 				value v;
@@ -822,7 +823,7 @@ bool interpreter_run(interpreter* inter) {
 			case OP_SHOW: {
 				printf("[%zu] [ ", inter->data_stack.size);
 				for (size_t i = 0; i < inter->data_stack.size; i++) {
-					printf("%" PRId64 " ", (*vector_at(value, &inter->data_stack, i)).i);
+					printf("%" PRId64 " ", (*deque_at(value, &inter->data_stack, i)).i);
 				}
 				printf("]\n");
 			} break;
@@ -862,13 +863,13 @@ bool interpreter_pop(interpreter* inter, value* v) {
 		fputs("error : Stack underflow\n", stderr);
 		return false;
 	}
-	*v = *vector_back(value, &inter->data_stack);
-	vector_pop_back(value, &inter->data_stack);
+	*v = *deque_back(value, &inter->data_stack);
+	deque_pop_back(value, &inter->data_stack);
 	return true;
 }
 
 bool interpreter_push(interpreter* inter, value v) {
-	if (!vector_push_back(value, &inter->data_stack, v)) {
+	if (!deque_push_back(value, &inter->data_stack, v)) {
 		fputs("error : Stack memory allocation failure\n", stderr);
 		return false;
 	}

@@ -1,5 +1,5 @@
 #include "interpreter_cctl_define.h"
 
-vector_imp_c(value);
-vector_imp_c(size_t);
-vector_imp_c(cctl_ptr(rbt));
+deque_imp_c(value);
+deque_imp_c(size_t);
+deque_imp_c(cctl_ptr(rbt));

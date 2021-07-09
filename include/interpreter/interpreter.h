@@ -25,10 +25,10 @@
 typedef struct interpreter_struct {
 	uint8_t* bytecode;
 	size_t bytecode_size;
-	vector(value) data_stack;
-	vector(size_t) call_stack;
+	deque(value) data_stack;
+	deque(size_t) call_stack;
 	rbt* global_words;
-	vector(cctl_ptr(rbt)) local_words_stack;
+	deque(cctl_ptr(rbt)) local_words_stack;
 } interpreter;
 
 bool interpreter_init(interpreter* inter);
