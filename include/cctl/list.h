@@ -58,6 +58,7 @@
 
 #define list_imp_c(TYPE) \
 	node_imp_c(TYPE) \
+	\
 	extern inline void list_func(init, TYPE)(list(TYPE)* p_l) { \
 		p_l->p_front = p_l->p_back = NULL; \
 		p_l->size = 0; \
@@ -124,4 +125,5 @@
 			free(p_node); \
 		} \
 	}
+	
 #endif
