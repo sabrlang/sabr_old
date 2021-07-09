@@ -7,14 +7,15 @@
 
 #include "cctl.h"
 
+#define cctl_deque_chunk_max 512
+
 #define chunk(TYPE) cctl_join(TYPE, chunk)
 #define chunk_func(FUNC, TYPE) cctl_join(chunk(TYPE), FUNC)
 #define chunk_struct(TYPE) cctl_join(chunk(TYPE), struct)
 
-#define chunk_fd(TYPE) \
-	typedef struct chunk_struct(TYPE) chunk(TYPE); \
-
 #define chunk_imp_h(TYPE) \
+	typedef struct chunk_struct(TYPE) chunk(TYPE); \
+	\
 	struct chunk_struct(TYPE) { \
 		TYPE* p_data; \
 		size_t begin; \
@@ -42,7 +43,7 @@
 		size_t capacity = 1; \
 		if (size > 0) while (capacity < size) capacity <<= 1; \
 		if (p_c->capacity < size) { \
-			int* p_temp = NULL; \
+			TYPE* p_temp = NULL; \
 			if (!(p_temp = (TYPE*) calloc(capacity, sizeof(TYPE)))) return false; \
 			if (p_c->allocated) { \
 				if (p_c->begin > p_c->end) { \
@@ -181,8 +182,8 @@
 	bool deque_chunk_func(pop_front, TYPE)(deque(TYPE)* p_d); \
 	bool deque_chunk_func(pop_back, TYPE)(deque(TYPE)* p_d); \
 	chunk(TYPE)* deque_chunk_func(at, TYPE)(deque(TYPE)* p_d, size_t index); \
-	chunk(TYPE)* deque_chunk_func(front, TYPE)(deque(TYPE)* p_d)); \
-	chunk(TYPE)* deque_chunk_func(back, TYPE)(deque(TYPE)* p_d)); \
+	chunk(TYPE)* deque_chunk_func(front, TYPE)(deque(TYPE)* p_d); \
+	chunk(TYPE)* deque_chunk_func(back, TYPE)(deque(TYPE)* p_d); \
 	\
 	bool deque_func(resize, TYPE)(deque(TYPE)* p_d, size_t size); \
 	void deque_func(init, TYPE)(deque(TYPE)* p_d); \
@@ -277,15 +278,15 @@
 		return p_d->p_data + p_d->chunk_begin + index; \
 	} \
 	\
-	extern inline chunk(TYPE)* deque_chunk_func(front, TYPE)(deque(TYPE)* p_d)) { \
+	extern inline chunk(TYPE)* deque_chunk_func(front, TYPE)(deque(TYPE)* p_d) { \
 		return p_d->p_data + p_d->chunk_begin; \
 	} \
 	\
-	extern inline chunk(TYPE)* deque_chunk_func(back, TYPE)(deque(TYPE)* p_d)) { \
+	extern inline chunk(TYPE)* deque_chunk_func(back, TYPE)(deque(TYPE)* p_d) { \
 		return p_d->p_data + p_d->chunk_end; \
 	} \
 	\
-	bool deque_func(resize, TYPE)(deque(TYPE)* p_d, size_t size) { \
+	bool deque_func(resize, TYPE)(deque(TYPE)* p_d, size_t new_size) { \
 		if (new_size > p_d->size) { \
 			TYPE none; \
 			memset(&none, 0, sizeof(TYPE)); \
@@ -332,7 +333,7 @@
 	\
 	bool deque_func(push_front, TYPE)(deque(TYPE)* p_d, TYPE item) { \
 		if (p_d->chunk_count > 0) { \
-			if (deque_chunk_func(front, TYPE)(p_d)->size >= chunk_max) { \
+			if (deque_chunk_func(front, TYPE)(p_d)->size >= cctl_deque_chunk_max) { \
 				if (!deque_chunk_func(push_front, TYPE)(p_d)) return false; \
 			} \
 		} \
@@ -346,7 +347,7 @@
 	\
 	bool deque_func(push_back, TYPE)(deque(TYPE)* p_d, TYPE item) { \
 		if (p_d->chunk_count > 0) { \
-			if (deque_chunk_func(back, TYPE)(p_d)->size >= chunk_max) { \
+			if (deque_chunk_func(back, TYPE)(p_d)->size >= cctl_deque_chunk_max) { \
 				if (!deque_chunk_func(push_back, TYPE)(p_d)) return false; \
 			} \
 		} \
@@ -390,8 +391,8 @@
 		if (index < front_size) \
 			return chunk_func(at, TYPE)(deque_chunk_func(front, TYPE)(p_d), index); \
 		index -= front_size; \
-		chunk_index = index / chunk_max + 1; \
-		index %= chunk_max; \
+		chunk_index = index / cctl_deque_chunk_max + 1; \
+		index %= cctl_deque_chunk_max; \
 		return chunk_func(at, TYPE)(deque_chunk_func(at, TYPE)(p_d, chunk_index), index); \
 	} \
 	\
@@ -400,7 +401,7 @@
 	} \
 	\
 	TYPE* deque_func(back, TYPE)(deque(TYPE)* p_d) { \
-		return chunk_func(front, TYPE)(deque_chunk_func(front, TYPE)(p_d)); \
+		return chunk_func(back, TYPE)(deque_chunk_func(back, TYPE)(p_d)); \
 	}
 
 #endif
