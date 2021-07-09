@@ -10,6 +10,7 @@
 #define vector(TYPE) cctl_join(TYPE, vector)
 #define vector_func(FUNC, TYPE) cctl_join(vector(TYPE), FUNC)
 #define vector_struct(TYPE) cctl_join(vector(TYPE), struct)
+
 #define vector_init(TYPE, p_v) vector_func(init, TYPE)(p_v)
 #define vector_resize(TYPE, p_v, size) vector_func(resize, TYPE)(p_v, size)
 #define vector_reserve(TYPE, p_v, size) vector_func(reserve, TYPE)(p_v, size)
@@ -26,10 +27,10 @@
 
 #define vector_imp_h(TYPE) \
 	struct vector_struct(TYPE) { \
-			TYPE* p_data; \
-			size_t size; \
-			size_t capacity; \
-		}; \
+		TYPE* p_data; \
+		size_t size; \
+		size_t capacity; \
+	}; \
 	bool vector_func(reserve, TYPE)(vector(TYPE)* p_v, size_t size); \
 	bool vector_func(resize, TYPE)(vector(TYPE)* p_v, size_t size); \
 	void vector_func(init, TYPE)(vector(TYPE)* p_v); \

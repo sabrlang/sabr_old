@@ -29,6 +29,7 @@
 #define list(TYPE) cctl_join(TYPE, list)
 #define list_func(FUNC, TYPE) cctl_join(list(TYPE), FUNC)
 #define list_struct(TYPE) cctl_join(list(TYPE), struct)
+
 #define list_init(TYPE, p_l) list_func(init, TYPE)(p_l)
 #define list_free(TYPE, p_l) list_func(free, TYPE)(p_l)
 #define list_push_front(TYPE, p_l, item) list_func(push_front, TYPE)(p_l, item)
