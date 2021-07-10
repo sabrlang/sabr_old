@@ -712,7 +712,6 @@ bool interpreter_run(interpreter* inter) {
 				value v;
 				deque(value) value_reverser;
 				deque_init(value, &value_reverser);
-
 			#ifdef _WIN32
 				wint_t result;
 				wint_t next;
@@ -746,8 +745,6 @@ bool interpreter_run(interpreter* inter) {
 				ssize_t read;
 				char32_t out;
 
-				mbstate_t state;
-
 				size_t count = 0;
 				bool empty_line;
 				
@@ -757,7 +754,7 @@ bool interpreter_run(interpreter* inter) {
 					if (read == -1) goto FAILURE_STDIN;
 					temp = line;
 					while (true) {
-						rc = mbrtoc32(&out, line, len, &state);
+						rc = mbrtoc32(&out, line, len, &(inter->convert_state));
 						if (!rc) break;
 						if ((rc > ((size_t) -4)) || (rc == 0)) goto FAILURE_STDIN;
 						if (out == 10) {
@@ -795,8 +792,7 @@ bool interpreter_run(interpreter* inter) {
 				}
 				else {
 					char out[8];
-					mbstate_t state;
-					size_t rc = c32rtomb(out, (char32_t) v.u, &state);
+					size_t rc = c32rtomb(out, (char32_t) v.u, &(inter->convert_state));
 					if (rc == -1) {
 						fputs("error : Unicode encoding failure\n", stderr);
 						return false;
