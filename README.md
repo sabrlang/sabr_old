@@ -79,11 +79,11 @@ end
 # How to run
 ## Compile to bytecode
 ```
-sabrc {source file name} {output file name}
+$ sabrc {source file name} {output file name}
 ```
-## Interprete bytecode
+## Run bytecode
 ```
-sabre {bytecode file name}
+$ sabre {bytecode file name}
 ```
 
 # Specification
