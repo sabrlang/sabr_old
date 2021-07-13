@@ -215,7 +215,7 @@ f = -f1
 * Floating-point : `0.25`, `.25`, `00.250`, `0.25e0`, `2.5e-1`, `0.025e1`
 ### Character literals
 * Unicode characters : `'가'` -> `[ 44032 ]`
-* Characters sequence : `'Hello\0'` -> `[ 0, 111, 108, 108, 72 ]`
+* Characters sequence : `'Hello'` -> `[ 111 108 108 101 72 ]`
 ### Escape sequences
 * `\a` -> 7
 * `\b` -> 8
