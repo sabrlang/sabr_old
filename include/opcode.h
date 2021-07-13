@@ -10,7 +10,6 @@ typedef enum opcode_enum {
 	OP_MACRO,
 	OP_RETURN,
 	OP_ENDMACRO,
-	OP_VAR,
 	OP_TO,
 	OP_CALL,
 

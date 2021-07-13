@@ -36,12 +36,10 @@ Hello, world!
 
 ## Simple loop with local variables
 ```
-$varto macro dup var to end
 $cr macro '\n' putc end
 $draw func
-	$count varto
-	0 $i varto
-	$j var
+	$count to
+	0 $i to
 	loop
 		i count <
 	while
@@ -188,7 +186,6 @@ f = -f1
 * `2swap` ( x1 x2 x3 x4 -- x3 x4 x1 x2 )
 * `2rot` ( x1 x2 x3 x4 x5 x6 -- x3 x4 x5 x6 x1 x2 )
 ### Variables
-* `var` ( id -- )
 * `to` ( x id -- )
 ### Dynamic allocation
 * `alloc` ( u -- addr )

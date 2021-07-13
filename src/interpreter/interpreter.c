@@ -151,34 +151,10 @@ bool interpreter_run(interpreter* inter) {
 				if (!deque_pop_back(size_t, &inter->call_stack)) goto FAILURE_CALL;
 				index = pos - 1;
 			} break;
-			case OP_VAR: {
-				value kwrd;
-				rbt* words = NULL;
-				if (!interpreter_pop(inter, &kwrd)) goto FAILURE_STACK;
-
-				rbt_node* node = NULL;
-				node = rbt_search(inter->global_words, kwrd.u);
-				if (node) goto FAILURE_REDEFINE;
-				if (inter->local_words_stack.size > 0) {
-					words = *deque_back(cctl_ptr(rbt), &inter->local_words_stack);
-					node = rbt_search(words, kwrd.u);
-					if (node) goto FAILURE_REDEFINE;
-				}
-				else {
-					words = inter->global_words;
-				}
-
-				node = rbt_node_new(kwrd.u);
-				if (!node) goto FAILURE_DEFINE;
-
-				node->data = 0;
-				node->type = KWRD_VAR;
-				rbt_insert(words, node);
-			} break;
 			case OP_TO: {
 				value kwrd;
 				value v;
-				rbt* local_words = NULL;
+				rbt* words = NULL;
 				rbt_node* node = NULL;
 				if (!interpreter_pop(inter, &kwrd)) goto FAILURE_STACK;
 				if (!interpreter_pop(inter, &v)) goto FAILURE_STACK;
@@ -186,11 +162,19 @@ bool interpreter_run(interpreter* inter) {
 				node = rbt_search(inter->global_words, kwrd.u);
 				if (!node) {
 					if (inter->local_words_stack.size > 0) {
-						local_words = *deque_back(cctl_ptr(rbt), &inter->local_words_stack);
-						node = rbt_search(local_words, kwrd.u);
+						words = *deque_back(cctl_ptr(rbt), &inter->local_words_stack);
+						node = rbt_search(words, kwrd.u);
+					}
+					else {
+						words = inter->global_words;
 					}
 				}
-				if (!node) goto FAILURE_UNDEFINED;
+				if (!node) {
+					node = rbt_node_new(kwrd.u);
+					if (!node) goto FAILURE_DEFINE;
+					node->type = KWRD_VAR;
+					rbt_insert(words, node);
+				}
 
 				if (node->type == KWRD_VAR) {
 					node->data = v.u;
