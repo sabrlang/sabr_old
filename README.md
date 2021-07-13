@@ -109,6 +109,7 @@ Sabr has no type checking. All stack values are 8 bytes wide.
 * `return`
 * `macro`
 * `end`
+* `import`
 ## Built-in operators
 ### Integer arithmetic
 * `+` ( n1 n2 -- n )  
