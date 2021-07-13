@@ -158,7 +158,6 @@ bool interpreter_run(interpreter* inter) {
 
 				rbt_node* node = NULL;
 				node = rbt_search(inter->global_words, kwrd.u);
-				puts("!");
 				if (node) goto FAILURE_REDEFINE;
 				if (inter->local_words_stack.size > 0) {
 					words = *deque_back(cctl_ptr(rbt), &inter->local_words_stack);

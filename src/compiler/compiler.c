@@ -580,6 +580,9 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			vector_free(control_data, temp_ctrl_vec);
 			if (!vector_pop_back(cctl_ptr(vector(control_data)), &comp->control_data_stack)) goto FAILURE_CTRL_STACK;
 		} break;
+		case CTRL_IMPORT: {
+			
+		} break;
 	}
 
 	return true;
