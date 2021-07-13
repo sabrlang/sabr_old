@@ -42,6 +42,7 @@ typedef struct compiler_struct {
 	vector(cctl_ptr(char)) textcode_vector;
 	vector(cctl_ptr(char)) filename_vector;
 	vector(cctl_ptr(char)) preproc_tokens_vector;
+	vector(size_t) textcode_index_stack;
 	vector(uint8_t) bytecode;
 	vector(cctl_ptr(vector(control_data))) control_data_stack;
 	trie dictionary;
@@ -54,9 +55,10 @@ typedef struct compiler_struct {
 bool compiler_init(compiler* comp);
 bool compiler_del(compiler* comp);
 bool compiler_compile(compiler* comp, char* input_filename, char* output_filename);
+bool compiler_compile_source(compiler* comp, char* input_filename);
 size_t compiler_load_code(compiler* comp, char* filename);
 bool compiler_save_code(compiler* comp, char* filename);
-bool compiler_tokenize(compiler* comp, size_t index);
+bool compiler_tokenize(compiler* comp);
 bool compiler_parse(compiler* comp, char* begin, char* end);
 bool compiler_parse_word_token(compiler* comp, trie* trie_result);
 bool compiler_parse_control_words(compiler* comp, trie* trie_result);

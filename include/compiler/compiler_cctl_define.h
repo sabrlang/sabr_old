@@ -16,11 +16,13 @@ vector_fd(control_data);
 cctl_ptr_def(vector(control_data));
 vector_fd(cctl_ptr(vector(control_data)));
 vector_fd(value);
+vector_fd(size_t);
 
 vector_imp_h(cctl_ptr(char));
 vector_imp_h(uint8_t);
 vector_imp_h(control_data);
 vector_imp_h(cctl_ptr(vector(control_data)));
 vector_imp_h(value);
+vector_imp_h(size_t);
 
 #endif

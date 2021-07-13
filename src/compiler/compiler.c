@@ -6,6 +6,7 @@ bool compiler_init(compiler* comp) {
 	vector_init(cctl_ptr(char), &comp->textcode_vector);
 	vector_init(cctl_ptr(char), &comp->filename_vector);
 	vector_init(cctl_ptr(char), &comp->preproc_tokens_vector);
+	vector_init(size_t, &comp->textcode_index_stack);
 	vector_init(uint8_t, &comp->bytecode);
 	vector_init(cctl_ptr(vector(control_data)), &comp->control_data_stack);
 	trie_init(&comp->dictionary);
@@ -47,6 +48,8 @@ bool compiler_del(compiler* comp) {
 
 	vector_free(cctl_ptr(char), &comp->textcode_vector);
 	vector_free(cctl_ptr(char), &comp->filename_vector);
+
+	vector_free(size_t, &comp->textcode_index_stack);
 	vector_free(uint8_t, &comp->bytecode);
 	for (size_t i = 0; i < comp->control_data_stack.size; i++) {
 		vector_free(control_data, *vector_at(cctl_ptr(vector(control_data)), &comp->control_data_stack, i));
@@ -58,17 +61,30 @@ bool compiler_del(compiler* comp) {
 }
 
 bool compiler_compile(compiler* comp, char* input_filename, char* output_filename) {
+	if (!compiler_compile_source(comp, input_filename)) return false;
+	if (!compiler_save_code(comp, output_filename)) {
+		fputs("error : File saving failure\n", stderr);
+		return false;
+	}
+	return true;
+}
+
+bool compiler_compile_source(compiler* comp, char* input_filename) {
 	int index = compiler_load_code(comp, input_filename);
 	if (!index) {
 		fputs("error : Loading code failure\n", stderr);
 		return false;
 	}
-	if (!compiler_tokenize(comp, index - 1)) {
+	if (!vector_push_back(size_t, &comp->textcode_index_stack, index - 1)) {
+		fputs("error : Textcode index stack memory allocation failure\n", stderr);
+		return false;
+	}
+	if (!compiler_tokenize(comp)) {
 		fputs("error : Tokenization failure\n", stderr);
 		return false;
 	}
-	if (!compiler_save_code(comp, output_filename)) {
-		fputs("error : File saving failure\n", stderr);
+	if (!vector_pop_back(size_t, &comp->textcode_index_stack)) {
+		fputs("error : Textcode index stack memory allocation failure\n", stderr);
 		return false;
 	}
 	return true;
@@ -88,6 +104,7 @@ size_t compiler_load_code(compiler* comp, char* filename) {
 
 	file = fopen(filename_full, "rb");
 	if (!file) {
+		fprintf(stderr, console_yellow console_bold "%s" console_reset "\n", filename_full);
 		fputs("error : File reading failure\n", stderr);
 		return 0;
 	}
@@ -160,7 +177,16 @@ bool compiler_save_code(compiler* comp, char* filename) {
 	return true;
 }
 
-bool compiler_tokenize(compiler* comp, size_t index) {
+bool compiler_tokenize(compiler* comp) {
+	size_t index;
+
+	if (comp->textcode_index_stack.size == 0) {
+		fputs("error : Textcode index error\n", stderr);
+		return false;
+	}
+
+	index = *vector_back(size_t, &comp->textcode_index_stack);
+
 	char* iterator = *vector_at(cctl_ptr(char), &comp->textcode_vector, index);
 	char* begin = NULL;
 	char* end = NULL;
@@ -581,7 +607,38 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			if (!vector_pop_back(cctl_ptr(vector(control_data)), &comp->control_data_stack)) goto FAILURE_CTRL_STACK;
 		} break;
 		case CTRL_IMPORT: {
-			
+			char* filename;
+			char filename_full[PATH_MAX];
+
+			char* token;
+			size_t index;
+
+			if (comp->textcode_index_stack.size == 0) goto FAILURE_TEXTCODE;
+			index = *vector_back(size_t, &comp->textcode_index_stack);
+
+			if (comp->filename_vector.size == 0) goto FAILURE_TEXTCODE;
+			filename = *vector_at(cctl_ptr(char), &comp->filename_vector, index);
+
+			if (comp->preproc_tokens_vector.size == 0) goto FAILURE_PREPROC_STACK;
+			token = *vector_back(cctl_ptr(char), &comp->preproc_tokens_vector);
+
+		#ifdef _WIN32
+			char drive[_MAX_DRIVE];
+			char dir[_MAX_DIR];
+			char new_name[PATH_MAX];
+
+			if (!_fullpath(filename_full, filename, PATH_MAX)) {
+				fprintf(stderr, console_yellow console_bold "%s" console_reset "\n", filename_full);
+				fprintf(stderr, "error : %s\n", strerror(errno));
+				return 0;
+			}
+			_splitpath(filename_full, drive, dir, NULL, NULL);
+			_makepath(new_name, drive, dir, token, NULL);
+		#else
+			fputs("error : Not implmented yet\n", stderr);
+			return false;
+		#endif
+			if (!compiler_compile_source(comp, new_name)) return false;
 		} break;
 	}
 
@@ -594,6 +651,12 @@ FAILURE_CTRL_VECTOR:
 	return false;
 FAILURE_CTRL_STACK:
 	fputs("error : Control data stack memory allocation faliure\n", stderr);
+	return false;
+FAILURE_PREPROC_STACK:
+	fputs("error : Preprocessor tokens stack memory allocation faliure\n", stderr);
+	return false;
+FAILURE_TEXTCODE:
+	fputs("error : Filename vector or textcode indices memory stack memory allocation faliure\n", stderr);
 	return false;
 }
 
