@@ -635,6 +635,8 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			_splitpath(filename_full, drive, dir, NULL, NULL);
 			_makepath(new_name, drive, dir, token, NULL);
 		#else
+			char new_name[PATH_MAX];
+
 			fputs("error : Not implmented yet\n", stderr);
 			return false;
 		#endif
