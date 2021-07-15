@@ -118,8 +118,8 @@ size_t compiler_load_code(compiler* comp, char* filename) {
 	int filename_size = strlen(filename_full) + 1;
 
 	char* textcode = (char*) malloc(size + 2);
-	char* filename_new = (char*) malloc(filename_size);
-	if (!(textcode && filename_new)) {
+	char* filename_full_new = (char*) malloc(filename_size);
+	if (!(textcode && filename_full_new)) {
 		fclose(file);
 		fputs("error : Textcode memory allocation failure\n", stderr);
 		return 0;
@@ -137,24 +137,24 @@ size_t compiler_load_code(compiler* comp, char* filename) {
 	textcode[size + 1] = '\0';
 
 #ifdef _WIN32
-	memcpy_s(filename_new, filename_size, filename_full, filename_size);
+	memcpy_s(filename_full_new, filename_size, filename_full, filename_size);
 #else
-	memcpy(filename_new, filename_full, filename_size);
+	memcpy(filename_full_new, filename_full, filename_size);
 #endif
 
 	trie* filename_trie_result;
 	bool already_imported = false;
-	filename_trie_result = trie_find(&comp->filename_trie, filename_full);
+	filename_trie_result = trie_find(&comp->filename_trie, filename_full_new);
 	if (filename_trie_result) if (filename_trie_result->type == (uint8_t) true) already_imported = true;
-	if (!already_imported) filename_trie_result = trie_insert(&comp->filename_trie, filename_new, (uint8_t) true);
+	if (!already_imported) filename_trie_result = trie_insert(&comp->filename_trie, filename_full_new, (uint8_t) true);
 
 	if (!(
 			vector_push_back(cctl_ptr(char), &comp->textcode_vector, textcode) &&
-			vector_push_back(cctl_ptr(char), &comp->filename_vector, filename_new) &&
+			vector_push_back(cctl_ptr(char), &comp->filename_vector, filename_full_new) &&
 			filename_trie_result
 		)) {
 		free(textcode);
-		free(filename_new);
+		free(filename_full_new);
 		fclose(file);
 		fputs("error : Textcode vector memory allocation failure\n", stderr);
 		return 0;
