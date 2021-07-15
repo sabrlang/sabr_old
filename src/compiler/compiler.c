@@ -618,7 +618,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			if (!vector_pop_back(cctl_ptr(vector(control_data)), &comp->control_data_stack)) goto FAILURE_CTRL_STACK;
 		} break;
 		case CTRL_IMPORT: {
-			char* filename;
+			char* current_filename;
 
 			char* token;
 			size_t index;
@@ -627,26 +627,26 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			index = *vector_back(size_t, &comp->textcode_index_stack);
 
 			if (comp->filename_vector.size == 0) goto FAILURE_TEXTCODE;
-			filename = *vector_at(cctl_ptr(char), &comp->filename_vector, index);
+			current_filename = *vector_at(cctl_ptr(char), &comp->filename_vector, index);
 
 			if (comp->preproc_tokens_vector.size == 0) goto FAILURE_PREPROC_STACK;
 			token = *vector_back(cctl_ptr(char), &comp->preproc_tokens_vector);
 
-			char new_name[PATH_MAX];
+			char import_filename[PATH_MAX];
 
 		#ifdef _WIN32
 			char drive[_MAX_DRIVE];
 			char dir[_MAX_DIR];
 
-			_splitpath(filename, drive, dir, NULL, NULL);
-			_makepath(new_name, drive, dir, token, NULL);
+			_splitpath(current_filename, drive, dir, NULL, NULL);
+			_makepath(import_filename, drive, dir, token, NULL);
 		#else
 
 			fputs("error : Not implmented yet\n", stderr);
 			return false;
 		#endif
 
-			trie* filename_trie_result = trie_find(&comp->filename_trie, new_name);
+			trie* filename_trie_result = trie_find(&comp->filename_trie, import_filename);
 
 			if (filename_trie_result) {
 				if (filename_trie_result->type == (uint8_t) true) {
@@ -654,7 +654,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 				}
 			}
 
-			if (!compiler_compile_source(comp, new_name)) return false;
+			if (!compiler_compile_source(comp, import_filename)) return false;
 		} break;
 	}
 
