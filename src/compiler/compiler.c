@@ -641,11 +641,14 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			_splitpath(current_filename, drive, dir, NULL, NULL);
 			_makepath(import_filename, drive, dir, token, NULL);
 		#else
-
-			fputs("error : Not implmented yet\n", stderr);
-			return false;
+			char* dir = (char*) calloc(PATH_MAX, sizeof(char));
+			memcpy(dir, current_filename, strlen(current_filename) + 1);
+			dir = dirname(dir);
+			memcpy(import_filename, dir, strlen(dir) + 1);
+			free(dir);
+			strcat(import_filename, "/");
+			strcat(import_filename, token);
 		#endif
-
 			trie* filename_trie_result = trie_find(&comp->filename_trie, import_filename);
 
 			if (filename_trie_result) {

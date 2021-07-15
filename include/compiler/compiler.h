@@ -12,8 +12,11 @@
 #include <uchar.h>
 
 #ifdef _WIN32
-#elif defined __linux__
-	#include <linux/limits.h>
+#else
+	#include <libgen.h>
+	#ifdef __linux__
+		#include <linux/limits.h>
+	#endif
 #endif
 
 #include "console.h"
