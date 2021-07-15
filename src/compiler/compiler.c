@@ -10,6 +10,7 @@ bool compiler_init(compiler* comp) {
 	vector_init(uint8_t, &comp->bytecode);
 	vector_init(cctl_ptr(vector(control_data)), &comp->control_data_stack);
 	trie_init(&comp->dictionary);
+	trie_init(&comp->filename_trie);
 
 	comp->dictionary_keyword_count = 0;
 	comp->line_count = 1;
@@ -56,6 +57,7 @@ bool compiler_del(compiler* comp) {
 	}
 	vector_free(cctl_ptr(vector(control_data)), &comp->control_data_stack);
 	trie_del(&comp->dictionary);
+	trie_del(&comp->filename_trie);
 
 	return true;
 }
@@ -140,9 +142,16 @@ size_t compiler_load_code(compiler* comp, char* filename) {
 	memcpy(filename_new, filename_full, filename_size);
 #endif
 
+	trie* filename_trie_result;
+	bool already_imported = false;
+	filename_trie_result = trie_find(&comp->filename_trie, filename_full);
+	if (filename_trie_result) if (filename_trie_result->type == (uint8_t) true) already_imported = true;
+	if (!already_imported) filename_trie_result = trie_insert(&comp->filename_trie, filename_new, (uint8_t) true);
+
 	if (!(
 			vector_push_back(cctl_ptr(char), &comp->textcode_vector, textcode) &&
-			vector_push_back(cctl_ptr(char), &comp->filename_vector, filename_new)
+			vector_push_back(cctl_ptr(char), &comp->filename_vector, filename_new) &&
+			filename_trie_result
 		)) {
 		free(textcode);
 		free(filename_new);
@@ -150,6 +159,8 @@ size_t compiler_load_code(compiler* comp, char* filename) {
 		fputs("error : Textcode vector memory allocation failure\n", stderr);
 		return 0;
 	}
+
+	filename_trie_result->data.u = comp->textcode_vector.size - 1;
 
 	fclose(file);
 
@@ -608,7 +619,6 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 		} break;
 		case CTRL_IMPORT: {
 			char* filename;
-			char filename_full[PATH_MAX];
 
 			char* token;
 			size_t index;
@@ -622,24 +632,28 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			if (comp->preproc_tokens_vector.size == 0) goto FAILURE_PREPROC_STACK;
 			token = *vector_back(cctl_ptr(char), &comp->preproc_tokens_vector);
 
+			char new_name[PATH_MAX];
+
 		#ifdef _WIN32
 			char drive[_MAX_DRIVE];
 			char dir[_MAX_DIR];
-			char new_name[PATH_MAX];
 
-			if (!_fullpath(filename_full, filename, PATH_MAX)) {
-				fprintf(stderr, console_yellow console_bold "%s" console_reset "\n", filename_full);
-				fprintf(stderr, "error : %s\n", strerror(errno));
-				return 0;
-			}
-			_splitpath(filename_full, drive, dir, NULL, NULL);
+			_splitpath(filename, drive, dir, NULL, NULL);
 			_makepath(new_name, drive, dir, token, NULL);
 		#else
-			char new_name[PATH_MAX];
 
 			fputs("error : Not implmented yet\n", stderr);
 			return false;
 		#endif
+
+			trie* filename_trie_result = trie_find(&comp->filename_trie, new_name);
+
+			if (filename_trie_result) {
+				if (filename_trie_result->type == (uint8_t) true) {
+					return true;
+				}
+			}
+
 			if (!compiler_compile_source(comp, new_name)) return false;
 		} break;
 	}

@@ -46,6 +46,7 @@ typedef struct compiler_struct {
 	vector(uint8_t) bytecode;
 	vector(cctl_ptr(vector(control_data))) control_data_stack;
 	trie dictionary;
+	trie filename_trie;
 	size_t dictionary_keyword_count;
 	size_t line_count;
 	size_t column_count;
