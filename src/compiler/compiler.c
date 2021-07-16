@@ -462,6 +462,28 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			if (!vector_push_back(control_data, temp_ctrl_vec, current_ctrl)) goto FAILURE_CTRL_VECTOR;
 			if (!compiler_push_bytecode_with_null(comp, OP_JUMP)) return false;
 		} break;
+		case CTRL_SWITCH: {
+			temp_ctrl_vec = (vector(control_data)*) malloc(sizeof(vector(control_data)));
+			if (!temp_ctrl_vec) goto FAILURE_CTRL_VECTOR;
+			vector_init(control_data, temp_ctrl_vec);
+			if (!vector_push_back(control_data, temp_ctrl_vec, current_ctrl)) goto FAILURE_CTRL_VECTOR;
+			if (!vector_push_back(cctl_ptr(vector(control_data)), &comp->control_data_stack, temp_ctrl_vec)) goto FAILURE_CTRL_STACK;
+			if (!compiler_push_bytecode(comp, OP_SWITCH)) return false;
+		} break;
+		case CTRL_CASE: {
+			if (!comp->control_data_stack.size) goto FAILURE_CTRL;
+			temp_ctrl_vec = *vector_back(cctl_ptr(vector(control_data)), &comp->control_data_stack);
+			if (!vector_push_back(control_data, temp_ctrl_vec, current_ctrl)) goto FAILURE_CTRL_VECTOR;
+			if (!compiler_push_bytecode(comp, OP_CASE)) return false;
+			if (!compiler_push_bytecode(comp, OP_EQU)) return false;
+			if (!compiler_push_bytecode_with_null(comp, OP_IF)) return false;
+		} break;
+		case CTRL_PASS: {
+			if (!comp->control_data_stack.size) goto FAILURE_CTRL;
+			temp_ctrl_vec = *vector_back(cctl_ptr(vector(control_data)), &comp->control_data_stack);
+			if (!vector_push_back(control_data, temp_ctrl_vec, current_ctrl)) goto FAILURE_CTRL_VECTOR;
+			if (!compiler_push_bytecode_with_null(comp, OP_JUMP)) return false;
+		} break;
 		case CTRL_FUNC: {
 			temp_ctrl_vec = (vector(control_data)*) malloc(sizeof(vector(control_data)));
 			if (!temp_ctrl_vec) goto FAILURE_CTRL_VECTOR;
@@ -570,6 +592,128 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 					}
 					pos.u = first_ctrl->pos;
 					if (!compiler_push_bytecode_with_value(comp, OP_JUMP, pos)) return false;
+				} break;
+				case CTRL_SWITCH: {
+					#define __free_switch_vecs__ \
+						vector_free(control_data, &case_vec); \
+						vector_free(control_data, &pass_vec); \
+						vector_free(control_data, &chain_vec);
+					
+					vector(control_data) case_vec;
+					vector(control_data) pass_vec;
+					vector(control_data) chain_vec;
+
+					vector_init(control_data, &case_vec);
+					vector_init(control_data, &pass_vec);
+					vector_init(control_data, &chain_vec);
+
+					pos.u = current_ctrl.pos;
+
+					bool chain = false;
+
+					bool case_existance = false;
+					bool case_first = false;
+					bool pass_existance = false;
+
+					for (
+						control_data* iter = vector_at(control_data, temp_ctrl_vec, 1);
+						iter <= vector_back(control_data, temp_ctrl_vec);
+						iter++
+					) {
+						switch (iter->ctrl) {
+							case CTRL_CASE: {
+								if (chain) {
+									if (!vector_push_back(control_data, &pass_vec, *iter)) {
+										__free_switch_vecs__;
+										goto FAILURE_CTRL_VECTOR;
+									}
+								}
+								if (!vector_push_back(control_data, &case_vec, *iter)) {
+									__free_switch_vecs__;
+									goto FAILURE_CTRL_VECTOR;
+								}
+								chain = true;
+								case_existance = true;
+							} break;
+							case CTRL_PASS: {
+								chain = false;
+								for (int i = 0; i < 8; i++)
+									*vector_at(uint8_t, &comp->bytecode, iter->pos + 1 + i) = pos.bytes[i];
+								if (!vector_push_back(control_data, &pass_vec, *iter)) {
+									__free_switch_vecs__;
+									goto FAILURE_CTRL_VECTOR;
+								}
+								pass_existance = true;
+							} break;
+							case CTRL_BREAK:
+							case CTRL_CONTINUE:
+							case CTRL_RETURN: {
+								vector(control_data)* next_ctrl_vec;
+								if (comp->control_data_stack.size < 2) {
+									__free_switch_vecs__;
+									goto FAILURE_CTRL_STACK;
+								}
+								next_ctrl_vec = *vector_at(cctl_ptr(vector(control_data)), &comp->control_data_stack, comp->control_data_stack.size - 2);
+								if (!vector_push_back(control_data, next_ctrl_vec, *iter)) {
+									__free_switch_vecs__;
+									goto FAILURE_CTRL_VECTOR;
+								}
+							} break;
+							default: {
+								__free_switch_vecs__;
+								goto FAILURE_CTRL;
+							}
+						}
+					}
+
+					if (!(
+						pass_existance && case_existance &&
+						(pass_existance ? (vector_at(control_data, temp_ctrl_vec, 1)->ctrl == CTRL_CASE) : 0)
+					)) {
+						__free_switch_vecs__;
+						goto FAILURE_CTRL;
+					}
+
+					control_data* iter_case = vector_front(control_data, &case_vec);
+					control_data* iter_pass = vector_front(control_data, &pass_vec);
+
+					for (; iter_case <= vector_back(control_data, &case_vec); iter_case++) {
+						if (iter_pass->ctrl == CTRL_PASS) {
+							if (chain_vec.size) {
+								for (
+									control_data* iter_chain = vector_front(control_data, &chain_vec);
+									iter_chain <= vector_back(control_data, &chain_vec);
+									iter_chain++
+								) {
+									pos.u = iter_case->pos + 11;
+									for (int i = 0; i < 8; i++) {
+										*vector_at(uint8_t, &comp->bytecode, iter_chain->pos + 3 + i) = pos.bytes[i];
+									}
+									*vector_at(uint8_t, &comp->bytecode, iter_chain->pos + 1) = OP_NEQ;
+								}
+								vector_clear(control_data, &chain_vec);
+							}
+
+							pos.u = iter_pass->pos + 9;
+							for (int i = 0; i < 8; i++) {
+								*vector_at(uint8_t, &comp->bytecode, iter_case->pos + 3 + i) = pos.bytes[i];
+							}
+							iter_pass++;
+						}
+						else {
+							if (!vector_push_back(control_data, &chain_vec, *iter_case)) {
+								__free_switch_vecs__;
+								goto FAILURE_CTRL_VECTOR;
+							}
+							iter_pass++;
+						}
+					}
+
+					__free_switch_vecs__;
+					
+					if (!compiler_push_bytecode(comp, OP_ENDSWITCH)) return false;
+
+					#undef __free_switch_vecs__
 				} break;
 				case CTRL_FUNC: {
 					for (

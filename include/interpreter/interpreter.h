@@ -26,6 +26,7 @@ typedef struct interpreter_struct {
 	uint8_t* bytecode;
 	size_t bytecode_size;
 	deque(value) data_stack;
+	deque(value) switch_stack;
 	deque(size_t) call_stack;
 	rbt* global_words;
 	deque(cctl_ptr(rbt)) local_words_stack;

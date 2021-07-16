@@ -11,6 +11,7 @@ bool interpreter_init(interpreter* inter) {
 #endif
 
 	deque_init(value, &inter->data_stack);
+	deque_init(value, &inter->switch_stack);
 	deque_init(size_t, &inter->call_stack);
 
 	deque_init(cctl_ptr(rbt), &inter->local_words_stack);
@@ -24,6 +25,7 @@ bool interpreter_init(interpreter* inter) {
 
 void interpreter_del(interpreter* inter) {
 	deque_free(value, &inter->data_stack);
+	deque_free(value, &inter->switch_stack);
 	deque_free(size_t, &inter->call_stack);
 	
 	for (size_t i = 0; i < inter->local_words_stack.size; i++) {
@@ -97,6 +99,19 @@ bool interpreter_run(interpreter* inter) {
 					pos.bytes[i] = inter->bytecode[++index];
 				}
 				index = pos.u - 1;
+			} break;
+			case OP_SWITCH: {
+				value v;
+				if (!interpreter_pop(inter, &v)) goto FAILURE_STACK;
+				deque_push_back(value, &inter->switch_stack, v);
+			} break;
+			case OP_CASE: {
+				value v;
+				v = *deque_back(value, &inter->switch_stack);
+				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
+			} break;
+			case OP_ENDSWITCH: {
+				deque_pop_back(value, &inter->switch_stack);
 			} break;
 			case OP_FUNC: {
 				value kwrd;
@@ -807,6 +822,7 @@ bool interpreter_run(interpreter* inter) {
 				printf("]\n");
 			} break;
 			default: {
+				fprintf(stderr, "\'%u\'\n", *code);
 				fputs("error : Invalid operation code\n", stderr);
 				return false;
 			}
