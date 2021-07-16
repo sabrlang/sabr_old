@@ -2,6 +2,9 @@
 		OP_VALL
 		OP_IF
 		OP_JUMP
+		OP_SWITCH
+		OP_CASE
+		OP_ENDSWITCH
 		OP_FUNC
 return	OP_RETURN
 to		OP_TO

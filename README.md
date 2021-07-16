@@ -98,13 +98,86 @@ Sabr has no type checking. All stack values are 8 bytes wide.
 * `b` : Boolean
 * `addr` : Address
 * `id` : Identifier
-## Control keywords
+## Control
+### if statements
+```
+(flag) if
+    (code)
+end
+```
+
+```
+(flag) if
+    (code 1)
+else
+    (code 2)
+end
+```
+### loop statements
+```
+loop
+    (code 1)
+end
+```
+
+```
+loop
+    (code)
+    (flag)
+    while
+end
+```
+
+```
+loop
+    (code 1)
+    (flag)
+    while
+    (code 2)
+end
+```
+
+
+### switch statements
+```
+switch
+    (flag 1) case (code 1) pass
+    (flag 2) case (code 2) pass
+    (flag 3) case
+    (flag 4) case
+        (code 3)
+    pass
+    (code 4)
+end
+```
+### func and macro
+```
+$(keyword) func
+    (code)
+end
+```
+
+```
+$(keyword) macro
+    (code)
+end
+```
+
+### import
+```
+#(file) import
+```
+
+### Control Keywords
 * `if`
 * `else`
 * `loop`
 * `while`
 * `break`
 * `continue`
+* `switch`
+* `case`
+* `pass`
 * `func`
 * `return`
 * `macro`
