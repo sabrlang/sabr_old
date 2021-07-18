@@ -103,7 +103,7 @@ bool interpreter_run(interpreter* inter) {
 			case OP_SWITCH: {
 				value v;
 				if (!interpreter_pop(inter, &v)) goto FAILURE_STACK;
-				deque_push_back(value, &inter->switch_stack, v);
+				if (!deque_push_back(value, &inter->switch_stack, v)) goto FAILURE_SWITCH;
 			} break;
 			case OP_CASE: {
 				value v;
@@ -111,7 +111,7 @@ bool interpreter_run(interpreter* inter) {
 				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
 			} break;
 			case OP_ENDSWITCH: {
-				deque_pop_back(value, &inter->switch_stack);
+				if (!deque_pop_back(value, &inter->switch_stack)) goto FAILURE_SWITCH;
 			} break;
 			case OP_FUNC: {
 				value kwrd;
@@ -847,6 +847,9 @@ FAILURE_DEFINE:
 	return false;
 FAILURE_CALL:
 	fputs("error : Call stack error\n", stderr);
+	return false;
+FAILURE_SWITCH:
+	fputs("error : Switch stack error\n", stderr);
 	return false;
 FAILURE_STDIN:
 	fputs("error: Input error\n", stderr);
