@@ -8,7 +8,7 @@
 		OP_FUNC
 return	OP_RETURN
 to		OP_TO
-		OP_CALL
+call	OP_CALL
 +		OP_ADD
 -		OP_SUB
 *		OP_MUL

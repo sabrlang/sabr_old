@@ -200,9 +200,9 @@ bool interpreter_run(interpreter* inter) {
 				value kwrd;
 				rbt* local_words = NULL;
 				rbt_node* node = NULL;
-				for (int i = 0; i < 8; i++) {
-					kwrd.bytes[i] = inter->bytecode[++index];
-				}
+
+				if (!interpreter_pop(inter, &kwrd)) goto FAILURE_STACK;
+
 				node = rbt_search(inter->global_words, kwrd.u);
 				if (!node) {
 					if (inter->local_words_stack.size > 0) {

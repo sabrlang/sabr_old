@@ -407,7 +407,8 @@ bool compiler_parse_word_token(compiler* comp, trie* trie_result) {
 		} break;
 		case WTT_KWRD: {
 			value v = trie_result->data;
-			if (!compiler_push_bytecode_with_value(comp, OP_CALL, v)) return false;
+			if (!compiler_push_bytecode_with_value(comp, OP_VALUE, v)) return false;
+			if (!compiler_push_bytecode(comp, OP_CALL)) return false;
 			result = true;
 		} break;
 		case WTT_OP: {
