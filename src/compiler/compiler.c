@@ -796,8 +796,6 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 						}
 					}
 
-					printf("%d ", return_vec.size);
-
 					if (defer_existance && (return_vec.size > 0)) {
 						for (
 							control_data* iter = vector_front(control_data, &return_vec);
