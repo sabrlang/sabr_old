@@ -501,11 +501,16 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			if (!vector_push_back(cctl_ptr(vector(control_data)), &comp->control_data_stack, temp_ctrl_vec)) goto FAILURE_CTRL_STACK;
 			if (!compiler_push_bytecode_with_null(comp, OP_MACRO)) return false;
 		} break;
+		case CTRL_DEFER: {
+			if (!comp->control_data_stack.size) goto FAILURE_CTRL;
+			temp_ctrl_vec = *vector_back(cctl_ptr(vector(control_data)), &comp->control_data_stack);
+			if (!vector_push_back(control_data, temp_ctrl_vec, current_ctrl)) goto FAILURE_CTRL_VECTOR;
+		} break;
 		case CTRL_RETURN: {
 			if (!comp->control_data_stack.size) goto FAILURE_CTRL;
 			temp_ctrl_vec = *vector_back(cctl_ptr(vector(control_data)), &comp->control_data_stack);
 			if (!vector_push_back(control_data, temp_ctrl_vec, current_ctrl)) goto FAILURE_CTRL_VECTOR;
-			if (!compiler_push_bytecode(comp, OP_RETURN)) return false;
+			if (!compiler_push_bytecode_with_null(comp, OP_RETURN)) return false;
 		} break;
 		case CTRL_END: {
 			value pos;
@@ -717,24 +722,68 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 					#undef __free_switch_vecs__
 				} break;
 				case CTRL_FUNC: {
+					#define __free_func_vecs__ \
+						vector_free(control_data, &return_vec);
+					
+					bool defer_existance = false;
+					control_data defer_ctrl;
+
+					vector(control_data) return_vec;
+					vector_init(control_data, &return_vec);
+
 					for (
 						control_data* iter = vector_at(control_data, temp_ctrl_vec, 1);
 						iter <= vector_back(control_data, temp_ctrl_vec);
 						iter++
 					) {
 						switch (iter->ctrl) {
+							case CTRL_DEFER: {
+								if (defer_existance) {
+									__free_func_vecs__;
+									goto FAILURE_CTRL;
+								}
+								defer_existance = true;
+								defer_ctrl = *iter;
+							} break;
 							case CTRL_RETURN: {
+								if (!vector_push_back(control_data, &return_vec, *iter)) {
+									__free_func_vecs__;
+									goto FAILURE_CTRL_VECTOR;
+								}
 							} break;
 							default: {
+								__free_func_vecs__;
 								goto FAILURE_CTRL;
 							}
 						}
 					}
+
+					printf("%d ", return_vec.size);
+
+					if (defer_existance && (return_vec.size > 0)) {
+						for (
+							control_data* iter = vector_front(control_data, &return_vec);
+							iter <= vector_back(control_data, &return_vec);
+							iter++
+						) {
+							*vector_at(uint8_t, &comp->bytecode, iter->pos) = OP_JUMP;
+							pos.u = defer_ctrl.pos;
+							for (int i = 0; i < 8; i++) {
+								*vector_at(uint8_t, &comp->bytecode, iter->pos + 1 + i) = pos.bytes[i];
+							}
+						}
+					}
+					
 					pos.u = current_ctrl.pos + 1;
 					for (int i = 0; i < 8; i++) {
 						*vector_at(uint8_t, &comp->bytecode, first_ctrl->pos + 1 + i) = pos.bytes[i];
 					}
+
+					__free_func_vecs__;
+
 					if (!compiler_push_bytecode(comp, OP_RETURN)) return false;
+
+					#undef __free_func_vecs__
 				} break;
 				case CTRL_MACRO: {
 					for (
