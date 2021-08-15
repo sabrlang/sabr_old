@@ -13,6 +13,7 @@ const char* control_names[] = {
 	"pass",
 	"func",
 	"macro",
+	"defer",
 	"return",
 	"import"
 };
