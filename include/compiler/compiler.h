@@ -51,8 +51,9 @@ typedef struct compiler_struct {
 	trie dictionary;
 	trie filename_trie;
 	size_t dictionary_keyword_count;
-	size_t line_count;
-	size_t column_count;
+	vector(size_t) line_count_stack;
+	vector(size_t) column_count_stack;
+	size_t column_count_prev;
 	mbstate_t convert_state;
 } compiler;
 
@@ -62,6 +63,8 @@ bool compiler_compile(compiler* comp, char* input_filename, char* output_filenam
 bool compiler_compile_source(compiler* comp, char* input_filename);
 size_t compiler_load_code(compiler* comp, char* filename);
 bool compiler_save_code(compiler* comp, char* filename);
+bool compiler_push_code_data(compiler* comp, int index);
+bool compiler_pop_code_data(compiler* comp);
 bool compiler_tokenize(compiler* comp);
 bool compiler_parse(compiler* comp, char* begin, char* end);
 bool compiler_parse_word_token(compiler* comp, trie* trie_result);

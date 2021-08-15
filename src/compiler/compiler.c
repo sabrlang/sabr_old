@@ -9,12 +9,12 @@ bool compiler_init(compiler* comp) {
 	vector_init(size_t, &comp->textcode_index_stack);
 	vector_init(uint8_t, &comp->bytecode);
 	vector_init(cctl_ptr(vector(control_data)), &comp->control_data_stack);
+	vector_init(size_t, &comp->line_count_stack);
+	vector_init(size_t, &comp->column_count_stack);
 	trie_init(&comp->dictionary);
 	trie_init(&comp->filename_trie);
 
 	comp->dictionary_keyword_count = 0;
-	comp->line_count = 1;
-	comp->column_count = 0;
 
 	trie* word;
 
@@ -56,6 +56,10 @@ bool compiler_del(compiler* comp) {
 		vector_free(control_data, *vector_at(cctl_ptr(vector(control_data)), &comp->control_data_stack, i));
 	}
 	vector_free(cctl_ptr(vector(control_data)), &comp->control_data_stack);
+
+	vector_free(size_t, &comp->line_count_stack);
+	vector_free(size_t, &comp->column_count_stack);
+
 	trie_del(&comp->dictionary);
 	trie_del(&comp->filename_trie);
 
@@ -77,18 +81,13 @@ bool compiler_compile_source(compiler* comp, char* input_filename) {
 		fputs("error : Loading code failure\n", stderr);
 		return false;
 	}
-	if (!vector_push_back(size_t, &comp->textcode_index_stack, index - 1)) {
-		fputs("error : Textcode index stack memory allocation failure\n", stderr);
-		return false;
-	}
+	if (!compiler_push_code_data(comp, index)) return false;
 	if (!compiler_tokenize(comp)) {
 		fputs("error : Tokenization failure\n", stderr);
+		if (!compiler_pop_code_data(comp)) return false;
 		return false;
 	}
-	if (!vector_pop_back(size_t, &comp->textcode_index_stack)) {
-		fputs("error : Textcode index stack memory allocation failure\n", stderr);
-		return false;
-	}
+	if (!compiler_pop_code_data(comp)) return false;
 	return true;
 }
 
@@ -188,6 +187,40 @@ bool compiler_save_code(compiler* comp, char* filename) {
 	return true;
 }
 
+bool compiler_push_code_data(compiler* comp, int index) {
+	if (!vector_push_back(size_t, &comp->line_count_stack, 1)) {
+		fputs("error : Textcode line count stack memory allocation failure\n", stderr);
+		return false;
+	}
+	
+	if (!vector_push_back(size_t, &comp->column_count_stack, 0)) {
+		fputs("error : Textcode column count stack memory allocation failure\n", stderr);
+		return false;
+	}
+
+	if (!vector_push_back(size_t, &comp->textcode_index_stack, index - 1)) {
+		fputs("error : Textcode index stack memory allocation failure\n", stderr);
+		return false;
+	}
+}
+
+bool compiler_pop_code_data(compiler* comp) {
+	if (!vector_pop_back(size_t, &comp->line_count_stack)) {
+		fputs("error : Textcode line count stack memory allocation failure\n", stderr);
+		return false;
+	}
+	
+	if (!vector_pop_back(size_t, &comp->column_count_stack)) {
+		fputs("error : Textcode column count stack memory allocation failure\n", stderr);
+		return false;
+	}
+
+	if (!vector_pop_back(size_t, &comp->textcode_index_stack)) {
+		fputs("error : Textcode index stack memory allocation failure\n", stderr);
+		return false;
+	}
+}
+
 bool compiler_tokenize(compiler* comp) {
 	size_t index;
 
@@ -213,9 +246,10 @@ bool compiler_tokenize(compiler* comp) {
 	while (*iterator) {
 		switch (*iterator) {
 			case '\n': 
-				comp->line_count++;
+				(*vector_back(size_t, &comp->line_count_stack))++;
+				comp->column_count_prev = (*vector_back(size_t, &comp->column_count_stack));
+				(*vector_back(size_t, &comp->column_count_stack)) = 0;
 			case '\r':
-				comp->column_count = 0;
 				if (comment == CMNT_PARSE_LINE) {
 					space = true;
 					comment = CMNT_PARSE_NONE;
@@ -327,7 +361,7 @@ bool compiler_tokenize(compiler* comp) {
 		iterator++;
 		
 		if (((signed char) *iterator) >= -64) {
-			comp->column_count++;
+			(*vector_back(size_t, &comp->column_count_stack))++;
 		}
 		
 	}
@@ -391,7 +425,11 @@ bool compiler_parse(compiler* comp, char* begin, char* end) {
 	}
 
 	if (!result) {
-		fprintf(stderr, console_yellow console_bold "%s" console_reset " in line %zu, column %zu\n", begin, comp->line_count, comp->column_count);
+		if ((*vector_back(size_t, &comp->column_count_stack)) == 0) {
+			(*vector_back(size_t, &comp->column_count_stack)) = comp->column_count_prev;
+			(*vector_back(size_t, &comp->line_count_stack))--;
+		}
+		fprintf(stderr, console_yellow console_bold "%s" console_reset " in line %zu, column %zu\n", begin, (*vector_back(size_t, &comp->line_count_stack)), (*vector_back(size_t, &comp->column_count_stack)));
 	}
 
 	*end = temp;
