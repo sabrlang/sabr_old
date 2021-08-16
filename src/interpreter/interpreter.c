@@ -358,28 +358,28 @@ bool interpreter_run(interpreter* inter) {
 				value a, b;
 				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
 				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
-				a.u = (a.u < b.u) ? -1 : 0;
+				a.u = (a.u > b.u) ? -1 : 0;
 				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
 			} break;
 			case OP_UGEQ: {
 				value a, b;
 				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
 				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
-				a.u = (a.u <= b.u) ? -1 : 0;
+				a.u = (a.u >= b.u) ? -1 : 0;
 				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
 			} break;
 			case OP_ULST: {
 				value a, b;
 				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
 				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
-				a.u = (a.u > b.u) ? -1 : 0;
+				a.u = (a.u < b.u) ? -1 : 0;
 				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
 			} break;
 			case OP_ULEQ: {
 				value a, b;
 				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
 				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
-				a.u = (a.u >= b.u) ? -1 : 0;
+				a.u = (a.u <= b.u) ? -1 : 0;
 				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
 			} break;
 			case OP_FADD: {
