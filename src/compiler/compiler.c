@@ -460,6 +460,14 @@ bool compiler_parse_word_token(compiler* comp, trie* trie_result) {
 }
 
 bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
+	#define __free_func_vecs__ \
+		vector_free(control_data, &return_vec);
+
+	#define __free_switch_vecs__ \
+		vector_free(control_data, &case_vec); \
+		vector_free(control_data, &pass_vec); \
+		vector_free(control_data, &chain_vec);
+
 	control_data current_ctrl;
 	current_ctrl.ctrl = trie_result->data.u;
 	current_ctrl.pos = comp->bytecode.size;
@@ -638,11 +646,6 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 					if (!compiler_push_bytecode_with_value(comp, OP_JUMP, pos)) return false;
 				} break;
 				case CTRL_SWITCH: {
-					#define __free_switch_vecs__ \
-						vector_free(control_data, &case_vec); \
-						vector_free(control_data, &pass_vec); \
-						vector_free(control_data, &chain_vec);
-					
 					vector(control_data) case_vec;
 					vector(control_data) pass_vec;
 					vector(control_data) chain_vec;
@@ -756,13 +759,8 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 					__free_switch_vecs__;
 					
 					if (!compiler_push_bytecode(comp, OP_ENDSWITCH)) return false;
-
-					#undef __free_switch_vecs__
 				} break;
 				case CTRL_FUNC: {
-					#define __free_func_vecs__ \
-						vector_free(control_data, &return_vec);
-					
 					bool defer_existance = false;
 					control_data defer_ctrl;
 
@@ -818,30 +816,64 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 					__free_func_vecs__;
 
 					if (!compiler_push_bytecode(comp, OP_RETURN)) return false;
-
-					#undef __free_func_vecs__
 				} break;
 				case CTRL_MACRO: {
+					bool defer_existance = false;
+					control_data defer_ctrl;
+
+					vector(control_data) return_vec;
+					vector_init(control_data, &return_vec);
+
 					for (
 						control_data* iter = vector_at(control_data, temp_ctrl_vec, 1);
 						iter <= vector_back(control_data, temp_ctrl_vec);
 						iter++
 					) {
 						switch (iter->ctrl) {
+							case CTRL_DEFER: {
+								if (defer_existance) {
+									__free_func_vecs__;
+									goto FAILURE_CTRL;
+								}
+								defer_existance = true;
+								defer_ctrl = *iter;
+							} break;
 							case CTRL_RETURN: {
 								*vector_at(uint8_t, &comp->bytecode, iter->pos) = OP_ENDMACRO;
+								if (!vector_push_back(control_data, &return_vec, *iter)) {
+									__free_func_vecs__;
+									goto FAILURE_CTRL_VECTOR;
+								}
 							} break;
 							default: {
+								__free_func_vecs__;
 								goto FAILURE_CTRL;
 							}
 						}
 					}
+
+					if (defer_existance && (return_vec.size > 0)) {
+						for (
+							control_data* iter = vector_front(control_data, &return_vec);
+							iter <= vector_back(control_data, &return_vec);
+							iter++
+						) {
+							*vector_at(uint8_t, &comp->bytecode, iter->pos) = OP_JUMP;
+							pos.u = defer_ctrl.pos;
+							for (int i = 0; i < 8; i++) {
+								*vector_at(uint8_t, &comp->bytecode, iter->pos + 1 + i) = pos.bytes[i];
+							}
+						}
+					}
+
 					pos.u = current_ctrl.pos + 1;
 					for (int i = 0; i < 8; i++) {
 						*vector_at(uint8_t, &comp->bytecode, first_ctrl->pos + 1 + i) = pos.bytes[i];
 					}
-					if (!compiler_push_bytecode(comp, OP_ENDMACRO)) return false;
 
+					__free_func_vecs__;
+
+					if (!compiler_push_bytecode(comp, OP_ENDMACRO)) return false;
 				} break;
 			}
 			vector_free(control_data, temp_ctrl_vec);
@@ -907,6 +939,11 @@ FAILURE_PREPROC_STACK:
 FAILURE_TEXTCODE:
 	fputs("error : Filename vector or textcode indices memory stack memory allocation faliure\n", stderr);
 	return false;
+
+
+
+	#undef __free_switch_vecs__
+	#undef __free_func_vecs__
 }
 
 bool compiler_parse_keyword_value(compiler* comp, char* token) {
