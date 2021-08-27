@@ -646,7 +646,10 @@ bool interpreter_run(interpreter* inter) {
 				value a, b;
 				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
 				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
-				if (!b.u) free(a.p);
+				if (!b.u) {
+					free(a.p);
+					a.p = NULL;
+				}
 				else a.p = realloc((void*) a.u, b.u * sizeof(value));
 				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
 			} break;
@@ -693,12 +696,12 @@ bool interpreter_run(interpreter* inter) {
 			} break;
 			case OP_GETI: {
 				value v;
-				if (scanf("%" PRId64, &(v.i)) != 1) goto FAILURE_STDIN;
+				if (scanf("%" SCNd64, &(v.i)) != 1) goto FAILURE_STDIN;
 				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
 			} break;
 			case OP_GETU: {
 				value v;
-				if (scanf("%" PRIu64, &(v.u)) != 1) goto FAILURE_STDIN;
+				if (scanf("%" SCNu64, &(v.u)) != 1) goto FAILURE_STDIN;
 				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
 			} break;
 			case OP_GETF: {
