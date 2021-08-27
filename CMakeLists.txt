@@ -45,11 +45,6 @@ if(WIN32)
 	message("WIN32 build!")
 else()
 	message("UNIX build!")
-	INSTALL (
-		TARGETS sabre sabrc
-		DESTINATION .
-	)
-	SET ( CMAKE_INSTALL_PREFIX /usr/bin )
 endif()
 
 message( "CMAKE_BINARY_DIR: " ${CMAKE_BINARY_DIR} )
