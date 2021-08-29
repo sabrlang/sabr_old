@@ -110,7 +110,7 @@ bool interpreter_run(interpreter* inter) {
 				v = *deque_back(value, &inter->switch_stack);
 				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
 			} break;
-			case OP_ENDSWITCH: {
+			case OP_END_SWITCH: {
 				if (!deque_pop_back(value, &inter->switch_stack)) goto FAILURE_SWITCH;
 			} break;
 			case OP_FUNC: {
@@ -151,7 +151,7 @@ bool interpreter_run(interpreter* inter) {
 				}
 				index = pos.u - 1;
 			} break;
-			case OP_RETURN: {
+			case OP_RETURN_FUNC: {
 				if (inter->call_stack.size < 1) goto FAILURE_CALL;
 				size_t pos = *deque_back(size_t, &inter->call_stack);
 				if (!deque_pop_back(size_t, &inter->call_stack)) goto FAILURE_CALL;
@@ -160,7 +160,7 @@ bool interpreter_run(interpreter* inter) {
 				if (!deque_pop_back(cctl_ptr(rbt), &inter->local_words_stack)) goto FAILURE_CALL;
 				index = pos - 1;
 			} break;
-			case OP_ENDMACRO: {
+			case OP_RETURN_MACRO: {
 				if (inter->call_stack.size < 1) goto FAILURE_CALL;
 				size_t pos = *deque_back(size_t, &inter->call_stack);
 				if (!deque_pop_back(size_t, &inter->call_stack)) goto FAILURE_CALL;

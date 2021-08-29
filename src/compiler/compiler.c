@@ -556,7 +556,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			if (!comp->control_data_stack.size) goto FAILURE_CTRL;
 			temp_ctrl_vec = *vector_back(cctl_ptr(vector(control_data)), &comp->control_data_stack);
 			if (!vector_push_back(control_data, temp_ctrl_vec, current_ctrl)) goto FAILURE_CTRL_VECTOR;
-			if (!compiler_push_bytecode_with_null(comp, OP_RETURN)) return false;
+			if (!compiler_push_bytecode_with_null(comp, OP_RETURN_FUNC)) return false;
 		} break;
 		case CTRL_END: {
 			value pos;
@@ -758,7 +758,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 
 					__free_switch_vecs__;
 					
-					if (!compiler_push_bytecode(comp, OP_ENDSWITCH)) return false;
+					if (!compiler_push_bytecode(comp, OP_END_SWITCH)) return false;
 				} break;
 				case CTRL_FUNC: {
 					bool defer_existance = false;
@@ -815,7 +815,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 
 					__free_func_vecs__;
 
-					if (!compiler_push_bytecode(comp, OP_RETURN)) return false;
+					if (!compiler_push_bytecode(comp, OP_RETURN_FUNC)) return false;
 				} break;
 				case CTRL_MACRO: {
 					bool defer_existance = false;
@@ -839,7 +839,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 								defer_ctrl = *iter;
 							} break;
 							case CTRL_RETURN: {
-								*vector_at(uint8_t, &comp->bytecode, iter->pos) = OP_ENDMACRO;
+								*vector_at(uint8_t, &comp->bytecode, iter->pos) = OP_RETURN_MACRO;
 								if (!vector_push_back(control_data, &return_vec, *iter)) {
 									__free_func_vecs__;
 									goto FAILURE_CTRL_VECTOR;
@@ -873,7 +873,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 
 					__free_func_vecs__;
 
-					if (!compiler_push_bytecode(comp, OP_ENDMACRO)) return false;
+					if (!compiler_push_bytecode(comp, OP_RETURN_MACRO)) return false;
 				} break;
 			}
 			vector_free(control_data, temp_ctrl_vec);
