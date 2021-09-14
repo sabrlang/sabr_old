@@ -276,15 +276,15 @@ f = -f1
 
 ### Dynamic allocation
 * `alloc` ( u -- addr )  
-Allocate `u` bytes and returns a pointer to the allocated memory.
+Allocate *u* bytes and returns a pointer to the allocated memory.
 * `resize` ( u addr -- addr )  
-Change the size of the memory block `addr` to `u` bytes. And returns a pointer to the re-allocated memory.
+Change the size of the memory block *addr* to *u* bytes. And returns a pointer to the re-allocated memory.
 * `free` ( addr -- )  
-Free memory block `addr`.
+Free memory block *addr*.
 * `fetch` ( addr -- x )  
-Fetch the value that stored at `addr`.
+Fetch the value that stored at *addr*.
 * `store` ( x addr -- )  
-Store the value `x` into the memory cell `addr`.
+Store the value *x* into the memory cell *addr*.
 
 ### Type conversion
 * `s>f` ( s -- f )
@@ -297,7 +297,7 @@ Store the value `x` into the memory cell `addr`.
 * `getu` ( -- u )
 * `getf` ( -- f )
 * `getcs` ( -- u u1 ... )  
-`u` is length of string, `u1` and the values after it are unicode values of string.
+*u* is length of string, *u1* and the values after it are unicode values of string.
 * `putc` ( u -- )
 * `puti` ( s -- )
 * `putu` ( u -- )
