@@ -268,22 +268,22 @@ f = -f1
 * `2rot` ( x1 x2 x3 x4 x5 x6 -- x3 x4 x5 x6 x1 x2 )
 
 ### Variables
-* `to` ( x id -- )
+* `to` ( x id -- ) 
 ```
 10 $var to    \ Define variable 'var' with an initial value of 10.
 20 $var to    \ Change the value of variable 'var' to 20.
 ```
 
 ### Dynamic allocation
-* `alloc` ( u -- addr )
+* `alloc` ( u -- addr ) 
 Allocate `u` bytes and returns a pointer to the allocated memory.
-* `resize` ( u addr -- addr )
+* `resize` ( u addr -- addr ) 
 Change the size of the memory block `addr` to `u` bytes. And returns a pointer to the re-allocated memory.
-* `free` ( addr -- )
+* `free` ( addr -- ) 
 Free memory block `addr`.
-* `fetch` ( addr -- x )
+* `fetch` ( addr -- x ) 
 Fetch the value that stored at `addr`.
-* `store` ( x addr -- )
+* `store` ( x addr -- ) 
 Store the value `x` into the memory cell `addr`.
 
 ### Type conversion
@@ -296,13 +296,13 @@ Store the value `x` into the memory cell `addr`.
 * `geti` ( -- s )
 * `getu` ( -- u )
 * `getf` ( -- f )
-* `getcs` ( -- u u1 ... )
+* `getcs` ( -- u u1 ... ) 
 `u` is length of string, `u1` and the values after it are unicode values of string.
 * `putc` ( u -- )
 * `puti` ( s -- )
 * `putu` ( u -- )
 * `putf` ( f -- )
-* `show` ( -- )
+* `show` ( -- ) 
 Display the stack value.
 
 ## Literals
