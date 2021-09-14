@@ -296,7 +296,7 @@ Store the value *x* into the memory cell *addr*.
 * `geti` ( -- s )
 * `getu` ( -- u )
 * `getf` ( -- f )
-* `getcs` ( -- u u1 ... )  
+* `getcs` ( -- ... u1 u)  
 *u* is length of string, *u1* and the values after it are unicode values of string.
 * `putc` ( u -- )
 * `puti` ( s -- )
