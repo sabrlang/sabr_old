@@ -102,38 +102,38 @@ Sabr has no type checking. All stack values are 8 bytes wide.
 ### if statements
 ```
 (flag) if
-    (code)
+	(code)
 end
 ```
 
 ```
 (flag) if
-    (code 1)
+	(code 1)
 else
-    (code 2)
+	(code 2)
 end
 ```
 ### loop statements
 ```
 loop
-    (code 1)
+	(code 1)
 end
 ```
 
 ```
 loop
-    (code)
-    (flag)
-    while
+	(code)
+	(flag)
+	while
 end
 ```
 
 ```
 loop
-    (code 1)
-    (flag)
-    while
-    (code 2)
+	(code 1)
+	(flag)
+	while
+	(code 2)
 end
 ```
 
@@ -141,25 +141,25 @@ end
 ### switch statements
 ```
 switch
-    (flag 1) case (code 1) pass
-    (flag 2) case (code 2) pass
-    (flag 3) case
-    (flag 4) case
-        (code 3)
-    pass
-    (code 4)
+	(flag 1) case (code 1) pass
+	(flag 2) case (code 2) pass
+	(flag 3) case
+	(flag 4) case
+		(code 3)
+	pass
+	(code 4)
 end
 ```
 ### func and macro
 ```
 $(keyword) func
-    (code)
+	(code)
 end
 ```
 
 ```
 $(keyword) macro
-    (code)
+	(code)
 end
 ```
 
@@ -270,8 +270,8 @@ f = -f1
 ### Variables
 * `to` ( x id -- )  
 ```
-10 $var to    \ Define variable 'var' with an initial value of 10.
-20 $var to    \ Change the value of variable 'var' to 20.
+10 $var to	\ Define variable 'var' with an initial value of 10.
+20 $var to	\ Change the value of variable 'var' to 20.
 ```
 
 ### Dynamic allocation
@@ -346,6 +346,6 @@ Get variable values or call functions and macros.
 ( this is
 a comment )
 $add func ( n1 n2 -- x ) \ this is a stack-effect comment
-    +
+	+
 end
 ```
