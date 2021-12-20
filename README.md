@@ -4,7 +4,7 @@
 Sabr is simple stack-oriented programming language.
 
 # Build from source
-```
+```sh
 git clone --depth=1 https://github.com/mhcoma/sabr.git
 cd sabr
 mkdir build
@@ -78,11 +78,11 @@ end
 
 # How to run
 ## Compile to bytecode
-```
+```sh
 $ sabrc {source file name} {output file name}
 ```
 ## Run bytecode
-```
+```sh
 $ sabre {bytecode file name}
 ```
 
