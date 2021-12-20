@@ -1,6 +1,6 @@
 [![GitHub license](https://img.shields.io/github/license/mhcoma/sabr?style=for-the-badge)](https://github.com/mhcoma/sabr/blob/main/LICENSE)
 
-[English](repo/blob/master/README.md)
+[English](README.md)
 
 # Sabr
 Sabr 는 단순한 스택 기반 프로그래밍 언어입니다.

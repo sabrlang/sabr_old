@@ -1,6 +1,6 @@
 [![GitHub license](https://img.shields.io/github/license/mhcoma/sabr?style=for-the-badge)](https://github.com/mhcoma/sabr/blob/main/LICENSE)
 
-[한국어](repo/blob/master/korean.md)
+[한국어](korean.md)
 
 # Sabr
 Sabr is simple stack-oriented programming language.
