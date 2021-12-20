@@ -1,5 +1,7 @@
 [![GitHub license](https://img.shields.io/github/license/mhcoma/sabr?style=for-the-badge)](https://github.com/mhcoma/sabr/blob/main/LICENSE)
 
+[한국어]](repo/blob/master/korean.md)
+
 # Sabr
 Sabr is simple stack-oriented programming language.
 
@@ -165,7 +167,7 @@ If `(flag)` is true, `(code 2)` is executed and the loop is restarted.
 end
 ```
 
-`switch` pops the value from the stack.  
+`switch` and `case` pops the value from the stack.  
 If `(value)` is equal to `(case 1)`, `(code 1)` is executed.  
 If `(value)` is equal to `(case 3)` or `(case 4)`, `(code 3)` is executed.  
 If there is no matching value, `(code 4)` is executed.
