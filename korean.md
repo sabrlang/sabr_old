@@ -167,9 +167,9 @@ end
 end
 ```
 
-`switch`와 `case`는 스택으로부터 값을 뽑습니다.
-만약 `(value)`의 값이 `(case 1)`와 같다면, `(code 1)`이 실행됩니다. 
-만약 `(value)`의 값이 `(case 3)`또는 `(case 4)`와 같다면, `(code 3)`가 실행됩니다. 
+`switch`와 `case`는 스택으로부터 값을 뽑습니다.  
+만약 `(value)`의 값이 `(case 1)`와 같다면, `(code 1)`이 실행됩니다.  
+만약 `(value)`의 값이 `(case 3)`또는 `(case 4)`와 같다면, `(code 3)`가 실행됩니다.  
 일치하는 값이 없다면, `(code 4)`가 실행됩니다.
 
 ### func 와 macro
