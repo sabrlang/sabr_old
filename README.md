@@ -100,11 +100,14 @@ Sabr has no type checking. All stack values are 8 bytes wide.
 * `id` : Identifier
 ## Control
 ### if statements
+False is 0, and true is non-zero values.
+
 ```
 (flag) if
 	(code)
 end
 ```
+`if` pops the flag value from the stack. If `(flag)` is true, `(code)` is executed.
 
 ```
 (flag) if
@@ -113,12 +116,16 @@ else
 	(code 2)
 end
 ```
+If `(flag)` is true, `(code 1)` is executed. If `(flag)` is false, `(code 2)` is excuted.
+
 ### loop statements
 ```
 loop
 	(code 1)
 end
 ```
+
+This is an endless loop.
 
 ```
 loop
@@ -127,6 +134,9 @@ loop
 	while
 end
 ```
+
+`(code)` is excuted. `while` pops the flag value from the stack.
+If `(flag)` is true, the loop is restarted.
 
 ```
 loop
@@ -137,19 +147,27 @@ loop
 end
 ```
 
+`(code 1)` is executed. `while` pops the flag value from the stack.
+If `(flag)` is true, `(code 2)` is executed and the loop is restarted.
 
 ### switch statements
 ```
-switch
-	(flag 1) case (code 1) pass
-	(flag 2) case (code 2) pass
-	(flag 3) case
-	(flag 4) case
+(value) switch
+	(case 1) case (code 1) pass
+	(case 2) case (code 2) pass
+	(case 3) case
+	(case 4) case
 		(code 3)
 	pass
 	(code 4)
 end
 ```
+
+`switch` pops the value from the stack.
+If `(value)` is equal to `(case 1)`, `(code 1)` is executed.
+If `(value)` is equal to `(case 3)` or `(case 4)`, `(code 3)` is executed.
+If there is no matching value, `(code 4)` is executed.
+
 ### func and macro
 ```
 $(keyword) func
@@ -179,8 +197,9 @@ end
 * `case`
 * `pass`
 * `func`
-* `return`
 * `macro`
+* `return`
+* `defer`
 * `end`
 * `import`
 
@@ -267,12 +286,23 @@ f = -f1
 * `2swap` ( x1 x2 x3 x4 -- x3 x4 x1 x2 )
 * `2rot` ( x1 x2 x3 x4 x5 x6 -- x3 x4 x5 x6 x1 x2 )
 
-### Variables
+### Callable and Variables
 * `to` ( x id -- )  
 ```
 10 $var to	\ Define variable 'var' with an initial value of 10.
 20 $var to	\ Change the value of variable 'var' to 20.
 ```
+* `call` ( id -- ? )
+```
+10 $var to \ Define variable 'var' with an initial value of 10.
+$var call \ Get value of variable 'var'.
+var \ Get value of variable 'var'.
+
+$cr macro 10 putc end \ Define macro 'cr'.
+$cr call \ Call macro 'cr'.
+cr \ Call macro 'cr'.
+```
+
 
 ### Dynamic allocation
 * `alloc` ( u -- addr )  
