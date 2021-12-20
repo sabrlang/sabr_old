@@ -137,7 +137,7 @@ loop
 end
 ```
 
-`(code)` is excuted. `while` pops the flag value from the stack. 
+`(code)` is excuted. `while` pops the flag value from the stack.  
 If `(flag)` is true, the loop is restarted.
 
 ```
@@ -149,8 +149,7 @@ loop
 end
 ```
 
-`(code 1)` is executed. `while` pops the flag value from the stack.
-
+`(code 1)` is executed. `while` pops the flag value from the stack.  
 If `(flag)` is true, `(code 2)` is executed and the loop is restarted.
 
 ### switch statements
@@ -166,12 +165,9 @@ If `(flag)` is true, `(code 2)` is executed and the loop is restarted.
 end
 ```
 
-`switch` pops the value from the stack.
-
-If `(value)` is equal to `(case 1)`, `(code 1)` is executed.
-
-If `(value)` is equal to `(case 3)` or `(case 4)`, `(code 3)` is executed.
-
+`switch` pops the value from the stack.  
+If `(value)` is equal to `(case 1)`, `(code 1)` is executed.  
+If `(value)` is equal to `(case 3)` or `(case 4)`, `(code 3)` is executed.  
 If there is no matching value, `(code 4)` is executed.
 
 ### func and macro
