@@ -343,10 +343,11 @@ Display the stack value.
 * Floating-point : `0.25`, `.25`, `00.250`, `0.25e0`, `2.5e-1`, `0.025e1`
 
 ### Character literals
-* Unicode characters : `'가'` -> `[ 44032 ]`
+* Unicode characters : `'あ'` -> `[ 12354 ]`
 * Characters sequence : `'Hello'` -> `[ 111 108 108 101 72 ]`
+* Characters sequence with length : `"안녕하세요!"` -> `[ 33 50836 49464 54616 45397 50504 6 ]`
 
-### Escape sequences
+#### Escape sequences
 * `\a` -> 7
 * `\b` -> 8
 * `\e` -> 27
