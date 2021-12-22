@@ -10,7 +10,8 @@ typedef enum keyword_type_enum {
 	KWRD_NONE,
 	KWRD_FUNC,
 	KWRD_MACRO,
-	KWRD_VAR
+	KWRD_VAR,
+	KWRD_STRUCT
 } keyword_type;
 
 typedef enum rbt_color_enum {

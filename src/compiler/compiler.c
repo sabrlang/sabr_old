@@ -418,8 +418,9 @@ bool compiler_parse(compiler* comp, char* begin, char* end) {
 				*(end - 1) = temp_parse_char;
 			} break;
 			default: {
-				result = false;
-				fputs("error : Unknown keyword\n", stderr);
+				result = compiler_parse_struct_member(comp, begin);
+				if (!result)
+					fputs("error : Unknown keyword\n", stderr);
 			}
 		}
 	}
@@ -557,6 +558,20 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			temp_ctrl_vec = *vector_back(cctl_ptr(vector(control_data)), &comp->control_data_stack);
 			if (!vector_push_back(control_data, temp_ctrl_vec, current_ctrl)) goto FAILURE_CTRL_VECTOR;
 			if (!compiler_push_bytecode_with_null(comp, OP_RETURN_FUNC)) return false;
+		} break;
+		case CTRL_STRUCT: {
+			temp_ctrl_vec = (vector(control_data)*) malloc(sizeof(vector(control_data)));
+			if (!temp_ctrl_vec) goto FAILURE_CTRL_VECTOR;
+			vector_init(control_data, temp_ctrl_vec);
+			if (!vector_push_back(control_data, temp_ctrl_vec, current_ctrl)) goto FAILURE_CTRL_VECTOR;
+			if (!vector_push_back(cctl_ptr(vector(control_data)), &comp->control_data_stack, temp_ctrl_vec)) goto FAILURE_CTRL_STACK;
+			if (!compiler_push_bytecode(comp, OP_STRUCT)) return false;
+		} break;
+		case CTRL_MEMBER: {
+			if (!comp->control_data_stack.size) goto FAILURE_CTRL;
+			temp_ctrl_vec = *vector_back(cctl_ptr(vector(control_data)), &comp->control_data_stack);
+			if (!vector_push_back(control_data, temp_ctrl_vec, current_ctrl)) goto FAILURE_CTRL_VECTOR;
+			if (!compiler_push_bytecode(comp, OP_MEMBER)) return false;
 		} break;
 		case CTRL_END: {
 			value pos;
@@ -874,6 +889,22 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 					__free_func_vecs__;
 
 					if (!compiler_push_bytecode(comp, OP_RETURN_MACRO)) return false;
+				} break;
+				case CTRL_STRUCT: {
+					for (
+						control_data* iter = vector_at(control_data, temp_ctrl_vec, 1);
+						iter <= vector_back(control_data, temp_ctrl_vec);
+						iter++
+					) {
+						switch (iter->ctrl) {
+							case CTRL_MEMBER: {
+							} break;
+							default: {
+								goto FAILURE_CTRL;
+							}
+						}
+					}
+					if (!compiler_push_bytecode(comp, OP_END_STRUCT)) return false;
 				} break;
 			}
 			vector_free(control_data, temp_ctrl_vec);
@@ -1214,6 +1245,28 @@ FAILURE_VECTOR:
 	vector_free(value, &value_reverser);
 	fputs("error : Unicode inserter vector memory allocation failure\n", stderr);
 	return false;
+}
+
+bool compiler_parse_struct_member(compiler* comp, char* token) {
+	bool result;
+	
+	char* find_token = strchr(token, '.');
+	if (!find_token) return false;
+	size_t index = (find_token - token);
+	char temp = token[index];
+	token[index] = '\0';
+	find_token++;
+
+	result = compiler_parse_keyword_value(comp, token);
+	if (!result) return false;
+
+	result = compiler_parse_keyword_value(comp, find_token);
+	if (!result) return false;
+
+	if (!compiler_push_bytecode(comp, OP_CALL_MEMBER)) return false;
+
+	token[index] = temp;
+	return true;
 }
 
 bool compiler_push_bytecode(compiler* comp, opcode op) {

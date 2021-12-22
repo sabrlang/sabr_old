@@ -15,6 +15,8 @@ const char* control_names[] = {
 	"macro",
 	"defer",
 	"return",
+	"struct",
+	"member",
 	"import"
 };
 

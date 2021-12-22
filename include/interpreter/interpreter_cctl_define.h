@@ -4,18 +4,26 @@
 #include <stdint.h>
 
 #include "cctl/deque.h"
+#include "cctl/vector.h"
 
 #include "rbt.h"
 #include "value.h"
 
-cctl_ptr_def(rbt);
 
 deque_fd(value);
 deque_fd(size_t);
+cctl_ptr_def(rbt);
 deque_fd(cctl_ptr(rbt));
+
+vector_fd(uint64_t);
+cctl_ptr_def(vector(uint64_t));
+vector_fd(cctl_ptr(vector(uint64_t)));
 
 deque_imp_h(value);
 deque_imp_h(size_t);
 deque_imp_h(cctl_ptr(rbt));
+
+vector_imp_h(uint64_t);
+vector_imp_h(cctl_ptr(vector(uint64_t)));
 
 #endif

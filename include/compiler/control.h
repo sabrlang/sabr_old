@@ -19,6 +19,8 @@ typedef enum control_enum {
 	CTRL_MACRO,
 	CTRL_DEFER,
 	CTRL_RETURN,
+	CTRL_STRUCT,
+	CTRL_MEMBER,
 	CTRL_IMPORT
 } control;
 

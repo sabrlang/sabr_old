@@ -31,6 +31,9 @@ typedef struct interpreter_struct {
 	rbt* global_words;
 	deque(cctl_ptr(rbt)) local_words_stack;
 	mbstate_t convert_state;
+
+	vector(cctl_ptr(vector(uint64_t))) struct_vector;
+
 } interpreter;
 
 bool interpreter_init(interpreter* inter);

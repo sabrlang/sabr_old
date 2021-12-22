@@ -20,6 +20,9 @@ bool interpreter_init(interpreter* inter) {
 		fputs("error : Dictionary memory allocation failure\n", stderr);
 		return false;
 	}
+
+	vector_init(cctl_ptr(vector(uint64_t)), &inter->struct_vector);
+
 	return true;
 }
 
@@ -33,6 +36,11 @@ void interpreter_del(interpreter* inter) {
 	}
 	deque_free(cctl_ptr(rbt), &inter->local_words_stack);
 	rbt_free(inter->global_words);
+
+	for (size_t i = 0; i < inter->struct_vector.size; i++) {
+		vector_free(uint64_t, *vector_at(cctl_ptr(vector(uint64_t)), &inter->struct_vector, i));
+	}
+	vector_free(cctl_ptr(vector(uint64_t)), &inter->struct_vector);
 }
 
 bool interpreter_load_code(interpreter* inter, char* filename) {
@@ -166,6 +174,64 @@ bool interpreter_run(interpreter* inter) {
 				if (!deque_pop_back(size_t, &inter->call_stack)) goto FAILURE_CALL;
 				index = pos - 1;
 			} break;
+			case OP_STRUCT: {
+				value kwrd;
+				if (!interpreter_pop(inter, &kwrd)) goto FAILURE_STACK;
+
+				rbt_node* node = NULL;
+				node = rbt_search(inter->global_words, kwrd.u);
+				if (node) goto FAILURE_REDEFINE;
+				node = rbt_node_new(kwrd.u);
+				if (!node) goto FAILURE_DEFINE;
+
+				node->data = inter->struct_vector.size;
+				node->type = KWRD_STRUCT;
+				rbt_insert(inter->global_words, node);
+
+				vector(uint64_t)* temp_struct = (vector(uint64_t)*) malloc(sizeof(vector(uint64_t)));
+				if (!temp_struct) goto FAILURE_STRUCT;
+				vector_init(uint64_t, temp_struct);
+				if (!vector_push_back(cctl_ptr(vector(uint64_t)), &inter->struct_vector, temp_struct)) goto FAILURE_STRUCT;
+			} break;
+			case OP_MEMBER: {
+				value kwrd;
+				if (!interpreter_pop(inter, &kwrd)) goto FAILURE_STACK;
+
+				uint64_t last = inter->struct_vector.size - 1;
+				vector(uint64_t)* temp_struct = *vector_at(cctl_ptr(vector(uint64_t)), &inter->struct_vector, last);
+				if (!temp_struct) goto FAILURE_STRUCT;
+				for (size_t i = 0; i < temp_struct->size; i++) {
+					if (kwrd.u == *vector_at(uint64_t, temp_struct, i)) goto FAILURE_STRUCT;
+				}
+				if (!vector_push_back(uint64_t, temp_struct, kwrd.u)) goto FAILURE_STRUCT;
+			} break;
+			case OP_END_STRUCT: {
+				
+			} break;
+			case OP_CALL_MEMBER: {
+				value kwrd_struct;
+				value kwrd_member;
+				value addr;
+				rbt_node* node = NULL;
+
+				if (!interpreter_pop(inter, &kwrd_member)) goto FAILURE_STACK;
+				if (!interpreter_pop(inter, &kwrd_struct)) goto FAILURE_STACK;
+
+				node = rbt_search(inter->global_words, kwrd_struct.u);
+				if (!node) goto FAILURE_STRUCT;
+				if (node->type != KWRD_STRUCT) goto FAILURE_STRUCT;
+
+				vector(uint64_t)* temp_struct = *vector_at(cctl_ptr(vector(uint64_t)), &inter->struct_vector, node->data);
+				if (!temp_struct) goto FAILURE_STRUCT;
+
+				uint64_t i;
+				for (i = 0; i < temp_struct->size; i++) {
+					if (kwrd_member.u == *vector_at(uint64_t, temp_struct, i)) break;
+				}
+				if (!interpreter_pop(inter, &addr)) goto FAILURE_STACK;
+				addr.u += (i * 8);
+				if (!interpreter_push(inter, addr)) goto FAILURE_STACK;
+			} break;
 			case OP_TO: {
 				value kwrd;
 				value v;
@@ -228,6 +294,13 @@ bool interpreter_run(interpreter* inter) {
 					case KWRD_VAR: {
 						value v;
 						v.u = node->data;
+						if (!interpreter_push(inter, v)) goto FAILURE_STACK;
+					} break;
+					case KWRD_STRUCT: {
+						value v;
+						vector(uint64_t)* temp_struct = *vector_at(cctl_ptr(vector(uint64_t)), &inter->struct_vector, node->data);
+						if (!temp_struct) goto FAILURE_STRUCT;
+						v.u = temp_struct->size;
 						if (!interpreter_push(inter, v)) goto FAILURE_STACK;
 					} break;
 				}
@@ -853,6 +926,9 @@ FAILURE_CALL:
 	return false;
 FAILURE_SWITCH:
 	fputs("error : Switch stack error\n", stderr);
+	return false;
+FAILURE_STRUCT:
+	fputs("error : Struct definition failure", stderr);
 	return false;
 FAILURE_STDIN:
 	fputs("error: Input error\n", stderr);

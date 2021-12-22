@@ -13,6 +13,10 @@ typedef enum opcode_enum {
 	OP_MACRO,
 	OP_RETURN_FUNC,
 	OP_RETURN_MACRO,
+	OP_STRUCT,
+	OP_MEMBER,
+	OP_END_STRUCT,
+	OP_CALL_MEMBER,
 	OP_TO,
 	OP_CALL,
 
