@@ -185,6 +185,16 @@ $(keyword) macro
 end
 ```
 
+### struct
+```
+$(struct keyword) struct
+    $(member keyword 1) member
+    $(member keyword 2) member
+    $(member keyword 3) member
+    ...
+end
+```
+
 ### import
 ```
 #(file) import
@@ -293,8 +303,8 @@ f = -f1
 ### Callable and Variables
 * `to` ( x id -- )  
 ```
-10 $var to	\ Define variable 'var' with an initial value of 10.
-20 $var to	\ Change the value of variable 'var' to 20.
+10 $var to \ Define variable 'var' with an initial value of 10.
+20 $var to \ Change the value of variable 'var' to 20.
 ```
 * `call` ( id -- ? )
 ```

@@ -185,6 +185,16 @@ $(keyword) macro
 end
 ```
 
+### struct
+```
+$(struct keyword) struct
+    $(member keyword 1) member
+    $(member keyword 2) member
+    $(member keyword 3) member
+    ...
+end
+```
+
 ### import
 ```
 #(file) import
@@ -293,8 +303,8 @@ f = -f1
 ### 호출 가능한 값과 변수
 * `to` ( x id -- )  
 ```
-10 $var to	\ 변수 'var'를 초기값 10으로 선언합니다.
-20 $var to	\ 변수 'var'의 값을 20으로 바꿉니다.
+10 $var to \ 변수 'var'를 초기값 10으로 선언합니다.
+20 $var to \ 변수 'var'의 값을 20으로 바꿉니다.
 ```
 * `call` ( id -- ? )
 ```
