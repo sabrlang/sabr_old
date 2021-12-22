@@ -412,6 +412,6 @@ The members of the structure are used in the form `Pos.x`, It must be preceded b
 ```
 Pos alloc $p1 to \ After allocating the Pos struct, it is assigned to the p1 variable.
 50 p1 Pos.x store \ Storing the value of 50 in the member variable x of p1.
-p1 Pos.x fetch putd \ Outputs the value of the member variable x of p1.
+p1 Pos.x fetch puti \ Outputs the value of the member variable x of p1.
 p1 free \ Freeing p1's memory.
 ```

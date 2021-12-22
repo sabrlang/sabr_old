@@ -413,6 +413,6 @@ Pos는 구조체의 이름이고, x와 y의 두 개의 멤버 변수를 가지�
 ```
 Pos alloc $p1 to \ Pos 구조체를 할당한 뒤 p1 변수에 대입.
 50 p1 Pos.x store \ p1의 멤버 변수 x에 50의 값 저장.
-p1 Pos.x fetch putd \ p1의 멤버 변수 x의 값을 출력.
+p1 Pos.x fetch puti \ p1의 멤버 변수 x의 값을 출력.
 p1 free \ p1의 메모리 해제.
 ```
