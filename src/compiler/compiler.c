@@ -202,6 +202,8 @@ bool compiler_push_code_data(compiler* comp, int index) {
 		fputs("error : Textcode index stack memory allocation failure\n", stderr);
 		return false;
 	}
+
+	return true;
 }
 
 bool compiler_pop_code_data(compiler* comp) {
@@ -219,6 +221,8 @@ bool compiler_pop_code_data(compiler* comp) {
 		fputs("error : Textcode index stack memory allocation failure\n", stderr);
 		return false;
 	}
+
+	return true;
 }
 
 bool compiler_tokenize(compiler* comp) {
@@ -936,7 +940,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			#if defined(_WIN32)
 				GetModuleFileName(NULL, binary_path, PATH_MAX);
 			#elif defined(__linux__)
-				// readlink("/proc/self/exe", buf, bufsize);
+				readlink("/proc/self/exe", binary_path, PATH_MAX);
 			#endif
 			}
 
@@ -944,19 +948,21 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			char drive[_MAX_DRIVE];
 			char dir[_MAX_DIR];
 
-			if (import_local_file) {
+			if (import_local_file)
 				_splitpath(current_filename, drive, dir, NULL, NULL);
-			}
 			else {
 				_splitpath(binary_path, drive, dir, NULL, NULL);
-				strcat(dir, "lib");
+				strcat(dir, "../lib");
 			}
 			_makepath(import_filename, drive, dir, token, NULL);
-
 		#else
 			char* dir = (char*) calloc(PATH_MAX, sizeof(char));
-			memcpy(dir, current_filename, strlen(current_filename) + 1);
+			if (import_local_file)
+				memcpy(dir, current_filename, strlen(current_filename) + 1);
+			else
+				memcpy(dir, binary_path, strlen(binary_path) + 1);
 			dir = dirname(dir);
+			if (!import_local_file) strcat(dir, "/../lib");
 			memcpy(import_filename, dir, strlen(dir) + 1);
 			free(dir);
 			strcat(import_filename, "/");

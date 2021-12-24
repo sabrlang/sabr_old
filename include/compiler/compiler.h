@@ -15,6 +15,7 @@
 	#include <windows.h>
 #else
 	#include <libgen.h>
+	#include <unistd.h>
 	#if defined(__linux__)
 		#include <linux/limits.h>
 	#endif

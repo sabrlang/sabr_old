@@ -1,0 +1,9 @@
+$++ macro dup call 1+ swap to end
+$-- macro dup call 1- swap to end
+$+to macro dup call rot + swap to end
+$-to macro dup call rot - swap to end
+$true macro -1 end
+$false macro 0 end
+$cr macro '\n' putc end
+$puts macro loop dup 0 > while swap putc 1- end drop end
+$putsln macro puts cr end
