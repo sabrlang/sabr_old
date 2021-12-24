@@ -4,6 +4,7 @@
 # Language
 *.c linguist-language=C
 *.h linguist-language=C
+*.sabrc linguist-language=Sabr
 
 # Sources
 *.c     text diff=c
