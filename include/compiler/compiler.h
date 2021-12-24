@@ -11,10 +11,11 @@
 #include <string.h>
 #include <uchar.h>
 
-#ifdef _WIN32
+#if defined(_WIN32)
+	#include <windows.h>
 #else
 	#include <libgen.h>
-	#ifdef __linux__
+	#if defined(__linux__)
 		#include <linux/limits.h>
 	#endif
 #endif

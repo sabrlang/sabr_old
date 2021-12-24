@@ -97,7 +97,7 @@ size_t compiler_load_code(compiler* comp, char* filename) {
 
 	char filename_full[PATH_MAX];
 
-#ifdef _WIN32
+#if defined(_WIN32)
 	if (!(_fullpath(filename_full, filename, PATH_MAX))) goto FAILURE_FILEPATH;
 #else
 	if (!(realpath(filename, filename_full))) goto FAILURE_FILEPATH;
@@ -135,7 +135,7 @@ size_t compiler_load_code(compiler* comp, char* filename) {
 	textcode[size] = '\n';
 	textcode[size + 1] = '\0';
 
-#ifdef _WIN32
+#if defined(_WIN32)
 	memcpy_s(filename_full_new, filename_size, filename_full, filename_size);
 #else
 	memcpy(filename_full_new, filename_full, filename_size);
@@ -912,6 +912,9 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 		} break;
 		case CTRL_IMPORT: {
 			char* current_filename;
+			bool import_local_file = false;
+			char import_filename[PATH_MAX];
+			char binary_path[PATH_MAX] = {0, };
 
 			char* token;
 			size_t index;
@@ -919,20 +922,37 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			if (comp->textcode_index_stack.size == 0) goto FAILURE_TEXTCODE;
 			index = *vector_back(size_t, &comp->textcode_index_stack);
 
-			if (comp->filename_vector.size == 0) goto FAILURE_TEXTCODE;
-			current_filename = *vector_at(cctl_ptr(char), &comp->filename_vector, index);
-
 			if (comp->preproc_tokens_vector.size == 0) goto FAILURE_PREPROC_STACK;
 			token = *vector_back(cctl_ptr(char), &comp->preproc_tokens_vector);
 
-			char import_filename[PATH_MAX];
+			import_local_file = (*token) == ':';
 
-		#ifdef _WIN32
+			if (import_local_file) {
+				if (comp->filename_vector.size == 0) goto FAILURE_TEXTCODE;
+				current_filename = *vector_at(cctl_ptr(char), &comp->filename_vector, index);
+				token++;
+			}
+			else {
+			#if defined(_WIN32)
+				GetModuleFileName(NULL, binary_path, PATH_MAX);
+			#elif defined(__linux__)
+				// readlink("/proc/self/exe", buf, bufsize);
+			#endif
+			}
+
+		#if defined(_WIN32)
 			char drive[_MAX_DRIVE];
 			char dir[_MAX_DIR];
 
-			_splitpath(current_filename, drive, dir, NULL, NULL);
+			if (import_local_file) {
+				_splitpath(current_filename, drive, dir, NULL, NULL);
+			}
+			else {
+				_splitpath(binary_path, drive, dir, NULL, NULL);
+				strcat(dir, "lib");
+			}
 			_makepath(import_filename, drive, dir, token, NULL);
+
 		#else
 			char* dir = (char*) calloc(PATH_MAX, sizeof(char));
 			memcpy(dir, current_filename, strlen(current_filename) + 1);

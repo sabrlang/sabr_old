@@ -3,7 +3,7 @@
 bool interpreter_init(interpreter* inter) {
 	setlocale(LC_ALL, "en_US.utf8");
 
-#ifdef _WIN32
+#if defined(_WIN32)
 	SetConsoleOutputCP(CP_UTF8);
 	SetConsoleCP(CP_UTF8);
 	_setmode( _fileno( stdin ), _O_U16TEXT );
@@ -786,7 +786,7 @@ bool interpreter_run(interpreter* inter) {
 				value v;
 				deque(value) value_reverser;
 				deque_init(value, &value_reverser);
-			#ifdef _WIN32
+			#if defined(_WIN32)
 				wint_t result;
 				wint_t next;
 				size_t count = 0;
