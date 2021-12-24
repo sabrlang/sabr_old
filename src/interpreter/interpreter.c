@@ -6,7 +6,7 @@ bool interpreter_init(interpreter* inter) {
 #if defined(_WIN32)
 	SetConsoleOutputCP(CP_UTF8);
 	SetConsoleCP(CP_UTF8);
-	_setmode( _fileno( stdin ), _O_U16TEXT );
+	_setmode(_fileno(stdin), _O_U16TEXT);
 	fflush(stdin);
 #endif
 
@@ -769,17 +769,29 @@ bool interpreter_run(interpreter* inter) {
 			} break;
 			case OP_GETI: {
 				value v;
+			#if defined(_WIN32)
+				if (wscanf(L"%" SCNd64, &(v.i)) != 1) goto FAILURE_STDIN;
+			#else
 				if (scanf("%" SCNd64, &(v.i)) != 1) goto FAILURE_STDIN;
+			#endif
 				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
 			} break;
 			case OP_GETU: {
 				value v;
+			#if defined(_WIN32)
+				if (wscanf(L"%" SCNu64, &(v.u)) != 1) goto FAILURE_STDIN;
+			#else
 				if (scanf("%" SCNu64, &(v.u)) != 1) goto FAILURE_STDIN;
+			#endif
 				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
 			} break;
 			case OP_GETF: {
 				value v;
+			#if defined(_WIN32)
+				if (wscanf(L"%lf", &(v.f)) != 1) goto FAILURE_STDIN;
+			#else
 				if (scanf("%lf", &(v.f)) != 1) goto FAILURE_STDIN;
+			#endif
 				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
 			} break;
 			case OP_GETS: {
