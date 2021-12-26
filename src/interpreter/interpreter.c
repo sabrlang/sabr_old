@@ -719,12 +719,12 @@ bool interpreter_run(interpreter* inter) {
 				value a, b;
 				if (!interpreter_pop(inter, &b)) goto FAILURE_STACK;
 				if (!interpreter_pop(inter, &a)) goto FAILURE_STACK;
-				if (!b.u) {
-					free(a.p);
-					a.p = NULL;
+				if (!a.u) {
+					free(b.p);
+					b.p = NULL;
 				}
-				else a.p = realloc((void*) a.u, b.u * sizeof(value));
-				if (!interpreter_push(inter, a)) goto FAILURE_STACK;
+				else b.p = realloc((void*) b.p, a.u * sizeof(value));
+				if (!interpreter_push(inter, b)) goto FAILURE_STACK;
 			} break;
 			case OP_FREE: {
 				value v;
