@@ -120,7 +120,7 @@ else
 end
 ```
 If `(flag)` is true, `(code 1)` is executed.  
-If `(flag)` is false, `(code 2)` is excuted.
+If `(flag)` is false, `(code 2)` is executed.
 
 ### loop statements
 ```
@@ -167,7 +167,7 @@ If `(flag)` is true, `(code 2)` is executed and the loop is restarted.
 end
 ```
 
-`switch` and `case` pops the value from the stack.  
+`switch` and `case` pop the value from the stack.  
 If `(value)` is equal to `(case 1)`, `(code 1)` is executed.  
 If `(value)` is equal to `(case 3)` or `(case 4)`, `(code 3)` is executed.  
 If there is no matching value, `(code 4)` is executed.
