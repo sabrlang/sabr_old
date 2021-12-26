@@ -2,9 +2,9 @@
 
 #include "compiler.h"
 
+compiler comp;
+
 int main(int argc, char* argv[]) {
-	
-	compiler comp;
 	char* output_filename;
 	if (!compiler_init(&comp)) return 1;
 

@@ -2,8 +2,9 @@
 
 #include "interpreter.h"
 
+interpreter inter;
+
 int main(int argc, char* argv[]) {
-	interpreter inter;
 	if (!interpreter_init(&inter)) return 1;
 
 	if (argc == 1) {

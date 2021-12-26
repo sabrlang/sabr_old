@@ -877,11 +877,11 @@ bool interpreter_run(interpreter* inter) {
 					putchar(v.u);
 				}
 				else {
-					char out[8];
+					char out[MB_CUR_MAX + 1];
 					size_t rc = c32rtomb(out, (char32_t) v.u, &(inter->convert_state));
 					if (rc == -1) {
 						fputs("error : Unicode encoding failure\n", stderr);
-						return false;
+						return false; 
 					}
 					out[rc] = 0;
 					fputs(out, stdout);
