@@ -877,7 +877,7 @@ bool interpreter_run(interpreter* inter) {
 					putchar(v.u);
 				}
 				else {
-					char out[MB_CUR_MAX + 1];
+					char out[8];
 					size_t rc = c32rtomb(out, (char32_t) v.u, &(inter->convert_state));
 					if (rc == -1) {
 						fputs("error : Unicode encoding failure\n", stderr);
