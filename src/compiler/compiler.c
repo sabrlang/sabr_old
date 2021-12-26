@@ -144,7 +144,9 @@ size_t compiler_load_code(compiler* comp, char* filename) {
 	trie* filename_trie_result;
 	bool already_imported = false;
 	filename_trie_result = trie_find(&comp->filename_trie, filename_full_new);
-	if (filename_trie_result) if (filename_trie_result->type == (uint8_t) true) already_imported = true;
+	if (filename_trie_result) {
+		if (filename_trie_result->type == (uint8_t) true) already_imported = true;
+	}
 	if (!already_imported) filename_trie_result = trie_insert(&comp->filename_trie, filename_full_new, (uint8_t) true);
 
 	if (!(
@@ -968,8 +970,22 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			strcat(import_filename, "/");
 			strcat(import_filename, token);
 		#endif
-			trie* filename_trie_result = trie_find(&comp->filename_trie, import_filename);
+			char filename_full[PATH_MAX];
+			bool filepath = false;
 
+			#if defined(_WIN32)
+				if (!(_fullpath(filename_full, import_filename, PATH_MAX))) filepath = true;
+			#else
+				if (!(realpath(import_filename, filename_full))) filepath = true;
+			#endif
+			if (filepath) {
+				fprintf(stderr, console_yellow console_bold "%s" console_reset "\n", filename_full);
+				fprintf(stderr, "error : %s\n", strerror(errno));
+				return false;
+			}
+
+			trie* filename_trie_result = trie_find(&comp->filename_trie, filename_full);
+			
 			if (filename_trie_result) {
 				if (filename_trie_result->type == (uint8_t) true) {
 					return true;
@@ -996,8 +1012,6 @@ FAILURE_PREPROC_STACK:
 FAILURE_TEXTCODE:
 	fputs("error : Filename vector or textcode indices memory stack memory allocation faliure\n", stderr);
 	return false;
-
-
 
 	#undef __free_switch_vecs__
 	#undef __free_func_vecs__
