@@ -317,8 +317,8 @@ bool compiler_tokenize(compiler* comp) {
 			case '\\': {
 				if (!comment) {
 					if (string_parse) {
-						if (string_escape) string_parse = false;
-						else string_parse = true;
+						if (string_escape) string_escape = false;
+						else string_escape = true;
 					}
 					else if (space) {
 						space = false;
