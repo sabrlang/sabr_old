@@ -1,0 +1,87 @@
+#standard.sabrc import
+
+$Vector struct
+	$data member
+	$size member
+	$capacity member
+end
+
+$Vector.init func ( Vector:this -- )
+	$this to
+	0 this Vector.data store
+	0 this Vector.size store
+	0 this Vector.capacity store
+end
+
+$Vector.free func ( Vector:this -- )
+	$this to
+	this Vector.data fetch free
+	this Vector.init
+end
+
+$Vector.reserve func ( u:size Vector:this -- b )
+	$this to
+	$size to
+	this Vector.capacity fetch size >= if
+		true return
+	end
+	1 $capacity to
+	size 0 > if
+		loop
+			capacity size <=
+		while
+			1 $capacity <<to
+		end
+	end
+	this Vector.capacity fetch size < if
+		this Vector.capacity fetch if
+			capacity this Vector.data fetch show resize this Vector.data store
+			this Vector.data fetch 0 = if false return end
+		else
+			this Vector.data capacity alloc dup putu over store fetch 0 = if false return end
+		end
+		capacity this Vector.capacity store
+	end
+	true
+end
+
+$Vector.resize func ( u:size Vector:this -- b )
+	$this to
+	$size to
+	size this Vector.reserve if
+		size this Vector.size store
+		true
+	else false
+	end
+end
+
+$Vector.push_back func ( x:item Vector:this -- b )
+	$this to
+	$item to
+	this dup Vector.size fetch 1 + swap Vector.resize if
+		item this dup Vector.data fetch swap Vector.size fetch 1 - at store
+		true
+	else false
+	end
+end
+
+$Vector.pop_back func ( Vector:this -- b )
+	$this to
+	this Vector.size fetch if
+		this Vector.size --store
+		true
+	else false
+	end
+end
+
+$Vector.at macro
+	Vector.data fetch swap at
+end
+
+$Vector.front macro
+	Vector.data fetch
+end
+
+$Vector.back macro
+	dup Vector.data fetch swap Vector.size fetch at
+end
