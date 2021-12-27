@@ -83,4 +83,11 @@ bool compiler_push_bytecode_with_value(compiler* comp, opcode op, value v);
 bool compiler_push_bytecode_with_null(compiler* comp, opcode op);
 bool compiler_push_preproc_token(compiler* comp, char* token);
 
+inline size_t* compiler_current_column(compiler *comp) {
+	return vector_back(size_t, &comp->column_count_stack);
+}
+inline size_t* compiler_current_line(compiler* comp) {
+	return vector_back(size_t, &comp->line_count_stack);
+}
+
 #endif

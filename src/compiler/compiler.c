@@ -1,5 +1,8 @@
 #include "compiler.h"
 
+extern inline size_t* compiler_current_column(compiler *comp);
+extern inline size_t* compiler_current_line(compiler* comp);
+
 bool compiler_init(compiler* comp) {
 	setlocale(LC_ALL, "en_US.utf8");
 
@@ -252,9 +255,9 @@ bool compiler_tokenize(compiler* comp) {
 	while (*iterator) {
 		switch (*iterator) {
 			case '\n': 
-				(*vector_back(size_t, &comp->line_count_stack))++;
-				comp->column_count_prev = (*vector_back(size_t, &comp->column_count_stack));
-				(*vector_back(size_t, &comp->column_count_stack)) = 0;
+				(*compiler_current_line(comp))++;
+				comp->column_count_prev = (*compiler_current_column(comp));
+				(*compiler_current_column(comp)) = 0;
 			case '\r':
 				if (comment == CMNT_PARSE_LINE) {
 					space = true;
@@ -367,7 +370,7 @@ bool compiler_tokenize(compiler* comp) {
 		iterator++;
 		
 		if (((signed char) *iterator) >= -64) {
-			(*vector_back(size_t, &comp->column_count_stack))++;
+			(*compiler_current_column(comp))++;
 		}
 		
 	}
@@ -432,11 +435,17 @@ bool compiler_parse(compiler* comp, char* begin, char* end) {
 	}
 
 	if (!result) {
-		if ((*vector_back(size_t, &comp->column_count_stack)) == 0) {
-			(*vector_back(size_t, &comp->column_count_stack)) = comp->column_count_prev;
-			(*vector_back(size_t, &comp->line_count_stack))--;
+		if (*compiler_current_column(comp) == 0) {
+			(*compiler_current_column(comp)) = comp->column_count_prev;
+			(*compiler_current_line(comp))--;
 		}
-		fprintf(stderr, console_yellow console_bold "%s" console_reset " in line %zu, column %zu\n", begin, (*vector_back(size_t, &comp->line_count_stack)), (*vector_back(size_t, &comp->column_count_stack)));
+		fprintf(
+			stderr,
+			console_yellow console_bold "%s" console_reset " in line %zu, column %zu\n",
+			begin,
+			(*compiler_current_line(comp)),
+			(*compiler_current_column(comp))
+		);
 	}
 
 	*end = temp;
