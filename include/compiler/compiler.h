@@ -30,11 +30,13 @@
 #include "compiler_cctl_define.h"
 #include "control.h"
 #include "operation.h"
+#include "preproc.h"
 
 typedef enum string_parse_mode_enum {
 	STR_PARSE_NONE,
 	STR_PARSE_SINGLE,
-	STR_PARSE_DOUBLE
+	STR_PARSE_DOUBLE,
+	STR_PARSE_PREPROC
 } string_parse_mode;
 
 typedef enum comment_parse_mode_enum {
@@ -46,7 +48,7 @@ typedef enum comment_parse_mode_enum {
 typedef struct compiler_struct {
 	vector(cctl_ptr(char)) textcode_vector;
 	vector(cctl_ptr(char)) filename_vector;
-	vector(cctl_ptr(char)) preproc_tokens_vector;
+	vector(preproc_data) preproc_tokens_vector;
 	vector(size_t) textcode_index_stack;
 	vector(uint8_t) bytecode;
 	vector(cctl_ptr(vector(control_data))) control_data_stack;
@@ -82,5 +84,15 @@ bool compiler_push_bytecode(compiler* comp, opcode op);
 bool compiler_push_bytecode_with_value(compiler* comp, opcode op, value v);
 bool compiler_push_bytecode_with_null(compiler* comp, opcode op);
 bool compiler_push_preproc_token(compiler* comp, char* token);
+
+inline size_t* compiler_current_column(compiler *comp) {
+	return vector_back(size_t, &comp->column_count_stack);
+}
+inline size_t* compiler_current_line(compiler* comp) {
+	return vector_back(size_t, &comp->line_count_stack);
+}
+inline size_t* compiler_current_file_index(compiler* comp) {
+	return vector_back(size_t, &comp->textcode_index_stack);
+}
 
 #endif

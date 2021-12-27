@@ -1,11 +1,15 @@
 #include "compiler.h"
 
+extern inline size_t* compiler_current_column(compiler *comp);
+extern inline size_t* compiler_current_line(compiler* comp);
+extern inline size_t* compiler_current_file_index(compiler* comp);
+
 bool compiler_init(compiler* comp) {
 	setlocale(LC_ALL, "en_US.utf8");
 
 	vector_init(cctl_ptr(char), &comp->textcode_vector);
 	vector_init(cctl_ptr(char), &comp->filename_vector);
-	vector_init(cctl_ptr(char), &comp->preproc_tokens_vector);
+	vector_init(preproc_data, &comp->preproc_tokens_vector);
 	vector_init(size_t, &comp->textcode_index_stack);
 	vector_init(uint8_t, &comp->bytecode);
 	vector_init(cctl_ptr(vector(control_data)), &comp->control_data_stack);
@@ -44,11 +48,12 @@ bool compiler_del(compiler* comp) {
 	}
 
 	for (size_t i = 0; i < comp->preproc_tokens_vector.size; i++) {
-		free(*vector_at(cctl_ptr(char), &comp->preproc_tokens_vector, i));
+		free(vector_at(preproc_data, &comp->preproc_tokens_vector, i)->code);
 	}
 
 	vector_free(cctl_ptr(char), &comp->textcode_vector);
 	vector_free(cctl_ptr(char), &comp->filename_vector);
+	vector_free(preproc_data, &comp->preproc_tokens_vector);
 
 	vector_free(size_t, &comp->textcode_index_stack);
 	vector_free(uint8_t, &comp->bytecode);
@@ -116,7 +121,7 @@ size_t compiler_load_code(compiler* comp, char* filename) {
 
 	int filename_size = strlen(filename_full) + 1;
 
-	char* textcode = (char*) malloc(size + 2);
+	char* textcode = (char*) malloc(size + 3);
 	char* filename_full_new = (char*) malloc(filename_size);
 	if (!(textcode && filename_full_new)) {
 		fclose(file);
@@ -133,7 +138,8 @@ size_t compiler_load_code(compiler* comp, char* filename) {
 	}
 
 	textcode[size] = '\n';
-	textcode[size + 1] = '\0';
+	textcode[size + 1] = '\n';
+	textcode[size + 2] = '\0';
 
 #if defined(_WIN32)
 	memcpy_s(filename_full_new, filename_size, filename_full, filename_size);
@@ -195,7 +201,7 @@ bool compiler_push_code_data(compiler* comp, int index) {
 		return false;
 	}
 	
-	if (!vector_push_back(size_t, &comp->column_count_stack, 0)) {
+	if (!vector_push_back(size_t, &comp->column_count_stack, 1)) {
 		fputs("error : Textcode column count stack memory allocation failure\n", stderr);
 		return false;
 	}
@@ -235,7 +241,7 @@ bool compiler_tokenize(compiler* comp) {
 		return false;
 	}
 
-	index = *vector_back(size_t, &comp->textcode_index_stack);
+	index = *compiler_current_file_index(comp);
 
 	char* iterator = *vector_at(cctl_ptr(char), &comp->textcode_vector, index);
 	char* begin = NULL;
@@ -245,6 +251,7 @@ bool compiler_tokenize(compiler* comp) {
 	bool space = true;
 	string_parse_mode string_parse = STR_PARSE_NONE;
 	comment_parse_mode comment = CMNT_PARSE_NONE;
+	size_t preproc_level = 0;
 	bool result;
 
 	bool u8check = false;
@@ -252,9 +259,9 @@ bool compiler_tokenize(compiler* comp) {
 	while (*iterator) {
 		switch (*iterator) {
 			case '\n': 
-				(*vector_back(size_t, &comp->line_count_stack))++;
-				comp->column_count_prev = (*vector_back(size_t, &comp->column_count_stack));
-				(*vector_back(size_t, &comp->column_count_stack)) = 0;
+				(*compiler_current_line(comp))++;
+				comp->column_count_prev = (*compiler_current_column(comp));
+				(*compiler_current_column(comp)) = 0;
 			case '\r':
 				if (comment == CMNT_PARSE_LINE) {
 					space = true;
@@ -316,6 +323,44 @@ bool compiler_tokenize(compiler* comp) {
 					}
 				}
 			} break;
+			case '{': {
+				if (!comment) {
+					if (string_parse) {
+						if (string_escape) string_escape = false;
+						else {
+							if (string_parse == STR_PARSE_PREPROC) {
+								preproc_level++;
+							}
+						}
+					}
+					else if (space) {
+						space = false;
+						begin = iterator;
+						string_parse = STR_PARSE_PREPROC;
+						string_escape = false;
+						preproc_level++;
+					}
+				}
+			} break;
+			case '}': {
+				if (!comment) {
+					if (string_parse) {
+						if (string_escape) string_escape = false;
+						else {
+							if (string_parse == STR_PARSE_PREPROC) {
+								preproc_level--;
+								if (preproc_level == 0) {
+									string_parse = STR_PARSE_NONE;
+								}
+							}
+						}
+					}
+					else if (space) {
+						space = false;
+						begin = iterator;
+					}
+				}
+			} break;
 			case '\\': {
 				if (!comment) {
 					if (string_parse) {
@@ -367,7 +412,7 @@ bool compiler_tokenize(compiler* comp) {
 		iterator++;
 		
 		if (((signed char) *iterator) >= -64) {
-			(*vector_back(size_t, &comp->column_count_stack))++;
+			(*compiler_current_column(comp))++;
 		}
 		
 	}
@@ -411,6 +456,12 @@ bool compiler_parse(compiler* comp, char* begin, char* end) {
 			case '#': {
 				result = compiler_push_preproc_token(comp, begin + 1);
 			} break;
+			case '{': {
+				char temp_parse_char = *(end - 1);
+				*(end - 1) = 0;
+				result = compiler_push_preproc_token(comp, begin + 1);
+				*(end - 1) = temp_parse_char;
+			} break;
 			case '\'': {
 				char temp_parse_char = *(end - 1);
 				*(end - 1) = 0;
@@ -432,11 +483,17 @@ bool compiler_parse(compiler* comp, char* begin, char* end) {
 	}
 
 	if (!result) {
-		if ((*vector_back(size_t, &comp->column_count_stack)) == 0) {
-			(*vector_back(size_t, &comp->column_count_stack)) = comp->column_count_prev;
-			(*vector_back(size_t, &comp->line_count_stack))--;
+		if (*compiler_current_column(comp) == 0) {
+			(*compiler_current_column(comp)) = comp->column_count_prev;
+			(*compiler_current_line(comp))--;
 		}
-		fprintf(stderr, console_yellow console_bold "%s" console_reset " in line %zu, column %zu\n", begin, (*vector_back(size_t, &comp->line_count_stack)), (*vector_back(size_t, &comp->column_count_stack)));
+		fprintf(
+			stderr,
+			console_yellow console_bold "%s" console_reset " in line %zu, column %zu\n",
+			begin,
+			(*compiler_current_line(comp)),
+			(*compiler_current_column(comp))
+		);
 	}
 
 	*end = temp;
@@ -926,10 +983,10 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			size_t index;
 
 			if (comp->textcode_index_stack.size == 0) goto FAILURE_TEXTCODE;
-			index = *vector_back(size_t, &comp->textcode_index_stack);
+			index = *compiler_current_file_index(comp);
 
 			if (comp->preproc_tokens_vector.size == 0) goto FAILURE_PREPROC_STACK;
-			token = *vector_back(cctl_ptr(char), &comp->preproc_tokens_vector);
+			token = vector_back(preproc_data, &comp->preproc_tokens_vector)->code;
 
 			import_local_file = (*token) == ':';
 
@@ -993,6 +1050,18 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			}
 
 			if (!compiler_compile_source(comp, import_filename)) return false;
+		} break;
+		case CTRL_DEFINE: {
+			char* token;
+			char* code;
+
+			if (comp->preproc_tokens_vector.size == 0) goto FAILURE_PREPROC_STACK;
+			code = vector_back(preproc_data, &comp->preproc_tokens_vector)->code;
+
+			if (comp->preproc_tokens_vector.size == 0) goto FAILURE_PREPROC_STACK;
+			token = vector_back(preproc_data, &comp->preproc_tokens_vector)->code;
+
+
 		} break;
 	}
 
@@ -1336,11 +1405,37 @@ bool compiler_push_bytecode_with_null(compiler* comp, opcode op) {
 }
 
 bool compiler_push_preproc_token(compiler* comp, char* token) {
+	preproc_data data;
+
 	size_t len = strlen(token) + 1;
-	char* temp = (char*) malloc(len * sizeof(char));
-	if (!temp) goto FAILURE_ALLOC;
-	strcpy(temp, token);
-	if (!vector_push_back(cctl_ptr(char), &comp->preproc_tokens_vector, temp)) goto FAILURE_VECTOR;
+	char* new_token = (char*) malloc(len * sizeof(char));
+	if (!new_token) goto FAILURE_ALLOC;
+	strcpy(new_token, token);
+
+	char* temp = token;
+	char* code_begin = *vector_at(cctl_ptr(char), &comp->textcode_vector, *compiler_current_file_index(comp));
+
+	data.column = 0;
+	while (true) {
+		if (*temp == '\n') break;
+		data.column++;
+		if (temp == code_begin) break;
+		temp--;
+	}
+	
+	temp = token;
+	data.line = 0;
+	while (*temp) {
+		if (*temp == '\n') data.line++;
+		temp++;
+	}
+	while (!(*temp)) temp++;
+	if (*(temp) == '\n') data.line++;
+
+	data.code = new_token;
+	data.line = *compiler_current_line(comp) - data.line;
+
+	if (!vector_push_back(preproc_data, &comp->preproc_tokens_vector, data)) goto FAILURE_VECTOR;
 	return true;
 
 FAILURE_ALLOC:

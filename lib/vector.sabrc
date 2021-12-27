@@ -59,7 +59,7 @@ $Vector.push_back func ( x:item Vector:this -- b )
 	$this to
 	$item to
 	this dup Vector.size fetch 1 + swap Vector.resize if
-		item this dup Vector.data fetch swap Vector.size fetch 1 - at store
+		item this dup Vector.size fetch 1 - swap Vector.data fetch at store
 		true
 	else false
 	end
@@ -74,14 +74,14 @@ $Vector.pop_back func ( Vector:this -- b )
 	end
 end
 
-$Vector.at macro
-	Vector.data fetch swap at
+$Vector.at macro ( u Vector -- x )
+	Vector.data fetch at
 end
 
-$Vector.front macro
+$Vector.front macro ( Vector -- x )
 	Vector.data fetch
 end
 
-$Vector.back macro
-	dup Vector.data fetch swap Vector.size fetch at
+$Vector.back macro ( Vector -- x )
+	dup Vector.size fetch 1 - swap Vector.data fetch at
 end
