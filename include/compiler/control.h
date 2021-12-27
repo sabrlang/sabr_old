@@ -21,7 +21,8 @@ typedef enum control_enum {
 	CTRL_RETURN,
 	CTRL_STRUCT,
 	CTRL_MEMBER,
-	CTRL_IMPORT
+	CTRL_IMPORT,
+	CTRL_DEFINE
 } control;
 
 extern size_t control_len;

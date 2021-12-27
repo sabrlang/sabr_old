@@ -30,6 +30,7 @@
 #include "compiler_cctl_define.h"
 #include "control.h"
 #include "operation.h"
+#include "preproc.h"
 
 typedef enum string_parse_mode_enum {
 	STR_PARSE_NONE,
@@ -47,7 +48,7 @@ typedef enum comment_parse_mode_enum {
 typedef struct compiler_struct {
 	vector(cctl_ptr(char)) textcode_vector;
 	vector(cctl_ptr(char)) filename_vector;
-	vector(cctl_ptr(char)) preproc_tokens_vector;
+	vector(preproc_data) preproc_tokens_vector;
 	vector(size_t) textcode_index_stack;
 	vector(uint8_t) bytecode;
 	vector(cctl_ptr(vector(control_data))) control_data_stack;

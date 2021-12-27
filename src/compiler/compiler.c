@@ -8,7 +8,7 @@ bool compiler_init(compiler* comp) {
 
 	vector_init(cctl_ptr(char), &comp->textcode_vector);
 	vector_init(cctl_ptr(char), &comp->filename_vector);
-	vector_init(cctl_ptr(char), &comp->preproc_tokens_vector);
+	vector_init(preproc_data, &comp->preproc_tokens_vector);
 	vector_init(size_t, &comp->textcode_index_stack);
 	vector_init(uint8_t, &comp->bytecode);
 	vector_init(cctl_ptr(vector(control_data)), &comp->control_data_stack);
@@ -47,11 +47,12 @@ bool compiler_del(compiler* comp) {
 	}
 
 	for (size_t i = 0; i < comp->preproc_tokens_vector.size; i++) {
-		free(*vector_at(cctl_ptr(char), &comp->preproc_tokens_vector, i));
+		free(vector_at(preproc_data, &comp->preproc_tokens_vector, i)->code);
 	}
 
 	vector_free(cctl_ptr(char), &comp->textcode_vector);
 	vector_free(cctl_ptr(char), &comp->filename_vector);
+	vector_free(preproc_data, &comp->preproc_tokens_vector);
 
 	vector_free(size_t, &comp->textcode_index_stack);
 	vector_free(uint8_t, &comp->bytecode);
@@ -452,6 +453,12 @@ bool compiler_parse(compiler* comp, char* begin, char* end) {
 			} break;
 			case '#': {
 				result = compiler_push_preproc_token(comp, begin + 1);
+			} break;
+			case '{': {
+				char temp_parse_char = *(end - 1);
+				*(end - 1) = 0;
+				result = compiler_push_preproc_token(comp, begin + 1);
+				*(end - 1) = temp_parse_char;
 			} break;
 			case '\'': {
 				char temp_parse_char = *(end - 1);
@@ -977,7 +984,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			index = *vector_back(size_t, &comp->textcode_index_stack);
 
 			if (comp->preproc_tokens_vector.size == 0) goto FAILURE_PREPROC_STACK;
-			token = *vector_back(cctl_ptr(char), &comp->preproc_tokens_vector);
+			token = vector_back(preproc_data, &comp->preproc_tokens_vector)->code;
 
 			import_local_file = (*token) == ':';
 
@@ -1041,6 +1048,18 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			}
 
 			if (!compiler_compile_source(comp, import_filename)) return false;
+		} break;
+		case CTRL_DEFINE: {
+			char* token;
+			char* code;
+
+			if (comp->preproc_tokens_vector.size == 0) goto FAILURE_PREPROC_STACK;
+			code = vector_back(preproc_data, &comp->preproc_tokens_vector)->code;
+
+			if (comp->preproc_tokens_vector.size == 0) goto FAILURE_PREPROC_STACK;
+			token = vector_back(preproc_data, &comp->preproc_tokens_vector)->code;
+
+
 		} break;
 	}
 
@@ -1385,10 +1404,18 @@ bool compiler_push_bytecode_with_null(compiler* comp, opcode op) {
 
 bool compiler_push_preproc_token(compiler* comp, char* token) {
 	size_t len = strlen(token) + 1;
-	char* temp = (char*) malloc(len * sizeof(char));
-	if (!temp) goto FAILURE_ALLOC;
-	strcpy(temp, token);
-	if (!vector_push_back(cctl_ptr(char), &comp->preproc_tokens_vector, temp)) goto FAILURE_VECTOR;
+	char* new_token = (char*) malloc(len * sizeof(char));
+	if (!new_token) goto FAILURE_ALLOC;
+	strcpy(new_token, token);
+
+	char* temp = token;
+
+	preproc_data data;
+	data.code = new_token;
+	data.column = *compiler_current_column(comp);
+	data.line = *compiler_current_line(comp);
+
+	if (!vector_push_back(preproc_data, &comp->preproc_tokens_vector, data)) goto FAILURE_VECTOR;
 	return true;
 
 FAILURE_ALLOC:
