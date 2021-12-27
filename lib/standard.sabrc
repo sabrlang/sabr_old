@@ -2,9 +2,15 @@ $++to macro dup call 1 + swap to end
 $--to macro dup call 1 - swap to end
 $--store macro dup fetch 1 - swap store end
 
-$+to macro dup call rot + swap to end
-$-to macro dup call rot - swap to end
-$<<to macro dup call rot << swap to end
+$dcr macro dup call rot end
+
+$+to macro dcr + swap to end
+$-to macro dcr - swap to end
+$*to macro dcr * swap to end
+$/to macro dcr / swap to end
+
+$<<to macro dcr << swap to end
+$>>to macro dcr >> swap to end
 
 $true macro -1 end
 $false macro 0 end

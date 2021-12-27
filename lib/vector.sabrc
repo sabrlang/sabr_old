@@ -35,10 +35,10 @@ $Vector.reserve func ( u:size Vector:this -- b )
 	end
 	this Vector.capacity fetch size < if
 		this Vector.capacity fetch if
-			capacity this Vector.data fetch show resize this Vector.data store
+			capacity this Vector.data fetch resize this Vector.data store
 			this Vector.data fetch 0 = if false return end
 		else
-			this Vector.data capacity alloc dup putu over store fetch 0 = if false return end
+			this Vector.data capacity alloc over store fetch 0 = if false return end
 		end
 		capacity this Vector.capacity store
 	end
