@@ -201,7 +201,7 @@ bool compiler_push_code_data(compiler* comp, int index) {
 		return false;
 	}
 	
-	if (!vector_push_back(size_t, &comp->column_count_stack, 0)) {
+	if (!vector_push_back(size_t, &comp->column_count_stack, 1)) {
 		fputs("error : Textcode column count stack memory allocation failure\n", stderr);
 		return false;
 	}
