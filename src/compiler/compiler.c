@@ -2,6 +2,7 @@
 
 extern inline size_t* compiler_current_column(compiler *comp);
 extern inline size_t* compiler_current_line(compiler* comp);
+extern inline size_t* compiler_current_file_index(compiler* comp);
 
 bool compiler_init(compiler* comp) {
 	setlocale(LC_ALL, "en_US.utf8");
@@ -120,7 +121,7 @@ size_t compiler_load_code(compiler* comp, char* filename) {
 
 	int filename_size = strlen(filename_full) + 1;
 
-	char* textcode = (char*) malloc(size + 2);
+	char* textcode = (char*) malloc(size + 3);
 	char* filename_full_new = (char*) malloc(filename_size);
 	if (!(textcode && filename_full_new)) {
 		fclose(file);
@@ -137,7 +138,8 @@ size_t compiler_load_code(compiler* comp, char* filename) {
 	}
 
 	textcode[size] = '\n';
-	textcode[size + 1] = '\0';
+	textcode[size + 1] = '\n';
+	textcode[size + 2] = '\0';
 
 #if defined(_WIN32)
 	memcpy_s(filename_full_new, filename_size, filename_full, filename_size);
@@ -239,7 +241,7 @@ bool compiler_tokenize(compiler* comp) {
 		return false;
 	}
 
-	index = *vector_back(size_t, &comp->textcode_index_stack);
+	index = *compiler_current_file_index(comp);
 
 	char* iterator = *vector_at(cctl_ptr(char), &comp->textcode_vector, index);
 	char* begin = NULL;
@@ -981,7 +983,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			size_t index;
 
 			if (comp->textcode_index_stack.size == 0) goto FAILURE_TEXTCODE;
-			index = *vector_back(size_t, &comp->textcode_index_stack);
+			index = *compiler_current_file_index(comp);
 
 			if (comp->preproc_tokens_vector.size == 0) goto FAILURE_PREPROC_STACK;
 			token = vector_back(preproc_data, &comp->preproc_tokens_vector)->code;
@@ -1403,17 +1405,35 @@ bool compiler_push_bytecode_with_null(compiler* comp, opcode op) {
 }
 
 bool compiler_push_preproc_token(compiler* comp, char* token) {
+	preproc_data data;
+
 	size_t len = strlen(token) + 1;
 	char* new_token = (char*) malloc(len * sizeof(char));
 	if (!new_token) goto FAILURE_ALLOC;
 	strcpy(new_token, token);
 
 	char* temp = token;
+	char* code_begin = *vector_at(cctl_ptr(char), &comp->textcode_vector, *compiler_current_file_index(comp));
 
-	preproc_data data;
+	data.column = 0;
+	while (true) {
+		if (*temp == '\n') break;
+		data.column++;
+		if (temp == code_begin) break;
+		temp--;
+	}
+	
+	temp = token;
+	data.line = 0;
+	while (*temp) {
+		if (*temp == '\n') data.line++;
+		temp++;
+	}
+	while (!(*temp)) temp++;
+	if (*(temp) == '\n') data.line++;
+
 	data.code = new_token;
-	data.column = *compiler_current_column(comp);
-	data.line = *compiler_current_line(comp);
+	data.line = *compiler_current_line(comp) - data.line;
 
 	if (!vector_push_back(preproc_data, &comp->preproc_tokens_vector, data)) goto FAILURE_VECTOR;
 	return true;

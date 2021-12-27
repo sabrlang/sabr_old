@@ -91,5 +91,8 @@ inline size_t* compiler_current_column(compiler *comp) {
 inline size_t* compiler_current_line(compiler* comp) {
 	return vector_back(size_t, &comp->line_count_stack);
 }
+inline size_t* compiler_current_file_index(compiler* comp) {
+	return vector_back(size_t, &comp->textcode_index_stack);
+}
 
 #endif
