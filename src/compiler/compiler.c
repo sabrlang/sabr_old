@@ -248,6 +248,7 @@ bool compiler_tokenize(compiler* comp) {
 	bool space = true;
 	string_parse_mode string_parse = STR_PARSE_NONE;
 	comment_parse_mode comment = CMNT_PARSE_NONE;
+	size_t preproc_level = 0;
 	bool result;
 
 	bool u8check = false;
@@ -316,6 +317,44 @@ bool compiler_tokenize(compiler* comp) {
 						begin = iterator;
 						string_parse = STR_PARSE_DOUBLE;
 						string_escape = false;
+					}
+				}
+			} break;
+			case '{': {
+				if (!comment) {
+					if (string_parse) {
+						if (string_escape) string_escape = false;
+						else {
+							if (string_parse == STR_PARSE_PREPROC) {
+								preproc_level++;
+							}
+						}
+					}
+					else if (space) {
+						space = false;
+						begin = iterator;
+						string_parse = STR_PARSE_PREPROC;
+						string_escape = false;
+						preproc_level++;
+					}
+				}
+			} break;
+			case '}': {
+				if (!comment) {
+					if (string_parse) {
+						if (string_escape) string_escape = false;
+						else {
+							if (string_parse == STR_PARSE_PREPROC) {
+								preproc_level--;
+								if (preproc_level == 0) {
+									string_parse = STR_PARSE_NONE;
+								}
+							}
+						}
+					}
+					else if (space) {
+						space = false;
+						begin = iterator;
 					}
 				}
 			} break;

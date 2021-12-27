@@ -12,4 +12,4 @@ $cr macro '\n' putc end
 $puts macro loop dup 0 > while swap putc 1- end drop end
 $putsln macro puts cr end
 
-$at macro 8 * + end
+$at macro swap 8 * + end
