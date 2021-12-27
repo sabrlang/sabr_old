@@ -999,7 +999,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			#if defined(_WIN32)
 				GetModuleFileName(NULL, binary_path, PATH_MAX);
 			#elif defined(__linux__)
-				readlink("/proc/self/exe", binary_path, PATH_MAX);
+				if (readlink("/proc/self/exe", binary_path, PATH_MAX) < 0) return false;
 			#endif
 			}
 
