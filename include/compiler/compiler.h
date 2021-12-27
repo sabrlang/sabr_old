@@ -34,7 +34,8 @@
 typedef enum string_parse_mode_enum {
 	STR_PARSE_NONE,
 	STR_PARSE_SINGLE,
-	STR_PARSE_DOUBLE
+	STR_PARSE_DOUBLE,
+	STR_PARSE_PREPROC
 } string_parse_mode;
 
 typedef enum comment_parse_mode_enum {
