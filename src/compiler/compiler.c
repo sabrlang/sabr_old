@@ -77,6 +77,10 @@ bool compiler_del(compiler* comp) {
 
 bool compiler_compile(compiler* comp, char* input_filename, char* output_filename) {
 	if (!compiler_compile_source(comp, input_filename)) return false;
+	if (comp->control_data_stack.size > 0) {
+		fputs("error : Control level does not match\n", stderr);
+		return false;
+	}
 	if (!compiler_save_code(comp, output_filename)) {
 		fputs("error : File saving failure\n", stderr);
 		return false;
@@ -431,11 +435,6 @@ bool compiler_tokenize(compiler* comp) {
 			(*compiler_current_column(comp))++;
 		}
 		
-	}
-
-	if (comp->control_data_stack.size > 0) {
-		fputs("error : Control level does not match\n", stderr);
-		return false;
 	}
 
 	return true;
