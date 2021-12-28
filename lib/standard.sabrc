@@ -1,23 +1,59 @@
-#++to { dup call 1 + swap to } define
-#--to { dup call 1 - swap to } define
-#--store { dup fetch 1 - swap store } define
+#true #-1 define ( -- b )
+#false #0 define ( -- b )
+#not { 0 = } define ( x -- b )
+#x>b { 0 != } define ( x -- b )
+#and { 0!= swap 0!= & } define ( x1 x2 -- b )
+#or { 0!= swap 0!= | } define ( x1 x2 -- b )
 
-#dcr { dup call rot } define
 
-#+to { dcr + swap to } define
-#-to { dcr - swap to } define
-#*to { dcr * swap to } define
-#/to { dcr / swap to } define
+#++to { dup call 1 + swap to } define ( id -- )
+#--to { dup call 1 - swap to } define ( id -- )
+#~to { dup call ~ swap to } define ( id -- )
 
-#<<to { dcr << swap to } define
-#>>to { dcr >> swap to } define
+#+to { dup call rot + swap to } define ( n id -- )
+#-to { dup call rot - swap to } define ( n id -- )
+#*to { dup call rot * swap to } define ( n id -- )
+#/to { dup call rot / swap to } define ( n id -- )
+#%to { dup call rot % swap to } define ( n id -- )
+#f+to { dup call rot f+ swap to } define ( f id -- )
+#f-to { dup call rot f- swap to } define ( f id -- )
+#f*to { dup call rot f* swap to } define ( f id -- )
+#f/to { dup call rot f/ swap to } define ( f id -- )
+#f%to { dup call rot f% swap to } define ( f id -- )
+#<<to { dup call rot << swap to } define ( x id -- )
+#>>to { dup call rot >> swap to } define ( x id -- )
+#&to { dup call rot & swap to } define ( x id -- )
+#|to { dup call rot | swap to } define ( x id -- )
+#^to { dup call rot ^ swap to } define ( x id -- )
 
-#true #-1 define
-#false #0 define
+
+#++store { dup fetch 1 + swap store } define ( addr -- )
+#--store { dup fetch 1 - swap store } define ( addr -- )
+#~store { dup fetch ~ swap store } define ( addr -- )
+
+#+store { dup fetch rot + swap store } define ( n addr -- )
+#-store { dup fetch rot - swap store } define ( n addr -- )
+#*store { dup fetch rot * swap store } define ( n addr -- )
+#/store { dup fetch rot / swap store } define ( n addr -- )
+#%store { dup fetch rot % swap store } define ( n addr -- )
+#f+store { dup fetch rot f+ swap store } define ( f addr -- )
+#f-store { dup fetch rot f- swap store } define ( f addr -- )
+#f*store { dup fetch rot f* swap store } define ( f addr -- )
+#f/store { dup fetch rot f/ swap store } define ( f addr -- )
+#f%store { dup fetch rot f% swap store } define ( f addr -- )
+#<<store { dup fetch rot << swap store } define ( x addr -- )
+#>>store { dup fetch rot >> swap store } define ( x addr -- )
+#&store { dup fetch rot & swap store } define ( x addr -- )
+#|store { dup fetch rot | swap store } define ( x addr -- )
+#^store { dup fetch rot ^ swap store } define ( x addr -- )
+
+
 #cr { '\n' putc } define
+#space { ' ' putc } define
 #puts {
 	loop dup 0 > while swap putc 1- end drop
 } define
 #putsln { puts cr } define
+
 
 #at { swap 8 * + } define
