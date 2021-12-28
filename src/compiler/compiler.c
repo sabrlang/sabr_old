@@ -86,7 +86,7 @@ bool compiler_compile_source(compiler* comp, char* input_filename) {
 		fputs("error : Loading code failure\n", stderr);
 		return false;
 	}
-	if (!compiler_push_code_data(comp, index)) return false;
+	if (!compiler_push_code_data(comp, 1, 1, index)) return false;
 	if (!compiler_tokenize(comp)) {
 		fputs("error : Tokenization failure\n", stderr);
 		if (!compiler_pop_code_data(comp)) return false;
@@ -195,13 +195,13 @@ bool compiler_save_code(compiler* comp, char* filename) {
 	return true;
 }
 
-bool compiler_push_code_data(compiler* comp, int index) {
-	if (!vector_push_back(size_t, &comp->line_count_stack, 1)) {
+bool compiler_push_code_data(compiler* comp, size_t line, size_t column, int index) {
+	if (!vector_push_back(size_t, &comp->line_count_stack, line)) {
 		fputs("error : Textcode line count stack memory allocation failure\n", stderr);
 		return false;
 	}
 	
-	if (!vector_push_back(size_t, &comp->column_count_stack, 1)) {
+	if (!vector_push_back(size_t, &comp->column_count_stack, column)) {
 		fputs("error : Textcode column count stack memory allocation failure\n", stderr);
 		return false;
 	}
@@ -516,6 +516,21 @@ bool compiler_parse_word_token(compiler* comp, trie* trie_result) {
 		case WTT_OP: {
 			value v = trie_result->data;
 			if (!compiler_push_bytecode(comp, (opcode) (v.u))) return false;
+			result = true;
+		} break;
+		case WTT_DFN: {
+			preproc_data* data = vector_at(
+				preproc_data,
+				&comp->preproc_tokens_vector,
+				trie_result->data.u
+			);
+			if (!compiler_push_code_data(comp, data->line, data->column, data->index)) return false;
+			if (!compiler_tokenize(comp)) {
+				fputs("error : Tokenization failure\n", stderr);
+				if (!compiler_pop_code_data(comp)) return false;
+				return false;
+			}
+			if (!compiler_pop_code_data(comp)) return false;
 			result = true;
 		} break;
 	}
@@ -1052,16 +1067,72 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			if (!compiler_compile_source(comp, import_filename)) return false;
 		} break;
 		case CTRL_DEFINE: {
-			char* token;
-			char* code;
+			preproc_data* token;
+			preproc_data* code;
 
-			if (comp->preproc_tokens_vector.size == 0) goto FAILURE_PREPROC_STACK;
-			code = vector_back(preproc_data, &comp->preproc_tokens_vector)->code;
+			if (comp->preproc_tokens_vector.size < 2) goto FAILURE_PREPROC_STACK;
+			code = vector_back(preproc_data, &comp->preproc_tokens_vector);
+			token = vector_at(
+				preproc_data,
+				&comp->preproc_tokens_vector,
+				comp->preproc_tokens_vector.size - 2
+			);
 
-			if (comp->preproc_tokens_vector.size == 0) goto FAILURE_PREPROC_STACK;
-			token = vector_back(preproc_data, &comp->preproc_tokens_vector)->code;
+			trie* word;
+			word = trie_find(&comp->dictionary, token->code);
 
+			if (word) {
+				if (word->type != WTT_DFN) {
+					fputs("error : Keywords, Compile-time keywords, control words and built-in-functions cannot be compile-time macro\n", stderr);
+				}
+				else {
+					fputs("error : Redefined compile-time macro\n", stderr);
+				}
+				return false;
+			}
+			if (!is_can_be_keyword(token->code)) return false; 
 
+			comp->dictionary_keyword_count++;
+			word = trie_insert(&comp->dictionary, token->code, WTT_DFN);
+			if (!word) {
+				fputs("error : Dictionary memory allocation failure\n", stderr);
+				return false;
+			}
+			word->data.u = comp->preproc_tokens_vector.size - 1;
+
+			char* filename_full = *vector_at(cctl_ptr(char), &comp->filename_vector, code->index);
+			size_t size = strlen(code->code);
+			size_t filename_size = strlen(filename_full);
+
+			char* textcode = (char*) malloc(size + 3);
+			char* filename_full_new = (char*) malloc(filename_size);
+			if (!(textcode && filename_full_new)) {
+				fputs("error : Textcode memory allocation failure\n", stderr);
+				return 0;
+			}
+
+		#if defined(_WIN32)
+			memcpy_s(textcode, size, code->code, size);
+			memcpy_s(filename_full_new, filename_size, filename_full, filename_size);
+		#else
+			memcpy(textcode, code->code, size);
+			memcpy(filename_full_new, filename_full, filename_size);
+		#endif
+			textcode[size] = '\n';
+			textcode[size + 1] = '\n';
+			textcode[size + 2] = '\0';
+
+			if (!(
+					vector_push_back(cctl_ptr(char), &comp->textcode_vector, textcode) &&
+					vector_push_back(cctl_ptr(char), &comp->filename_vector, filename_full_new)
+				)) {
+				free(textcode);
+				free(filename_full_new);
+				fputs("error : Textcode vector memory allocation failure\n", stderr);
+				return 0;
+			}
+
+			code->index = comp->textcode_vector.size;
 		} break;
 	}
 
@@ -1086,6 +1157,37 @@ FAILURE_TEXTCODE:
 	#undef __free_func_vecs__
 }
 
+
+bool is_can_be_keyword(char* token) {
+	char* iter = token;
+	switch (*iter) {
+		case '+':
+		case '-':
+		case '.': {
+			iter++;
+			switch (*iter) {
+				case '0' ... '9': {
+					goto FAILURE_INVALID_KEYWORD;
+				} break;
+			}
+		} break;
+		case '0' ... '9':
+		case '@':
+		case '#':
+		case '$':
+		case '\'':
+		case '\"':
+		case '\0': {
+			goto FAILURE_INVALID_KEYWORD;
+		} break;
+	}
+	return true;
+
+FAILURE_INVALID_KEYWORD:
+	fputs("error : Invalid keyword\n", stderr);
+	return false;
+}
+
 bool compiler_parse_keyword_value(compiler* comp, char* token) {
 	trie* word;
 	
@@ -1098,28 +1200,7 @@ bool compiler_parse_keyword_value(compiler* comp, char* token) {
 		}
 	}
 	else {
-		char* iter = token;
-		switch (*iter) {
-			case '+':
-			case '-':
-			case '.': {
-				iter++;
-				switch (*iter) {
-					case '0' ... '9': {
-						goto FAILURE_INVALID_KEYWORD;
-					} break;
-				}
-			} break;
-			case '0' ... '9':
-			case '@':
-			case '#':
-			case '$':
-			case '\'':
-			case '\"':
-			case '\0': {
-				goto FAILURE_INVALID_KEYWORD;
-			} break;
-		}
+		if (!is_can_be_keyword(token)) return false; 
 
 		comp->dictionary_keyword_count++;
 		word = trie_insert(&comp->dictionary, token, WTT_KWRD);
@@ -1133,10 +1214,6 @@ bool compiler_parse_keyword_value(compiler* comp, char* token) {
 	if (!compiler_push_bytecode_with_value(comp, OP_VALUE, word->data)) return false;
 
 	return true;
-
-FAILURE_INVALID_KEYWORD:
-	fputs("error : Invalid keyword\n", stderr);
-	return false;
 }
 
 bool compiler_parse_zero_begin_num(compiler* comp, char* token, size_t index, bool negate) {
@@ -1415,6 +1492,10 @@ bool compiler_push_preproc_token(compiler* comp, char* token) {
 	char* temp = token;
 	char* code_begin = *vector_at(cctl_ptr(char), &comp->textcode_vector, *compiler_current_file_index(comp));
 
+
+	data.code = new_token;
+	data.index = 0;
+	
 	data.column = 0;
 	while (true) {
 		if (*temp == '\n') break;
@@ -1431,8 +1512,6 @@ bool compiler_push_preproc_token(compiler* comp, char* token) {
 	}
 	while (!(*temp)) temp++;
 	if (*(temp) == '\n') data.line++;
-
-	data.code = new_token;
 	data.line = *compiler_current_line(comp) - data.line;
 
 	if (!vector_push_back(preproc_data, &comp->preproc_tokens_vector, data)) goto FAILURE_VECTOR;

@@ -3,6 +3,7 @@
 
 typedef struct preproc_data_struct {
 	char* code;
+	size_t index;
 	size_t column;
 	size_t line;
 } preproc_data;

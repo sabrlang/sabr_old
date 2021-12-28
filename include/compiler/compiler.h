@@ -67,7 +67,7 @@ bool compiler_compile(compiler* comp, char* input_filename, char* output_filenam
 bool compiler_compile_source(compiler* comp, char* input_filename);
 size_t compiler_load_code(compiler* comp, char* filename);
 bool compiler_save_code(compiler* comp, char* filename);
-bool compiler_push_code_data(compiler* comp, int index);
+bool compiler_push_code_data(compiler* comp, size_t line, size_t column, int index);
 bool compiler_pop_code_data(compiler* comp);
 bool compiler_tokenize(compiler* comp);
 bool compiler_parse(compiler* comp, char* begin, char* end);
@@ -94,5 +94,7 @@ inline size_t* compiler_current_line(compiler* comp) {
 inline size_t* compiler_current_file_index(compiler* comp) {
 	return vector_back(size_t, &comp->textcode_index_stack);
 }
+
+bool is_can_be_keyword(char* token);
 
 #endif

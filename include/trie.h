@@ -12,7 +12,8 @@ typedef enum word_text_type_enum {
 	WTT_OP,
 	WTT_CTRL,
 	WTT_BIF,
-	WTT_KWRD
+	WTT_KWRD,
+	WTT_DFN
 } word_text_type;
 
 typedef struct trie_struct trie;
