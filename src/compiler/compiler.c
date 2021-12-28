@@ -299,7 +299,7 @@ bool compiler_tokenize(compiler* comp) {
 							result = compiler_parse(comp, begin, end);
 							if (!result) {
 								fprintf(stderr, "from file " console_yellow console_bold "%s" console_reset "\n", *vector_at(cctl_ptr(char), &comp->filename_vector, index));
-								fputs("error : Parse failure\n", stderr);
+								fputs("error : Parsing failure\n", stderr);
 								return false;
 							}
 							space = true;
@@ -1226,7 +1226,6 @@ bool compiler_parse_keyword_value(compiler* comp, char* token) {
 		}
 		word->data.u = comp->dictionary_keyword_count;
 	}
-
 	if (!compiler_push_bytecode_with_value(comp, OP_VALUE, word->data)) return false;
 
 	return true;
@@ -1399,7 +1398,7 @@ bool compiler_parse_char(compiler* comp, char* token, bool push_length) {
 			}
 			else if ((*token == '\'') || (*token == '\"')) {
 				vector_free(value, &value_reverser);
-				fputs("error : String parse failure\n", stderr);
+				fputs("error : String parsing failure\n", stderr);
 				return false;
 			}
 			else {
