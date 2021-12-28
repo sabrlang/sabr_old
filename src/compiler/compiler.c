@@ -1,6 +1,7 @@
 #include "compiler.h"
 
 extern inline size_t* compiler_current_column(compiler *comp);
+extern inline size_t* compiler_current_column_prev(compiler* comp);
 extern inline size_t* compiler_current_line(compiler* comp);
 extern inline size_t* compiler_current_file_index(compiler* comp);
 
@@ -15,6 +16,8 @@ bool compiler_init(compiler* comp) {
 	vector_init(cctl_ptr(vector(control_data)), &comp->control_data_stack);
 	vector_init(size_t, &comp->line_count_stack);
 	vector_init(size_t, &comp->column_count_stack);
+	vector_init(size_t, &comp->column_count_prev_stack);
+	if (!vector_push_back(size_t, &comp->column_count_prev_stack, 0)) return false;
 	trie_init(&comp->dictionary);
 	trie_init(&comp->filename_trie);
 
@@ -64,6 +67,7 @@ bool compiler_del(compiler* comp) {
 
 	vector_free(size_t, &comp->line_count_stack);
 	vector_free(size_t, &comp->column_count_stack);
+	vector_free(size_t, &comp->column_count_prev_stack);
 
 	trie_del(&comp->dictionary);
 	trie_del(&comp->filename_trie);
@@ -86,7 +90,7 @@ bool compiler_compile_source(compiler* comp, char* input_filename) {
 		fputs("error : Loading code failure\n", stderr);
 		return false;
 	}
-	if (!compiler_push_code_data(comp, 1, 1, index)) return false;
+	if (!compiler_push_code_data(comp, 1, 1, *compiler_current_column_prev(comp), index)) return false;
 	if (!compiler_tokenize(comp)) {
 		fputs("error : Tokenization failure\n", stderr);
 		if (!compiler_pop_code_data(comp)) return false;
@@ -195,7 +199,8 @@ bool compiler_save_code(compiler* comp, char* filename) {
 	return true;
 }
 
-bool compiler_push_code_data(compiler* comp, size_t line, size_t column, int index) {
+bool compiler_push_code_data(compiler* comp, size_t line, size_t column, size_t column_prev, int index) {
+	
 	if (!vector_push_back(size_t, &comp->line_count_stack, line)) {
 		fputs("error : Textcode line count stack memory allocation failure\n", stderr);
 		return false;
@@ -203,6 +208,11 @@ bool compiler_push_code_data(compiler* comp, size_t line, size_t column, int ind
 	
 	if (!vector_push_back(size_t, &comp->column_count_stack, column)) {
 		fputs("error : Textcode column count stack memory allocation failure\n", stderr);
+		return false;
+	}
+
+	if (!vector_push_back(size_t, &comp->column_count_prev_stack, column_prev)) {
+		fputs("error : Textcode previous column count stack memory allocation failure\n", stderr);
 		return false;
 	}
 
@@ -215,6 +225,7 @@ bool compiler_push_code_data(compiler* comp, size_t line, size_t column, int ind
 }
 
 bool compiler_pop_code_data(compiler* comp) {
+
 	if (!vector_pop_back(size_t, &comp->line_count_stack)) {
 		fputs("error : Textcode line count stack memory allocation failure\n", stderr);
 		return false;
@@ -225,6 +236,11 @@ bool compiler_pop_code_data(compiler* comp) {
 		return false;
 	}
 
+	if (!vector_pop_back(size_t, &comp->column_count_prev_stack)) {
+		fputs("error : Textcode previous column count stack memory allocation failure\n", stderr);
+		return false;
+	}
+	
 	if (!vector_pop_back(size_t, &comp->textcode_index_stack)) {
 		fputs("error : Textcode index stack memory allocation failure\n", stderr);
 		return false;
@@ -260,7 +276,7 @@ bool compiler_tokenize(compiler* comp) {
 		switch (*iterator) {
 			case '\n': 
 				(*compiler_current_line(comp))++;
-				comp->column_count_prev = (*compiler_current_column(comp));
+				*compiler_current_column_prev(comp) = (*compiler_current_column(comp));
 				(*compiler_current_column(comp)) = 0;
 			case '\r':
 				if (comment == CMNT_PARSE_LINE) {
@@ -484,7 +500,7 @@ bool compiler_parse(compiler* comp, char* begin, char* end) {
 
 	if (!result) {
 		if (*compiler_current_column(comp) == 0) {
-			(*compiler_current_column(comp)) = comp->column_count_prev;
+			(*compiler_current_column(comp)) = *compiler_current_column_prev(comp);
 			(*compiler_current_line(comp))--;
 		}
 		fprintf(
@@ -524,7 +540,7 @@ bool compiler_parse_word_token(compiler* comp, trie* trie_result) {
 				&comp->preproc_tokens_vector,
 				trie_result->data.u
 			);
-			if (!compiler_push_code_data(comp, data->line, data->column, data->index)) return false;
+			if (!compiler_push_code_data(comp, data->line, data->column, *compiler_current_column_prev(comp), data->index)) return false;
 			if (!compiler_tokenize(comp)) {
 				fputs("error : Tokenization failure\n", stderr);
 				if (!compiler_pop_code_data(comp)) return false;
@@ -1102,7 +1118,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 
 			char* filename_full = *vector_at(cctl_ptr(char), &comp->filename_vector, code->index);
 			size_t size = strlen(code->code);
-			size_t filename_size = strlen(filename_full);
+			size_t filename_size = strlen(filename_full) + 1;
 
 			char* textcode = (char*) malloc(size + 3);
 			char* filename_full_new = (char*) malloc(filename_size);
@@ -1121,6 +1137,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			textcode[size] = '\n';
 			textcode[size + 1] = '\n';
 			textcode[size + 2] = '\0';
+			filename_full_new[filename_size] = '\0';
 
 			if (!(
 					vector_push_back(cctl_ptr(char), &comp->textcode_vector, textcode) &&
@@ -1492,10 +1509,9 @@ bool compiler_push_preproc_token(compiler* comp, char* token) {
 	char* temp = token;
 	char* code_begin = *vector_at(cctl_ptr(char), &comp->textcode_vector, *compiler_current_file_index(comp));
 
-
 	data.code = new_token;
-	data.index = 0;
-	
+	data.index = *compiler_current_file_index(comp);
+
 	data.column = 0;
 	while (true) {
 		if (*temp == '\n') break;

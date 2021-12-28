@@ -57,7 +57,7 @@ typedef struct compiler_struct {
 	size_t dictionary_keyword_count;
 	vector(size_t) line_count_stack;
 	vector(size_t) column_count_stack;
-	size_t column_count_prev;
+	vector(size_t) column_count_prev_stack;
 	mbstate_t convert_state;
 } compiler;
 
@@ -67,7 +67,7 @@ bool compiler_compile(compiler* comp, char* input_filename, char* output_filenam
 bool compiler_compile_source(compiler* comp, char* input_filename);
 size_t compiler_load_code(compiler* comp, char* filename);
 bool compiler_save_code(compiler* comp, char* filename);
-bool compiler_push_code_data(compiler* comp, size_t line, size_t column, int index);
+bool compiler_push_code_data(compiler* comp, size_t line, size_t column, size_t column_prev, int index);
 bool compiler_pop_code_data(compiler* comp);
 bool compiler_tokenize(compiler* comp);
 bool compiler_parse(compiler* comp, char* begin, char* end);
@@ -87,6 +87,9 @@ bool compiler_push_preproc_token(compiler* comp, char* token);
 
 inline size_t* compiler_current_column(compiler *comp) {
 	return vector_back(size_t, &comp->column_count_stack);
+}
+inline size_t* compiler_current_column_prev(compiler* comp) {
+	return vector_back(size_t, &comp->column_count_prev_stack);
 }
 inline size_t* compiler_current_line(compiler* comp) {
 	return vector_back(size_t, &comp->line_count_stack);
