@@ -1,21 +1,23 @@
-$++to macro dup call 1 + swap to end
-$--to macro dup call 1 - swap to end
-$--store macro dup fetch 1 - swap store end
+#++to { dup call 1 + swap to } define
+#--to { dup call 1 - swap to } define
+#--store { dup fetch 1 - swap store } define
 
-$dcr macro dup call rot end
+#dcr { dup call rot } define
 
-$+to macro dcr + swap to end
-$-to macro dcr - swap to end
-$*to macro dcr * swap to end
-$/to macro dcr / swap to end
+#+to { dcr + swap to } define
+#-to { dcr - swap to } define
+#*to { dcr * swap to } define
+#/to { dcr / swap to } define
 
-$<<to macro dcr << swap to end
-$>>to macro dcr >> swap to end
+#<<to { dcr << swap to } define
+#>>to { dcr >> swap to } define
 
-$true macro -1 end
-$false macro 0 end
-$cr macro '\n' putc end
-$puts macro loop dup 0 > while swap putc 1- end drop end
-$putsln macro puts cr end
+#true #-1 define
+#false #0 define
+#cr { '\n' putc } define
+#puts {
+	loop dup 0 > while swap putc 1- end drop
+} define
+#putsln { puts cr } define
 
-$at macro swap 8 * + end
+#at { swap 8 * + } define
