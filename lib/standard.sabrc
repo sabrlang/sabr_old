@@ -48,12 +48,12 @@
 #^store { dup fetch rot ^ swap store } define ( x addr -- )
 
 
-#cr { '\n' putc } define
-#space { ' ' putc } define
+#cr { '\n' putc } define ( -- )
+#space { ' ' putc } define ( -- )
 #puts {
 	loop dup 0 > while swap putc 1- end drop
-} define
-#putsln { puts cr } define
+} define ( ... c u -- )
+#putsln { puts cr } define ( ... c u -- )
 
 
-#at { swap 8 * + } define
+#at { swap 8 * + } define ( u addr -- addr )
