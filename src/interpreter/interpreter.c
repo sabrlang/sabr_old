@@ -124,6 +124,7 @@ bool interpreter_run(interpreter* inter) {
 			case OP_FUNC: {
 				value kwrd;
 				value pos;
+
 				if (!interpreter_pop(inter, &kwrd)) goto FAILURE_STACK;
 				rbt_node* node = NULL;
 				node = rbt_search(inter->global_words, kwrd.u);
@@ -225,8 +226,15 @@ bool interpreter_run(interpreter* inter) {
 				if (!temp_struct) goto FAILURE_STRUCT;
 
 				uint64_t i;
+				bool check = true;
 				for (i = 0; i < temp_struct->size; i++) {
-					if (kwrd_member.u == *vector_at(uint64_t, temp_struct, i)) break;
+					if (kwrd_member.u == *vector_at(uint64_t, temp_struct, i)) {
+						check = false;
+						break;
+					}
+				}
+				if (check) {
+					goto FAILURE_STRUCT;
 				}
 				if (!interpreter_pop(inter, &addr)) goto FAILURE_STACK;
 				addr.u += (i * 8);
