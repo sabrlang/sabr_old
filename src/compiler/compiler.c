@@ -10,7 +10,8 @@ bool compiler_init(compiler* comp) {
 
 	vector_init(cctl_ptr(char), &comp->textcode_vector);
 	vector_init(cctl_ptr(char), &comp->filename_vector);
-	vector_init(preproc_data, &comp->preproc_tokens_vector);
+	vector_init(preproc_data, &comp->preproc_tokens_stack);
+	vector_init(macro_data, &comp->macro_vector);
 	vector_init(size_t, &comp->textcode_index_stack);
 	vector_init(uint8_t, &comp->bytecode);
 	vector_init(cctl_ptr(vector(control_data)), &comp->control_data_stack);
@@ -50,13 +51,15 @@ bool compiler_del(compiler* comp) {
 		free(*vector_at(cctl_ptr(char), &comp->filename_vector, i));
 	}
 
-	for (size_t i = 0; i < comp->preproc_tokens_vector.size; i++) {
-		free(vector_at(preproc_data, &comp->preproc_tokens_vector, i)->code);
-	}
-
 	vector_free(cctl_ptr(char), &comp->textcode_vector);
 	vector_free(cctl_ptr(char), &comp->filename_vector);
-	vector_free(preproc_data, &comp->preproc_tokens_vector);
+
+	for (size_t i = 0; i < comp->preproc_tokens_stack.size; i++) {
+		free(vector_at(preproc_data, &comp->preproc_tokens_stack, i)->code);
+	}
+
+	vector_free(preproc_data, &comp->preproc_tokens_stack);
+	vector_free(macro_data, &comp->macro_vector);
 
 	vector_free(size_t, &comp->textcode_index_stack);
 	vector_free(uint8_t, &comp->bytecode);
@@ -534,12 +537,12 @@ bool compiler_parse_word_token(compiler* comp, trie* trie_result) {
 			result = true;
 		} break;
 		case WTT_DFN: {
-			preproc_data* data = vector_at(
-				preproc_data,
-				&comp->preproc_tokens_vector,
+			macro_data* macro = vector_at(
+				macro_data,
+				&comp->macro_vector,
 				trie_result->data.u
 			);
-			if (!compiler_push_code_data(comp, data->line, data->column, *compiler_current_column_prev(comp), data->index)) return false;
+			if (!compiler_push_code_data(comp, macro->line, macro->column, *compiler_current_column_prev(comp), macro->index)) return false;
 			if (!compiler_tokenize(comp)) {
 				fputs("error : Tokenization failure\n", stderr);
 				if (!compiler_pop_code_data(comp)) return false;
@@ -1015,8 +1018,8 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			if (comp->textcode_index_stack.size == 0) goto FAILURE_TEXTCODE;
 			index = *compiler_current_file_index(comp);
 
-			if (comp->preproc_tokens_vector.size == 0) goto FAILURE_PREPROC_STACK;
-			token = vector_back(preproc_data, &comp->preproc_tokens_vector)->code;
+			if (comp->preproc_tokens_stack.size == 0) goto FAILURE_PREPROC_STACK;
+			token = vector_back(preproc_data, &comp->preproc_tokens_stack)->code;
 
 			import_local_file = (*token) == ':';
 
@@ -1057,6 +1060,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			strcat(import_filename, "/");
 			strcat(import_filename, token);
 		#endif
+
 			char filename_full[PATH_MAX];
 			bool filepath = false;
 
@@ -1073,6 +1077,9 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 
 			trie* filename_trie_result = trie_find(&comp->filename_trie, filename_full);
 			
+			free(vector_back(preproc_data, &comp->preproc_tokens_stack)->code);
+			if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false;
+
 			if (filename_trie_result) {
 				if (filename_trie_result->type == (uint8_t) true) {
 					return true;
@@ -1085,12 +1092,12 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			preproc_data* token;
 			preproc_data* code;
 
-			if (comp->preproc_tokens_vector.size < 2) goto FAILURE_PREPROC_STACK;
-			code = vector_back(preproc_data, &comp->preproc_tokens_vector);
+			if (comp->preproc_tokens_stack.size < 2) goto FAILURE_PREPROC_STACK;
+			code = vector_back(preproc_data, &comp->preproc_tokens_stack);
 			token = vector_at(
 				preproc_data,
-				&comp->preproc_tokens_vector,
-				comp->preproc_tokens_vector.size - 2
+				&comp->preproc_tokens_stack,
+				comp->preproc_tokens_stack.size - 2
 			);
 
 			trie* word;
@@ -1113,7 +1120,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 				fputs("error : Dictionary memory allocation failure\n", stderr);
 				return false;
 			}
-			word->data.u = comp->preproc_tokens_vector.size - 1;
+			word->data.u = comp->macro_vector.size;
 
 			char* filename_full = *vector_at(cctl_ptr(char), &comp->filename_vector, code->index);
 			size_t size = strlen(code->code);
@@ -1123,7 +1130,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			char* filename_full_new = (char*) malloc(filename_size);
 			if (!(textcode && filename_full_new)) {
 				fputs("error : Textcode memory allocation failure\n", stderr);
-				return 0;
+				return false;
 			}
 
 		#if defined(_WIN32)
@@ -1145,10 +1152,23 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 				free(textcode);
 				free(filename_full_new);
 				fputs("error : Textcode vector memory allocation failure\n", stderr);
-				return 0;
+				return false;
 			}
 
-			code->index = comp->textcode_vector.size;
+			macro_data macro;
+			macro.column = code->column;
+			macro.line = code->line;
+			macro.index = comp->textcode_vector.size;
+
+			if (!vector_push_back(macro_data, &comp->macro_vector, macro)) {
+				fputs("error : Macro vector memory allocation faliure\n", stderr);
+				return false;
+			}
+
+			free(code->code);
+			free(token->code);
+			if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false;
+			if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false;
 		} break;
 	}
 
@@ -1528,7 +1548,7 @@ bool compiler_push_preproc_token(compiler* comp, char* token) {
 	if (*(temp) == '\n') data.line++;
 	data.line = *compiler_current_line(comp) - data.line;
 
-	if (!vector_push_back(preproc_data, &comp->preproc_tokens_vector, data)) goto FAILURE_VECTOR;
+	if (!vector_push_back(preproc_data, &comp->preproc_tokens_stack, data)) goto FAILURE_VECTOR;
 	return true;
 
 FAILURE_ALLOC:
