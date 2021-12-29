@@ -4,6 +4,7 @@ project(csabr)
 
 add_compile_options(
 	-D_GNU_SOURCE
+	-Wall
 )
 
 set(CMAKE_C_FLAGS_DEBUG "-O0 -g")

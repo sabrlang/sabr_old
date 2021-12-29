@@ -294,8 +294,6 @@ bool compiler_tokenize(compiler* comp) {
 	size_t preproc_level = 0;
 	bool result;
 
-	bool u8check = false;
-
 	while (*iterator) {
 		switch (*iterator) {
 			case '\n': 
@@ -787,7 +785,6 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 					bool chain = false;
 
 					bool case_existance = false;
-					bool case_first = false;
 					bool pass_existance = false;
 
 					for (
@@ -1184,7 +1181,8 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 
 			size_t size = strlen(token->code);
 
-			char* textcode = (char*) malloc(size + 3);
+			char* textcode;
+			textcode = (char*) malloc(size + 3);
 			if (!(textcode)) {
 				fputs("error : Textcode memory allocation failure\n", stderr);
 				return false;
@@ -1206,7 +1204,10 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			}
 
 			size_t index = comp->textcode_vector.size;
-			
+
+			free(token->code);
+			if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false;
+
 			if (!compiler_push_code_data(comp, token->line, token->column, *compiler_current_column_prev(comp), index, *compiler_current_file_index(comp) + 1)) return false;
 			if (!compiler_tokenize(comp)) {
 				fputs("error : Tokenization failure\n", stderr);
@@ -1214,9 +1215,6 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 				return false;
 			}
 			if (!compiler_pop_code_data(comp)) return false;
-
-			free(token->code);
-			if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false;
 		} break;
 		case CTRL_CONCAT: {
 			preproc_data *token_front;
@@ -1240,8 +1238,6 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			}
 			strcpy(new_token, token_front->code);
 			strcpy(new_token + len_front, token_back->code);
-
-			char* code_begin = *vector_at(cctl_ptr(char), &comp->textcode_vector, *compiler_current_file_index(comp));
 
 			data.code = new_token;
 			data.index = *compiler_current_file_index(comp);
@@ -1427,7 +1423,6 @@ bool compiler_parse_char(compiler* comp, char* token, bool push_length) {
 	value v;
 
 	int num_parse_count;
-	int num_parse_max;
 
 	vector(value) value_reverser;
 	vector_init(value, &value_reverser);
@@ -1525,7 +1520,6 @@ bool compiler_parse_char(compiler* comp, char* token, bool push_length) {
 		else {
 			char32_t out;
 			size_t rc;
-			mbstate_t state;
 			rc = mbrtoc32(&out, token, end - token, &(comp->convert_state));
 			if ((rc > ((size_t) -4)) || (rc == 0)) {
 				goto FAILURE_UNICODE;
