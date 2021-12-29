@@ -1218,6 +1218,54 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			free(token->code);
 			if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false;
 		} break;
+		case CTRL_CONCAT: {
+			preproc_data *token_front;
+			preproc_data *token_back;
+			if (comp->preproc_tokens_stack.size < 2) goto FAILURE_PREPROC_STACK;
+			token_back = vector_back(preproc_data, &comp->preproc_tokens_stack);
+			token_front = vector_at(
+				preproc_data,
+				&comp->preproc_tokens_stack,
+				comp->preproc_tokens_stack.size - 2
+			);
+
+			preproc_data data;
+
+			size_t len_front = strlen(token_front->code);
+			size_t len = len_front + strlen(token_back->code) + 1;
+			char* new_token = (char*) malloc(len * sizeof(char));
+			if (!new_token) {
+				fputs("error : Preprocessor token memory allocation failure\n", stderr);
+				return false;
+			}
+			strcpy(new_token, token_front->code);
+			strcpy(new_token + len_front, token_back->code);
+
+			char* code_begin = *vector_at(cctl_ptr(char), &comp->textcode_vector, *compiler_current_file_index(comp));
+
+			data.code = new_token;
+			data.index = *compiler_current_file_index(comp);
+
+			data.column = *compiler_current_column(comp) - len + 1;
+			
+			char* temp = new_token;
+			data.line = 0;
+			while (*temp) {
+				if (*temp == '\n') data.line++;
+				temp++;
+			}
+			while (!(*temp)) temp++;
+			if (*(temp) == '\n') data.line++;
+			data.line = *compiler_current_line(comp) - data.line;
+
+			free(token_front->code);
+			free(token_back->code);
+			if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false;
+			if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false;
+
+			if (!vector_push_back(preproc_data, &comp->preproc_tokens_stack, data)) goto FAILURE_PREPROC_STACK;
+
+		} break;
 	}
 
 	return true;
@@ -1604,7 +1652,7 @@ FAILURE_ALLOC:
 	return false;
 	
 FAILURE_VECTOR:
-	fputs("error : Preprocessor tokens vector memory allocation failure\n", stderr);
+	fputs("error : Preprocessor tokens stack memory allocation failure\n", stderr);
 	free(temp);
 	return false;
 }
