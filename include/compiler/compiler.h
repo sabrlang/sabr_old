@@ -52,6 +52,7 @@ typedef struct compiler_struct {
 	vector(preproc_data) preproc_tokens_stack;
 	vector(macro_data) macro_vector;
 	vector(size_t) textcode_index_stack;
+	vector(size_t) filename_index_stack;
 	vector(uint8_t) bytecode;
 	vector(cctl_ptr(vector(control_data))) control_data_stack;
 	trie dictionary;
@@ -69,7 +70,7 @@ bool compiler_compile(compiler* comp, char* input_filename, char* output_filenam
 bool compiler_compile_source(compiler* comp, char* input_filename);
 size_t compiler_load_code(compiler* comp, char* filename);
 bool compiler_save_code(compiler* comp, char* filename);
-bool compiler_push_code_data(compiler* comp, size_t line, size_t column, size_t column_prev, int index);
+bool compiler_push_code_data(compiler* comp, size_t line, size_t column, size_t column_prev, int code_index, size_t filename_index);
 bool compiler_pop_code_data(compiler* comp);
 bool compiler_tokenize(compiler* comp);
 bool compiler_parse(compiler* comp, char* begin, char* end);
@@ -99,6 +100,10 @@ inline size_t* compiler_current_line(compiler* comp) {
 inline size_t* compiler_current_file_index(compiler* comp) {
 	return vector_back(size_t, &comp->textcode_index_stack);
 }
+inline size_t* compiler_current_filename_index(compiler* comp) {
+	return vector_back(size_t, &comp->filename_index_stack);
+}
+
 
 bool is_can_be_keyword(char* token);
 

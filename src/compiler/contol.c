@@ -18,7 +18,9 @@ const char* control_names[] = {
 	"struct",
 	"member",
 	"import",
-	"define"
+	"define",
+	"eval",
+	"concat"
 };
 
 size_t control_len = sizeof(control_names) / sizeof(char*);

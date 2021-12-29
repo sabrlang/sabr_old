@@ -4,6 +4,7 @@ extern inline size_t* compiler_current_column(compiler *comp);
 extern inline size_t* compiler_current_column_prev(compiler* comp);
 extern inline size_t* compiler_current_line(compiler* comp);
 extern inline size_t* compiler_current_file_index(compiler* comp);
+extern inline size_t* compiler_current_filename_index(compiler* comp);
 
 bool compiler_init(compiler* comp) {
 	setlocale(LC_ALL, "en_US.utf8");
@@ -13,6 +14,7 @@ bool compiler_init(compiler* comp) {
 	vector_init(preproc_data, &comp->preproc_tokens_stack);
 	vector_init(macro_data, &comp->macro_vector);
 	vector_init(size_t, &comp->textcode_index_stack);
+	vector_init(size_t, &comp->filename_index_stack);
 	vector_init(uint8_t, &comp->bytecode);
 	vector_init(cctl_ptr(vector(control_data)), &comp->control_data_stack);
 	vector_init(size_t, &comp->line_count_stack);
@@ -48,6 +50,9 @@ FAILURE_DICT:
 bool compiler_del(compiler* comp) {
 	for (size_t i = 0; i < comp->textcode_vector.size; i++) {
 		free(*vector_at(cctl_ptr(char), &comp->textcode_vector, i));
+	}
+
+	for (size_t i = 0; i <comp->filename_vector.size; i++) {
 		free(*vector_at(cctl_ptr(char), &comp->filename_vector, i));
 	}
 
@@ -62,6 +67,7 @@ bool compiler_del(compiler* comp) {
 	vector_free(macro_data, &comp->macro_vector);
 
 	vector_free(size_t, &comp->textcode_index_stack);
+	vector_free(size_t, &comp->filename_index_stack);
 	vector_free(uint8_t, &comp->bytecode);
 	for (size_t i = 0; i < comp->control_data_stack.size; i++) {
 		vector_free(control_data, *vector_at(cctl_ptr(vector(control_data)), &comp->control_data_stack, i));
@@ -97,7 +103,7 @@ bool compiler_compile_source(compiler* comp, char* input_filename) {
 		fputs("error : Loading code failure\n", stderr);
 		return false;
 	}
-	if (!compiler_push_code_data(comp, 1, 1, *compiler_current_column_prev(comp), index)) return false;
+	if (!compiler_push_code_data(comp, 1, 1, *compiler_current_column_prev(comp), index, index)) return false;
 	if (!compiler_tokenize(comp)) {
 		fputs("error : Tokenization failure\n", stderr);
 		if (!compiler_pop_code_data(comp)) return false;
@@ -206,7 +212,7 @@ bool compiler_save_code(compiler* comp, char* filename) {
 	return true;
 }
 
-bool compiler_push_code_data(compiler* comp, size_t line, size_t column, size_t column_prev, int index) {
+bool compiler_push_code_data(compiler* comp, size_t line, size_t column, size_t column_prev, int code_index, size_t filename_index) {
 	
 	if (!vector_push_back(size_t, &comp->line_count_stack, line)) {
 		fputs("error : Textcode line count stack memory allocation failure\n", stderr);
@@ -223,8 +229,13 @@ bool compiler_push_code_data(compiler* comp, size_t line, size_t column, size_t 
 		return false;
 	}
 
-	if (!vector_push_back(size_t, &comp->textcode_index_stack, index - 1)) {
+	if (!vector_push_back(size_t, &comp->textcode_index_stack, code_index - 1)) {
 		fputs("error : Textcode index stack memory allocation failure\n", stderr);
+		return false;
+	}
+
+	if (!vector_push_back(size_t, &comp->filename_index_stack, filename_index - 1)) {
+		fputs("error : Filename index stack memory allocation failure\n", stderr);
 		return false;
 	}
 
@@ -252,21 +263,27 @@ bool compiler_pop_code_data(compiler* comp) {
 		fputs("error : Textcode index stack memory allocation failure\n", stderr);
 		return false;
 	}
+	
+	if (!vector_pop_back(size_t, &comp->filename_index_stack)) {
+		fputs("error : Filename index stack memory allocation failure\n", stderr);
+		return false;
+	}
 
 	return true;
 }
 
 bool compiler_tokenize(compiler* comp) {
-	size_t index;
+	size_t filename_index, code_index;
 
 	if (comp->textcode_index_stack.size == 0) {
 		fputs("error : Textcode index error\n", stderr);
 		return false;
 	}
 
-	index = *compiler_current_file_index(comp);
+	filename_index = *compiler_current_filename_index(comp);
+	code_index = *compiler_current_file_index(comp);
 
-	char* iterator = *vector_at(cctl_ptr(char), &comp->textcode_vector, index);
+	char* iterator = *vector_at(cctl_ptr(char), &comp->textcode_vector, code_index);
 	char* begin = NULL;
 	char* end = NULL;
 
@@ -301,7 +318,7 @@ bool compiler_tokenize(compiler* comp) {
 							end = iterator;
 							result = compiler_parse(comp, begin, end);
 							if (!result) {
-								fprintf(stderr, "from file " console_yellow console_bold "%s" console_reset "\n", *vector_at(cctl_ptr(char), &comp->filename_vector, index));
+								fprintf(stderr, "from file " console_yellow console_bold "%s" console_reset "\n", *vector_at(cctl_ptr(char), &comp->filename_vector, filename_index));
 								fputs("error : Parsing failure\n", stderr);
 								return false;
 							}
@@ -542,7 +559,7 @@ bool compiler_parse_word_token(compiler* comp, trie* trie_result) {
 				&comp->macro_vector,
 				trie_result->data.u
 			);
-			if (!compiler_push_code_data(comp, macro->line, macro->column, *compiler_current_column_prev(comp), macro->index)) return false;
+			if (!compiler_push_code_data(comp, macro->line, macro->column, *compiler_current_column_prev(comp), macro->code_index, macro->filename_index)) return false;
 			if (!compiler_tokenize(comp)) {
 				fputs("error : Tokenization failure\n", stderr);
 				if (!compiler_pop_code_data(comp)) return false;
@@ -1021,7 +1038,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			if (comp->preproc_tokens_stack.size == 0) goto FAILURE_PREPROC_STACK;
 			token = vector_back(preproc_data, &comp->preproc_tokens_stack)->code;
 
-			import_local_file = (*token) == ':';
+			import_local_file = (*token == ':');
 
 			if (import_local_file) {
 				if (comp->filename_vector.size == 0) goto FAILURE_TEXTCODE;
@@ -1121,36 +1138,25 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 				return false;
 			}
 			word->data.u = comp->macro_vector.size;
-
-			char* filename_full = *vector_at(cctl_ptr(char), &comp->filename_vector, code->index);
 			size_t size = strlen(code->code);
-			size_t filename_size = strlen(filename_full) + 1;
 
 			char* textcode = (char*) malloc(size + 3);
-			char* filename_full_new = (char*) malloc(filename_size);
-			if (!(textcode && filename_full_new)) {
+			if (!(textcode)) {
 				fputs("error : Textcode memory allocation failure\n", stderr);
 				return false;
 			}
 
 		#if defined(_WIN32)
 			memcpy_s(textcode, size, code->code, size);
-			memcpy_s(filename_full_new, filename_size, filename_full, filename_size);
 		#else
 			memcpy(textcode, code->code, size);
-			memcpy(filename_full_new, filename_full, filename_size);
 		#endif
 			textcode[size] = '\n';
 			textcode[size + 1] = '\n';
 			textcode[size + 2] = '\0';
-			filename_full_new[filename_size] = '\0';
 
-			if (!(
-					vector_push_back(cctl_ptr(char), &comp->textcode_vector, textcode) &&
-					vector_push_back(cctl_ptr(char), &comp->filename_vector, filename_full_new)
-				)) {
+			if (!(vector_push_back(cctl_ptr(char), &comp->textcode_vector, textcode))) {
 				free(textcode);
-				free(filename_full_new);
 				fputs("error : Textcode vector memory allocation failure\n", stderr);
 				return false;
 			}
@@ -1158,7 +1164,8 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			macro_data macro;
 			macro.column = code->column;
 			macro.line = code->line;
-			macro.index = comp->textcode_vector.size;
+			macro.code_index = comp->textcode_vector.size;
+			macro.filename_index = code->index;
 
 			if (!vector_push_back(macro_data, &comp->macro_vector, macro)) {
 				fputs("error : Macro vector memory allocation faliure\n", stderr);
@@ -1168,6 +1175,47 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			free(code->code);
 			free(token->code);
 			if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false;
+			if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false;
+		} break;
+		case CTRL_EVAL: {
+			preproc_data *token;
+			if (comp->preproc_tokens_stack.size == 0) goto FAILURE_PREPROC_STACK;
+			token = vector_back(preproc_data, &comp->preproc_tokens_stack);
+
+			size_t size = strlen(token->code);
+
+			char* textcode = (char*) malloc(size + 3);
+			if (!(textcode)) {
+				fputs("error : Textcode memory allocation failure\n", stderr);
+				return false;
+			}
+
+		#if defined(_WIN32)
+			memcpy_s(textcode, size, token->code, size);
+		#else
+			memcpy(textcode, token->code, size);
+		#endif
+			textcode[size] = '\n';
+			textcode[size + 1] = '\n';
+			textcode[size + 2] = '\0';
+
+			if (!(vector_push_back(cctl_ptr(char), &comp->textcode_vector, textcode))) {
+				free(textcode);
+				fputs("error : Textcode vector memory allocation failure\n", stderr);
+				return false;
+			}
+
+			size_t index = comp->textcode_vector.size;
+			
+			if (!compiler_push_code_data(comp, token->line, token->column, *compiler_current_column_prev(comp), index, *compiler_current_file_index(comp) + 1)) return false;
+			if (!compiler_tokenize(comp)) {
+				fputs("error : Tokenization failure\n", stderr);
+				if (!compiler_pop_code_data(comp)) return false;
+				return false;
+			}
+			if (!compiler_pop_code_data(comp)) return false;
+
+			free(token->code);
 			if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false;
 		} break;
 	}

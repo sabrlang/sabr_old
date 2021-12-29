@@ -22,7 +22,9 @@ typedef enum control_enum {
 	CTRL_STRUCT,
 	CTRL_MEMBER,
 	CTRL_IMPORT,
-	CTRL_DEFINE
+	CTRL_DEFINE,
+	CTRL_EVAL,
+	CTRL_CONCAT
 } control;
 
 extern size_t control_len;
