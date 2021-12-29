@@ -6,7 +6,7 @@ add_compile_options(
 	-D_GNU_SOURCE
 )
 
-set(CMAKE_C_FLAGS_DEBUG "-Og")
+set(CMAKE_C_FLAGS_DEBUG "-O0 -g")
 set(CMAKE_C_FLAGS_RELEASE "-O2")
 
 
