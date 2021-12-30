@@ -5,9 +5,8 @@ extern inline size_t* compiler_current_column_prev(compiler* comp);
 extern inline size_t* compiler_current_line(compiler* comp);
 extern inline size_t* compiler_current_file_index(compiler* comp);
 extern inline size_t* compiler_current_filename_index(compiler* comp);
-extern inline inline preproc_data* compiler_last_preproc_data(compiler* comp, size_t index);
-extern inline inline preproc_data preproc_data_copy(preproc_data token);
-
+extern inline preproc_data* compiler_last_preproc_data(compiler* comp, size_t index);
+extern inline preproc_data preproc_data_copy(preproc_data token);
 
 bool compiler_init(compiler* comp) {
 	setlocale(LC_ALL, "en_US.utf8");
