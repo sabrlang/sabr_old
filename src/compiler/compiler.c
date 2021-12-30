@@ -108,7 +108,7 @@ bool compiler_compile_source(compiler* comp, char* input_filename) {
 		fputs("error : Loading code failure\n", stderr);
 		return false;
 	}
-	if (!compiler_push_code_data(comp, 1, 1, *compiler_current_column_prev(comp), index, index - 1, false)) return false;
+	if (!compiler_push_code_data(comp, 1, 1, *compiler_current_column_prev(comp), index, comp->filename_vector.size - 1, false)) return false;
 	if (!compiler_tokenize(comp)) {
 		fputs("error : Tokenization failure\n", stderr);
 		if (!compiler_pop_code_data(comp)) return false;
@@ -1049,10 +1049,12 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			char binary_path[PATH_MAX] = {0, };
 
 			char* token;
-			size_t index;
+			size_t filename_index;
 
 			if (comp->textcode_index_stack.size == 0) goto FAILURE_TEXTCODE;
-			index = *compiler_current_file_index(comp);
+
+			if (comp->filename_index_stack.size == 0) goto FAILURE_TEXTCODE;
+			filename_index = *compiler_current_file_index(comp);
 
 			if (comp->preproc_tokens_stack.size == 0) goto FAILURE_PREPROC_STACK;
 			token = compiler_last_preproc_data(comp, 0)->code;
@@ -1061,7 +1063,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 
 			if (import_local_file) {
 				if (comp->filename_vector.size == 0) goto FAILURE_TEXTCODE;
-				current_filename = *vector_at(cctl_ptr(char), &comp->filename_vector, index);
+				current_filename = *vector_at(cctl_ptr(char), &comp->filename_vector, filename_index);
 				token++;
 			}
 			else {
