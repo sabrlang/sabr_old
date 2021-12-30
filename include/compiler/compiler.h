@@ -104,6 +104,24 @@ inline size_t* compiler_current_filename_index(compiler* comp) {
 	return vector_back(size_t, &comp->filename_index_stack);
 }
 
+inline preproc_data* compiler_last_preproc_data(compiler* comp, size_t index) {
+	return vector_at(
+		preproc_data,
+		&comp->preproc_tokens_stack,
+		comp->preproc_tokens_stack.size - index - 1
+	);
+}
+
+inline preproc_data preproc_data_copy(preproc_data token) {
+	preproc_data new;
+	new = token;
+	size_t len = strlen(token.code);
+	char* code = (char*) malloc(len + 1);
+	code[len] = '\0';
+	strcpy(code, token.code);
+	new.code = code;
+	return new;
+}
 
 bool is_can_be_keyword(char* token);
 

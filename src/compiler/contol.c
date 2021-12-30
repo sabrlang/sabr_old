@@ -20,7 +20,21 @@ const char* control_names[] = {
 	"import",
 	"define",
 	"eval",
-	"concat"
+	"concat",
+	"tdrop",
+	"tnip",
+	"tdup",
+	"tover",
+	"ttuck",
+	"tswap",
+	"trot",
+	"2tdrop",
+	"2tnip",
+	"2tdup",
+	"2tover",
+	"2ttuck",
+	"2tswap",
+	"2trot"
 };
 
 size_t control_len = sizeof(control_names) / sizeof(char*);

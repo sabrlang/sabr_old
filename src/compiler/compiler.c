@@ -5,6 +5,9 @@ extern inline size_t* compiler_current_column_prev(compiler* comp);
 extern inline size_t* compiler_current_line(compiler* comp);
 extern inline size_t* compiler_current_file_index(compiler* comp);
 extern inline size_t* compiler_current_filename_index(compiler* comp);
+extern inline inline preproc_data* compiler_last_preproc_data(compiler* comp, size_t index);
+extern inline inline preproc_data preproc_data_copy(preproc_data token);
+
 
 bool compiler_init(compiler* comp) {
 	setlocale(LC_ALL, "en_US.utf8");
@@ -1033,7 +1036,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			index = *compiler_current_file_index(comp);
 
 			if (comp->preproc_tokens_stack.size == 0) goto FAILURE_PREPROC_STACK;
-			token = vector_back(preproc_data, &comp->preproc_tokens_stack)->code;
+			token = compiler_last_preproc_data(comp, 0)->code;
 
 			import_local_file = (*token == ':');
 
@@ -1107,12 +1110,8 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			preproc_data* code;
 
 			if (comp->preproc_tokens_stack.size < 2) goto FAILURE_PREPROC_STACK;
-			code = vector_back(preproc_data, &comp->preproc_tokens_stack);
-			token = vector_at(
-				preproc_data,
-				&comp->preproc_tokens_stack,
-				comp->preproc_tokens_stack.size - 2
-			);
+			code = compiler_last_preproc_data(comp, 0);
+			token = compiler_last_preproc_data(comp, 1);
 
 			trie* word;
 			word = trie_find(&comp->dictionary, token->code);
@@ -1177,7 +1176,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 		case CTRL_EVAL: {
 			preproc_data *token;
 			if (comp->preproc_tokens_stack.size == 0) goto FAILURE_PREPROC_STACK;
-			token = vector_back(preproc_data, &comp->preproc_tokens_stack);
+			token = compiler_last_preproc_data(comp, 0);
 
 			size_t size = strlen(token->code);
 
@@ -1220,12 +1219,8 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			preproc_data *token_front;
 			preproc_data *token_back;
 			if (comp->preproc_tokens_stack.size < 2) goto FAILURE_PREPROC_STACK;
-			token_back = vector_back(preproc_data, &comp->preproc_tokens_stack);
-			token_front = vector_at(
-				preproc_data,
-				&comp->preproc_tokens_stack,
-				comp->preproc_tokens_stack.size - 2
-			);
+			token_back = compiler_last_preproc_data(comp, 0);
+			token_front = compiler_last_preproc_data(comp, 1);
 
 			preproc_data data;
 
@@ -1261,6 +1256,173 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 
 			if (!vector_push_back(preproc_data, &comp->preproc_tokens_stack, data)) goto FAILURE_PREPROC_STACK;
 
+		} break;
+		case CTRL_TDROP: {
+			preproc_data token;
+			if (comp->preproc_tokens_stack.size == 0) goto FAILURE_PREPROC_STACK;
+			token = *compiler_last_preproc_data(comp, 0);
+			free(token.code);
+			if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false;
+		} break;
+		case CTRL_TNIP: {
+			preproc_data token_a, token_b;
+			if (comp->preproc_tokens_stack.size < 2) goto FAILURE_PREPROC_STACK;
+			token_a = *compiler_last_preproc_data(comp, 0);
+			if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false;
+			token_b = *compiler_last_preproc_data(comp, 0);
+			free(token_b.code);
+			if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false;
+			if (!vector_push_back(preproc_data, &comp->preproc_tokens_stack, token_a)) goto FAILURE_PREPROC_STACK;
+		} break;
+		case CTRL_TDUP: {
+			preproc_data token_a, token_a2;
+			if (comp->preproc_tokens_stack.size == 0) goto FAILURE_PREPROC_STACK;
+			token_a = *compiler_last_preproc_data(comp, 0);
+
+			token_a2 = preproc_data_copy(token_a);
+
+			if (!vector_push_back(preproc_data, &comp->preproc_tokens_stack, token_a2)) goto FAILURE_PREPROC_STACK;
+		} break;
+		case CTRL_TOVER: {
+			preproc_data token_b, token_b2;
+			if (comp->preproc_tokens_stack.size < 2) goto FAILURE_PREPROC_STACK;
+			token_b = *compiler_last_preproc_data(comp, 1);
+
+			token_b2 = preproc_data_copy(token_b);
+
+			if (!vector_push_back(preproc_data, &comp->preproc_tokens_stack, token_b2)) goto FAILURE_PREPROC_STACK;
+		} break;
+		case CTRL_TTUCK: {
+			preproc_data token_a, token_b, token_b2;
+			if (comp->preproc_tokens_stack.size < 2) goto FAILURE_PREPROC_STACK;
+			token_a = *compiler_last_preproc_data(comp, 0);
+			token_b = *compiler_last_preproc_data(comp, 1);
+			
+			token_b2 = preproc_data_copy(token_a);
+
+			if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false;
+			if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false;
+
+			if (!vector_push_back(preproc_data, &comp->preproc_tokens_stack, token_a)) goto FAILURE_PREPROC_STACK;
+			if (!vector_push_back(preproc_data, &comp->preproc_tokens_stack, token_b)) goto FAILURE_PREPROC_STACK;
+			if (!vector_push_back(preproc_data, &comp->preproc_tokens_stack, token_b2)) goto FAILURE_PREPROC_STACK;
+		} break;
+		case CTRL_TSWAP: {
+			preproc_data token_a, token_b;
+			if (comp->preproc_tokens_stack.size < 2) goto FAILURE_PREPROC_STACK;
+			token_a = *compiler_last_preproc_data(comp, 0);
+			token_b = *compiler_last_preproc_data(comp, 1);
+
+			if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false;
+			if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false;
+
+			if (!vector_push_back(preproc_data, &comp->preproc_tokens_stack, token_a)) goto FAILURE_PREPROC_STACK;
+			if (!vector_push_back(preproc_data, &comp->preproc_tokens_stack, token_b)) goto FAILURE_PREPROC_STACK;
+		} break;
+		case CTRL_TROT: {
+			preproc_data token_a, token_b, token_c;
+			if (comp->preproc_tokens_stack.size < 3) goto FAILURE_PREPROC_STACK;
+			token_a = *compiler_last_preproc_data(comp, 0);
+			token_b = *compiler_last_preproc_data(comp, 1);
+			token_c = *compiler_last_preproc_data(comp, 2);
+
+			if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false;
+			if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false;
+			if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false;
+
+			if (!vector_push_back(preproc_data, &comp->preproc_tokens_stack, token_b)) goto FAILURE_PREPROC_STACK;
+			if (!vector_push_back(preproc_data, &comp->preproc_tokens_stack, token_a)) goto FAILURE_PREPROC_STACK;
+			if (!vector_push_back(preproc_data, &comp->preproc_tokens_stack, token_c)) goto FAILURE_PREPROC_STACK;
+		} break;
+		case CTRL_2TDROP: {
+			preproc_data token;
+			if (comp->preproc_tokens_stack.size < 2) goto FAILURE_PREPROC_STACK;
+			for (int i = 0; i < 2; i++) {
+				token = *vector_back(preproc_data, &comp->preproc_tokens_stack);
+				token = *compiler_last_preproc_data(comp, 0);
+				free(token.code);
+				if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false;
+			}
+		} break;
+		case CTRL_2TNIP: {
+			preproc_data tokens[4];
+			if (comp->preproc_tokens_stack.size < 4) goto FAILURE_PREPROC_STACK;
+			for (int i = 0; i < 4; i++) {
+				tokens[3 - i] = *compiler_last_preproc_data(comp, 0);
+				if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false;
+			}
+			for (int i = 0; i < 1; i++) {
+				free(tokens[i].code);
+			}
+			for (int i = 2; i < 4; i++) {
+				if (!vector_push_back(preproc_data, &comp->preproc_tokens_stack, tokens[i])) goto FAILURE_PREPROC_STACK;
+			}
+		} break;
+		case CTRL_2TDUP: {
+			preproc_data tokens[4];
+			if (comp->preproc_tokens_stack.size < 2) goto FAILURE_PREPROC_STACK;
+			for (int i = 2; i < 4; i++) {
+				tokens[i] = *compiler_last_preproc_data(comp, i - 2);
+				tokens[i - 2] = preproc_data_copy(tokens[i]);
+			}
+			for (int i = 1; i >= 0; i--) {
+				if (!vector_push_back(preproc_data, &comp->preproc_tokens_stack, tokens[i])) goto FAILURE_PREPROC_STACK;
+			}
+		} break;
+		case CTRL_2TOVER: {
+			preproc_data tokens[4];
+			if (comp->preproc_tokens_stack.size < 4) goto FAILURE_PREPROC_STACK;
+			for (int i = 2; i < 4; i++) {
+				tokens[i] = *compiler_last_preproc_data(comp, i);
+				tokens[i - 2] = preproc_data_copy(tokens[i]);
+			}
+			for (int i = 1; i >= 0; i--) {
+				if (!vector_push_back(preproc_data, &comp->preproc_tokens_stack, tokens[i])) goto FAILURE_PREPROC_STACK;
+			}
+		} break;
+		case CTRL_2TTUCK: {
+			preproc_data tokens[6];
+			if (comp->preproc_tokens_stack.size < 4) goto FAILURE_PREPROC_STACK;
+			for (int i = 0; i < 2; i++) {
+				tokens[1 - i] = *compiler_last_preproc_data(comp, 0);
+				tokens[5 - i] = preproc_data_copy(tokens[1 - i]);
+				if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false; 
+			}
+			for (int i = 0; i < 2; i++) {
+				tokens[3 - i] = *compiler_last_preproc_data(comp, 0);
+				if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false; 
+			}
+			for (int i = 0; i < 6; i++) {
+				if (!vector_push_back(preproc_data, &comp->preproc_tokens_stack, tokens[i])) goto FAILURE_PREPROC_STACK;
+			}
+		} break;
+		case CTRL_2TSWAP: {
+			preproc_data tokens[4];
+			for (int i = 0; i < 4; i++) {
+				tokens[
+					1 - i + (
+						(i > 1) ? 4 : 0
+					)
+				] = *compiler_last_preproc_data(comp, 0);
+				if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false;
+			}
+			for (int i = 0; i < 4; i++) {
+				if (!vector_push_back(preproc_data, &comp->preproc_tokens_stack, tokens[i])) goto FAILURE_PREPROC_STACK;
+			}
+		} break;
+		case CTRL_2TROT: {
+			preproc_data tokens[6];
+			for (int i = 0; i < 6; i++) {
+				tokens[
+					3 - i + (
+						(i > 3) ? 6 : 0
+					)
+				] = *compiler_last_preproc_data(comp, 0);
+				if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false;
+			}
+			for (int i = 0; i < 6; i++) {
+				if (!vector_push_back(preproc_data, &comp->preproc_tokens_stack, tokens[i])) goto FAILURE_PREPROC_STACK;
+			}
 		} break;
 	}
 
