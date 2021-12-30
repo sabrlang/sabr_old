@@ -1,6 +1,7 @@
 #ifndef __COMPILER_CCTL_DEFINE_H__
 #define __COMPILER_CCTL_DEFINE_H__
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "cctl/vector.h"
@@ -21,6 +22,7 @@ vector_fd(value);
 vector_fd(size_t);
 vector_fd(preproc_data);
 vector_fd(macro_data);
+vector_fd(bool);
 
 vector_imp_h(cctl_ptr(char));
 vector_imp_h(uint8_t);
@@ -30,5 +32,6 @@ vector_imp_h(value);
 vector_imp_h(size_t);
 vector_imp_h(preproc_data);
 vector_imp_h(macro_data);
+vector_imp_h(bool);
 
 #endif

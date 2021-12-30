@@ -3,9 +3,11 @@
 
 typedef struct preproc_data_struct {
 	char* code;
-	size_t index;
+	size_t filename_index;
+	size_t code_index;
 	size_t column;
 	size_t line;
+	bool is_concat;
 } preproc_data;
 
 #endif

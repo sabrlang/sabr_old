@@ -5,6 +5,7 @@ extern inline size_t* compiler_current_column_prev(compiler* comp);
 extern inline size_t* compiler_current_line(compiler* comp);
 extern inline size_t* compiler_current_file_index(compiler* comp);
 extern inline size_t* compiler_current_filename_index(compiler* comp);
+extern inline bool* compiler_current_is_concat(compiler* comp);
 extern inline preproc_data* compiler_last_preproc_data(compiler* comp, size_t index);
 extern inline preproc_data preproc_data_copy(preproc_data token);
 
@@ -22,6 +23,7 @@ bool compiler_init(compiler* comp) {
 	vector_init(size_t, &comp->line_count_stack);
 	vector_init(size_t, &comp->column_count_stack);
 	vector_init(size_t, &comp->column_count_prev_stack);
+	vector_init(bool, &comp->is_concat_stack);
 	if (!vector_push_back(size_t, &comp->column_count_prev_stack, 0)) return false;
 	trie_init(&comp->dictionary);
 	trie_init(&comp->filename_trie);
@@ -79,6 +81,7 @@ bool compiler_del(compiler* comp) {
 	vector_free(size_t, &comp->line_count_stack);
 	vector_free(size_t, &comp->column_count_stack);
 	vector_free(size_t, &comp->column_count_prev_stack);
+	vector_free(bool, &comp->is_concat_stack);
 
 	trie_del(&comp->dictionary);
 	trie_del(&comp->filename_trie);
@@ -105,7 +108,7 @@ bool compiler_compile_source(compiler* comp, char* input_filename) {
 		fputs("error : Loading code failure\n", stderr);
 		return false;
 	}
-	if (!compiler_push_code_data(comp, 1, 1, *compiler_current_column_prev(comp), index, index)) return false;
+	if (!compiler_push_code_data(comp, 1, 1, *compiler_current_column_prev(comp), index, index - 1, false)) return false;
 	if (!compiler_tokenize(comp)) {
 		fputs("error : Tokenization failure\n", stderr);
 		if (!compiler_pop_code_data(comp)) return false;
@@ -214,7 +217,7 @@ bool compiler_save_code(compiler* comp, char* filename) {
 	return true;
 }
 
-bool compiler_push_code_data(compiler* comp, size_t line, size_t column, size_t column_prev, int code_index, size_t filename_index) {
+bool compiler_push_code_data(compiler* comp, size_t line, size_t column, size_t column_prev, int code_index, size_t filename_index, bool is_concat) {
 	
 	if (!vector_push_back(size_t, &comp->line_count_stack, line)) {
 		fputs("error : Textcode line count stack memory allocation failure\n", stderr);
@@ -236,8 +239,13 @@ bool compiler_push_code_data(compiler* comp, size_t line, size_t column, size_t 
 		return false;
 	}
 
-	if (!vector_push_back(size_t, &comp->filename_index_stack, filename_index - 1)) {
+	if (!vector_push_back(size_t, &comp->filename_index_stack, filename_index)) {
 		fputs("error : Filename index stack memory allocation failure\n", stderr);
+		return false;
+	}
+
+	if (!vector_push_back(bool, &comp->is_concat_stack, is_concat)) {
+		fputs("error : Concatenated string stack memory allocation failure\n", stderr);
 		return false;
 	}
 
@@ -271,6 +279,11 @@ bool compiler_pop_code_data(compiler* comp) {
 		return false;
 	}
 
+	if (!vector_pop_back(bool, &comp->is_concat_stack)) {
+		fputs("error : Concatenated string stack memory allocation failure\n", stderr);
+		return false;
+	}
+
 	return true;
 }
 
@@ -299,9 +312,11 @@ bool compiler_tokenize(compiler* comp) {
 	while (*iterator) {
 		switch (*iterator) {
 			case '\n': 
-				(*compiler_current_line(comp))++;
-				*compiler_current_column_prev(comp) = (*compiler_current_column(comp));
-				(*compiler_current_column(comp)) = 0;
+				if (!*compiler_current_is_concat(comp)) {
+					(*compiler_current_line(comp))++;
+					*compiler_current_column_prev(comp) = (*compiler_current_column(comp));
+					(*compiler_current_column(comp)) = 0;
+				}
 			case '\r':
 				if (comment == CMNT_PARSE_LINE) {
 					space = true;
@@ -452,7 +467,9 @@ bool compiler_tokenize(compiler* comp) {
 		iterator++;
 		
 		if (((signed char) *iterator) >= -64) {
-			(*compiler_current_column(comp))++;
+			if (!*compiler_current_is_concat(comp)) {
+				(*compiler_current_column(comp))++;
+			}
 		}
 		
 	}
@@ -524,11 +541,14 @@ bool compiler_parse(compiler* comp, char* begin, char* end) {
 		}
 		fprintf(
 			stderr,
-			console_yellow console_bold "%s" console_reset " in line %zu, column %zu\n",
+			console_yellow console_bold "%s" console_reset " in line %zu, column %zu",
 			begin,
 			(*compiler_current_line(comp)),
 			(*compiler_current_column(comp))
 		);
+		if (*compiler_current_is_concat(comp))
+			fprintf(stderr, ", " console_cyan "Concatenated token" console_reset);
+		fputc(10, stderr);
 	}
 
 	*end = temp;
@@ -559,7 +579,7 @@ bool compiler_parse_word_token(compiler* comp, trie* trie_result) {
 				&comp->macro_vector,
 				trie_result->data.u
 			);
-			if (!compiler_push_code_data(comp, macro->line, macro->column, *compiler_current_column_prev(comp), macro->code_index, macro->filename_index)) return false;
+			if (!compiler_push_code_data(comp, macro->line, macro->column, *compiler_current_column_prev(comp), macro->code_index, macro->filename_index, macro->is_concat)) return false;
 			if (!compiler_tokenize(comp)) {
 				fputs("error : Tokenization failure\n", stderr);
 				if (!compiler_pop_code_data(comp)) return false;
@@ -1160,7 +1180,8 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			macro.column = code->column;
 			macro.line = code->line;
 			macro.code_index = comp->textcode_vector.size;
-			macro.filename_index = code->index;
+			macro.filename_index = code->filename_index;
+			macro.is_concat = code->is_concat;
 
 			if (!vector_push_back(macro_data, &comp->macro_vector, macro)) {
 				fputs("error : Macro vector memory allocation faliure\n", stderr);
@@ -1203,10 +1224,14 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 
 			size_t index = comp->textcode_vector.size;
 
+			if (!compiler_push_code_data(
+				comp, token->line, token->column, *compiler_current_column_prev(comp),
+				index, *compiler_current_filename_index(comp), token->is_concat)
+			) return false;
+
 			free(token->code);
 			if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false;
 
-			if (!compiler_push_code_data(comp, token->line, token->column, *compiler_current_column_prev(comp), index, *compiler_current_file_index(comp) + 1)) return false;
 			if (!compiler_tokenize(comp)) {
 				fputs("error : Tokenization failure\n", stderr);
 				if (!compiler_pop_code_data(comp)) return false;
@@ -1234,19 +1259,14 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			strcpy(new_token + len_front, token_back->code);
 
 			data.code = new_token;
-			data.index = *compiler_current_file_index(comp);
-
-			data.column = *compiler_current_column(comp) - len + 1;
 			
-			char* temp = new_token;
+			data.code_index = *compiler_current_file_index(comp);
+			data.filename_index = *compiler_current_filename_index(comp);
+
 			data.line = 0;
-			while (*temp) {
-				if (*temp == '\n') data.line++;
-				temp++;
-			}
-			while (!(*temp)) temp++;
-			if (*(temp) == '\n') data.line++;
-			data.line = *compiler_current_line(comp) - data.line;
+			data.column = *compiler_current_column(comp);
+			data.line = *compiler_current_line(comp);
+			data.is_concat = true;
 
 			free(token_front->code);
 			free(token_back->code);
@@ -1779,8 +1799,9 @@ bool compiler_push_preproc_token(compiler* comp, char* token) {
 	char* code_begin = *vector_at(cctl_ptr(char), &comp->textcode_vector, *compiler_current_file_index(comp));
 
 	data.code = new_token;
-	data.index = *compiler_current_file_index(comp);
-
+	data.code_index = *compiler_current_file_index(comp);
+	data.filename_index = *compiler_current_filename_index(comp);
+	data.is_concat = false;
 	data.column = 0;
 	while (true) {
 		if (*temp == '\n') break;

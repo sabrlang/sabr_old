@@ -6,6 +6,7 @@ typedef struct macro_data_struct {
 	size_t code_index;
 	size_t column;
 	size_t line;
+	bool is_concat;
 } macro_data;
 
 #endif
