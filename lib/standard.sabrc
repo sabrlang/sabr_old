@@ -55,5 +55,22 @@
 } define ( ... c u -- )
 #putsln { puts cr } define ( ... c u -- )
 
-
 #at { swap 8 * + } define ( u addr -- addr )
+
+#for {
+	trot tdup eval 1 - trot trot tdup #$ tswap concat eval to \ start 1 - $var to
+	loop
+		tdup #$ tswap concat eval dup call 1 + swap to \ $var dup call 1 + swap to
+		tdup eval tdrop tnip eval < \ var end <
+	while
+		\ code
+} define ( #start #end #var -- )
+
+#-for {
+	trot tdup eval 1 + trot trot tdup #$ tswap concat eval to \ start 1 + $var to
+	loop
+		tdup #$ tswap concat eval dup call 1 - swap to \ $var dup call 1 - swap to
+		tdup eval tdrop tnip eval > \ var end <
+	while
+		\ code
+} define ( #start #end #var -- )
