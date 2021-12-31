@@ -1059,6 +1059,8 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			if (comp->preproc_tokens_stack.size == 0) goto FAILURE_PREPROC_STACK;
 			token = compiler_last_preproc_data(comp, 0)->code;
 
+			printf("token : %s", token);
+
 			import_local_file = (*token == ':');
 
 			if (import_local_file) {
