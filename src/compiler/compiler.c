@@ -1093,12 +1093,12 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 				memcpy(dir, current_filename, strlen(current_filename) + 1);
 			else
 				memcpy(dir, binary_path, strlen(binary_path) + 1);
-			dir = dirname(dir);
-			if (!import_local_file) strcat(dir, "/../lib");
-			memcpy(import_filename, dir, strlen(dir) + 1);
-			free(dir);
-			strcat(import_filename, "/");
-			strcat(import_filename, token);
+			// dir = dirname(dir);
+			// if (!import_local_file) strcat(dir, "/../lib");
+			// memcpy(import_filename, dir, strlen(dir) + 1);
+			// free(dir);
+			// strcat(import_filename, "/");
+			// strcat(import_filename, token);
 		#endif
 
 		// 	char filename_full[PATH_MAX];
