@@ -1,13 +1,13 @@
 #true #-1 define ( -- b )
 #false #0 define ( -- b )
 #not { 0 = } define ( x -- b )
-#x>b { 0 != } define ( x -- b )
-#and { 0!= swap 0!= & } define ( x1 x2 -- b )
-#or { 0!= swap 0!= | } define ( x1 x2 -- b )
+#? { 0 != } define ( x -- b )
+#and { ? swap ? & } define ( x1 x2 -- b )
+#or { ? swap ? | } define ( x1 x2 -- b )
 
 
-#++to { dup call 1 + swap to } define ( id -- )
-#--to { dup call 1 - swap to } define ( id -- )
+#++to { dup call ++ swap to } define ( id -- )
+#--to { dup call -- swap to } define ( id -- )
 #~to { dup call ~ swap to } define ( id -- )
 
 #+to { dup call rot + swap to } define ( n id -- )
@@ -27,8 +27,8 @@
 #^to { dup call rot ^ swap to } define ( x id -- )
 
 
-#++store { dup fetch 1 + swap store } define ( addr -- )
-#--store { dup fetch 1 - swap store } define ( addr -- )
+#++store { dup fetch ++ swap store } define ( addr -- )
+#--store { dup fetch -- swap store } define ( addr -- )
 #~store { dup fetch ~ swap store } define ( addr -- )
 
 #+store { dup fetch rot + swap store } define ( n addr -- )
@@ -47,29 +47,28 @@
 #|store { dup fetch rot | swap store } define ( x addr -- )
 #^store { dup fetch rot ^ swap store } define ( x addr -- )
 
-
 #cr { '\n' putc } define ( -- )
 #space { ' ' putc } define ( -- )
 #puts {
-	loop dup 0 > while swap putc 1- end drop
+	loop dup 0 > while swap putc -- end drop
 } define ( ... c u -- )
 #putsln { puts cr } define ( ... c u -- )
 
 #at { swap 8 * + } define ( u addr -- addr )
 
 #for {
-	trot tdup eval 1 - trot trot tdup #$ tswap concat eval to \ start 1 - $var to
+	trot tdup eval -- trot trot tdup #$ tswap concat eval to \ start -- $var to
 	loop
-		tdup #$ tswap concat eval dup call 1 + swap to \ $var dup call 1 + swap to
+		tdup #$ tswap concat eval dup call ++ swap to \ $var dup call ++ swap to
 		tdup eval tdrop tnip eval < \ var end <
 	while
 		\ code
 } define ( #start #end #var -- )
 
 #-for {
-	trot tdup eval 1 + trot trot tdup #$ tswap concat eval to \ start 1 + $var to
+	trot tdup eval ++ trot trot tdup #$ tswap concat eval to \ start ++ $var to
 	loop
-		tdup #$ tswap concat eval dup call 1 - swap to \ $var dup call 1 - swap to
+		tdup #$ tswap concat eval dup call -- swap to \ $var dup call -- swap to
 		tdup eval tdrop tnip eval > \ var end <
 	while
 		\ code
