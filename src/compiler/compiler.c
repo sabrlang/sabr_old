@@ -1113,6 +1113,8 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 				return false;
 			}
 
+			fprintf(stderr, "filename : %s\n", filename_full);
+
 			trie* filename_trie_result = trie_find(&comp->filename_trie, filename_full);
 			
 			free(vector_back(preproc_data, &comp->preproc_tokens_stack)->code);
