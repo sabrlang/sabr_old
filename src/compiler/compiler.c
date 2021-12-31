@@ -1076,30 +1076,30 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			#endif
 			}
 
-		// #if defined(_WIN32)
-		// 	char drive[_MAX_DRIVE];
-		// 	char dir[_MAX_DIR];
+		#if defined(_WIN32)
+			char drive[_MAX_DRIVE];
+			char dir[_MAX_DIR];
 
-		// 	if (import_local_file)
-		// 		_splitpath(current_filename, drive, dir, NULL, NULL);
-		// 	else {
-		// 		_splitpath(binary_path, drive, dir, NULL, NULL);
-		// 		strcat(dir, "../lib");
-		// 	}
-		// 	_makepath(import_filename, drive, dir, token, NULL);
-		// #else
-		// 	char* dir = (char*) calloc(PATH_MAX, sizeof(char));
-		// 	if (import_local_file)
-		// 		memcpy(dir, current_filename, strlen(current_filename) + 1);
-		// 	else
-		// 		memcpy(dir, binary_path, strlen(binary_path) + 1);
-		// 	dir = dirname(dir);
-		// 	if (!import_local_file) strcat(dir, "/../lib");
-		// 	memcpy(import_filename, dir, strlen(dir) + 1);
-		// 	free(dir);
-		// 	strcat(import_filename, "/");
-		// 	strcat(import_filename, token);
-		// #endif
+			if (import_local_file)
+				_splitpath(current_filename, drive, dir, NULL, NULL);
+			else {
+				_splitpath(binary_path, drive, dir, NULL, NULL);
+				strcat(dir, "../lib");
+			}
+			_makepath(import_filename, drive, dir, token, NULL);
+		#else
+			char* dir = (char*) calloc(PATH_MAX, sizeof(char));
+			if (import_local_file)
+				memcpy(dir, current_filename, strlen(current_filename) + 1);
+			else
+				memcpy(dir, binary_path, strlen(binary_path) + 1);
+			dir = dirname(dir);
+			if (!import_local_file) strcat(dir, "/../lib");
+			memcpy(import_filename, dir, strlen(dir) + 1);
+			free(dir);
+			strcat(import_filename, "/");
+			strcat(import_filename, token);
+		#endif
 
 		// 	char filename_full[PATH_MAX];
 		// 	bool filepath = false;
