@@ -1047,7 +1047,6 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			bool import_local_file = false;
 			char import_filename[PATH_MAX];
 			char binary_path[PATH_MAX] = {0, };
-			char bsname[PATH_MAX];
 
 			char* token;
 			size_t filename_index;
@@ -1089,6 +1088,9 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 		#else
 			char* pivot_dir = (char*) calloc(PATH_MAX, sizeof(char));
 			char* real_dirname = (char*) calloc(PATH_MAX, sizeof(char));
+			char* filename_extension = (char*) calloc(PATH_MAX, sizeof(char));
+			strcat(filename_extension, token);
+			strcat(filename_extension, ".sabrc");
 			if (import_local_file)
 				memcpy(pivot_dir, current_filename, strlen(current_filename) + 1);
 			else
@@ -1100,7 +1102,8 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			free(pivot_dir);
 			free(real_dirname);
 			strcat(import_filename, "/");
-			strcat(import_filename, token);
+			strcat(import_filename, filename_extension);
+			free(filename_extension);
 		#endif
 
 			char filename_full[PATH_MAX];
