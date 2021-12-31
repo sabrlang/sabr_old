@@ -1077,27 +1077,28 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 
 		#if defined(_WIN32)
 			char drive[_MAX_DRIVE];
-			char dir[_MAX_DIR];
+			char pivot_dir[_MAX_DIR];
 
 			if (import_local_file)
-				_splitpath(current_filename, drive, dir, NULL, NULL);
+				_splitpath(current_filename, drive, pivot_dir, NULL, NULL);
 			else {
-				_splitpath(binary_path, drive, dir, NULL, NULL);
-				strcat(dir, "../lib");
+				_splitpath(binary_path, drive, pivot_dir, NULL, NULL);
+				strcat(pivot_dir, "../lib");
 			}
-			_makepath(import_filename, drive, dir, token, NULL);
+			_makepath(import_filename, drive, pivot_dir, token, NULL);
 		#else
-			char* dir = (char*) calloc(PATH_MAX, sizeof(char));
+			char* pivot_dir = (char*) calloc(PATH_MAX, sizeof(char));
+			char* real_dirname = (char*) calloc(PATH_MAX, sizeof(char));
 			if (import_local_file)
-				memcpy(dir, current_filename, strlen(current_filename) + 1);
+				memcpy(pivot_dir, current_filename, strlen(current_filename) + 1);
 			else
-				memcpy(dir, binary_path, strlen(binary_path) + 1);
-			printf("dir : %s\n", dir);
-			char* dirn = dirname(dir);
-			printf("dirn : %s\n", dirn);
-			if (!import_local_file) strcat(dirn, "/../lib");
-			memcpy(import_filename, dirn, strlen(dirn) + 1);
-			free(dir);
+				memcpy(pivot_dir, binary_path, strlen(binary_path) + 1);
+			char* temp_dirname = dirname(pivot_dir);
+			memcpy(real_dirname, temp_dirname, strlen(temp_dirname) + 1);
+			if (!import_local_file) strcat(real_dirname, "/../lib");
+			memcpy(import_filename, real_dirname, strlen(real_dirname) + 1);
+			free(pivot_dir);
+			free(real_dirname);
 			strcat(import_filename, "/");
 			strcat(import_filename, token);
 		#endif
