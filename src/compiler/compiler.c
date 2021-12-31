@@ -1096,7 +1096,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			dir = dirname(dir);
 			if (!import_local_file) strcat(dir, "/../lib");
 			memcpy(import_filename, dir, strlen(dir) + 1);
-			free(dir);
+			// free(dir);
 			// strcat(import_filename, "/");
 			// strcat(import_filename, token);
 		#endif
