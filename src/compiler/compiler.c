@@ -1077,6 +1077,9 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 		#if defined(_WIN32)
 			char drive[_MAX_DRIVE];
 			char pivot_dir[_MAX_DIR];
+			char filename_extension[_MAX_FNAME] = {0, };
+			strcat(filename_extension, token);
+			strcat(filename_extension, ".sabrc");
 
 			if (import_local_file)
 				_splitpath(current_filename, drive, pivot_dir, NULL, NULL);
@@ -1084,7 +1087,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 				_splitpath(binary_path, drive, pivot_dir, NULL, NULL);
 				strcat(pivot_dir, "../lib");
 			}
-			_makepath(import_filename, drive, pivot_dir, token, NULL);
+			_makepath(import_filename, drive, pivot_dir, filename_extension, NULL);
 		#else
 			char* pivot_dir = (char*) calloc(PATH_MAX, sizeof(char));
 			char* real_dirname = (char*) calloc(PATH_MAX, sizeof(char));
