@@ -1061,72 +1061,72 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 
 			printf("token : %s", token);
 
-			import_local_file = (*token == ':');
+		// 	import_local_file = (*token == ':');
 
-			if (import_local_file) {
-				if (comp->filename_vector.size == 0) goto FAILURE_TEXTCODE;
-				current_filename = *vector_at(cctl_ptr(char), &comp->filename_vector, filename_index);
-				token++;
-			}
-			else {
-			#if defined(_WIN32)
-				GetModuleFileName(NULL, binary_path, PATH_MAX);
-			#elif defined(__linux__)
-				if (readlink("/proc/self/exe", binary_path, PATH_MAX) < 0) return false;
-			#endif
-			}
+		// 	if (import_local_file) {
+		// 		if (comp->filename_vector.size == 0) goto FAILURE_TEXTCODE;
+		// 		current_filename = *vector_at(cctl_ptr(char), &comp->filename_vector, filename_index);
+		// 		token++;
+		// 	}
+		// 	else {
+		// 	#if defined(_WIN32)
+		// 		GetModuleFileName(NULL, binary_path, PATH_MAX);
+		// 	#elif defined(__linux__)
+		// 		if (readlink("/proc/self/exe", binary_path, PATH_MAX) < 0) return false;
+		// 	#endif
+		// 	}
 
-		#if defined(_WIN32)
-			char drive[_MAX_DRIVE];
-			char dir[_MAX_DIR];
+		// #if defined(_WIN32)
+		// 	char drive[_MAX_DRIVE];
+		// 	char dir[_MAX_DIR];
 
-			if (import_local_file)
-				_splitpath(current_filename, drive, dir, NULL, NULL);
-			else {
-				_splitpath(binary_path, drive, dir, NULL, NULL);
-				strcat(dir, "../lib");
-			}
-			_makepath(import_filename, drive, dir, token, NULL);
-		#else
-			char* dir = (char*) calloc(PATH_MAX, sizeof(char));
-			if (import_local_file)
-				memcpy(dir, current_filename, strlen(current_filename) + 1);
-			else
-				memcpy(dir, binary_path, strlen(binary_path) + 1);
-			dir = dirname(dir);
-			if (!import_local_file) strcat(dir, "/../lib");
-			memcpy(import_filename, dir, strlen(dir) + 1);
-			free(dir);
-			strcat(import_filename, "/");
-			strcat(import_filename, token);
-		#endif
+		// 	if (import_local_file)
+		// 		_splitpath(current_filename, drive, dir, NULL, NULL);
+		// 	else {
+		// 		_splitpath(binary_path, drive, dir, NULL, NULL);
+		// 		strcat(dir, "../lib");
+		// 	}
+		// 	_makepath(import_filename, drive, dir, token, NULL);
+		// #else
+		// 	char* dir = (char*) calloc(PATH_MAX, sizeof(char));
+		// 	if (import_local_file)
+		// 		memcpy(dir, current_filename, strlen(current_filename) + 1);
+		// 	else
+		// 		memcpy(dir, binary_path, strlen(binary_path) + 1);
+		// 	dir = dirname(dir);
+		// 	if (!import_local_file) strcat(dir, "/../lib");
+		// 	memcpy(import_filename, dir, strlen(dir) + 1);
+		// 	free(dir);
+		// 	strcat(import_filename, "/");
+		// 	strcat(import_filename, token);
+		// #endif
 
-			char filename_full[PATH_MAX];
-			bool filepath = false;
+		// 	char filename_full[PATH_MAX];
+		// 	bool filepath = false;
 
-			#if defined(_WIN32)
-				if (!(_fullpath(filename_full, import_filename, PATH_MAX))) filepath = true;
-			#else
-				if (!(realpath(import_filename, filename_full))) filepath = true;
-			#endif
-			if (filepath) {
-				fprintf(stderr, console_yellow console_bold "%s" console_reset "\n", filename_full);
-				fprintf(stderr, "error : %s\n", strerror(errno));
-				return false;
-			}
+		// 	#if defined(_WIN32)
+		// 		if (!(_fullpath(filename_full, import_filename, PATH_MAX))) filepath = true;
+		// 	#else
+		// 		if (!(realpath(import_filename, filename_full))) filepath = true;
+		// 	#endif
+		// 	if (filepath) {
+		// 		fprintf(stderr, console_yellow console_bold "%s" console_reset "\n", filename_full);
+		// 		fprintf(stderr, "error : %s\n", strerror(errno));
+		// 		return false;
+		// 	}
 
-			trie* filename_trie_result = trie_find(&comp->filename_trie, filename_full);
+		// 	trie* filename_trie_result = trie_find(&comp->filename_trie, filename_full);
 			
 			free(vector_back(preproc_data, &comp->preproc_tokens_stack)->code);
 			if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false;
 
-			if (filename_trie_result) {
-				if (filename_trie_result->type == (uint8_t) true) {
-					return true;
-				}
-			}
+		// 	if (filename_trie_result) {
+		// 		if (filename_trie_result->type == (uint8_t) true) {
+		// 			return true;
+		// 		}
+		// 	}
 
-			if (!compiler_compile_source(comp, import_filename)) return false;
+		// 	if (!compiler_compile_source(comp, import_filename)) return false;
 		} break;
 		case CTRL_DEFINE: {
 			preproc_data* token;
