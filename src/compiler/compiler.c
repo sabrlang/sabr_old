@@ -1071,7 +1071,6 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 				GetModuleFileName(NULL, binary_path, PATH_MAX);
 			#elif defined(__linux__)
 				if (readlink("/proc/self/exe", binary_path, PATH_MAX) < 0) return false;
-				printf("binary path : %s\n", binary_path);
 			#endif
 			}
 
