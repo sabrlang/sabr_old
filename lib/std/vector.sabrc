@@ -1,4 +1,4 @@
-#standard.sabrc import
+#std.sabrc import
 
 $Vector struct
 	$data member

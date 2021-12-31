@@ -1047,6 +1047,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			bool import_local_file = false;
 			char import_filename[PATH_MAX];
 			char binary_path[PATH_MAX] = {0, };
+			char bsname[PATH_MAX];
 
 			char* token;
 			size_t filename_index;
