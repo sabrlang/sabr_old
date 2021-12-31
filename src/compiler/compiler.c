@@ -1071,6 +1071,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 				GetModuleFileName(NULL, binary_path, PATH_MAX);
 			#elif defined(__linux__)
 				if (readlink("/proc/self/exe", binary_path, PATH_MAX) < 0) return false;
+				printf("binary path : %s\n", binary_path);
 			#endif
 			}
 
@@ -1112,8 +1113,6 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 				fprintf(stderr, "error : %s\n", strerror(errno));
 				return false;
 			}
-
-			printf("filename : %s\n", filename_full);
 
 			trie* filename_trie_result = trie_find(&comp->filename_trie, filename_full);
 			
