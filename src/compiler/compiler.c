@@ -1089,19 +1089,16 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			_makepath(import_filename, drive, dir, token, NULL);
 		#else
 			char* dir = (char*) calloc(PATH_MAX, sizeof(char));
-			char* dir2 = (char*) calloc(PATH_MAX, sizeof(char));
 			if (import_local_file)
 				memcpy(dir, current_filename, strlen(current_filename) + 1);
 			else
 				memcpy(dir, binary_path, strlen(binary_path) + 1);
-			dir2 = dirname(dir);
+			char* dirn = dirname(dir);
 			if (!import_local_file) strcat(dir, "/../lib");
-			memcpy(import_filename, dir2, strlen(dir2) + 1);
-			printf("%s\n%s\n", dir, dir2);
-			// free(dir);
-			// free(dir2);
-			// strcat(import_filename, "/");
-			// strcat(import_filename, token);
+			memcpy(import_filename, dirn, strlen(dirn) + 1);
+			free(dir);
+			strcat(import_filename, "/");
+			strcat(import_filename, token);
 		#endif
 
 		// 	char filename_full[PATH_MAX];
