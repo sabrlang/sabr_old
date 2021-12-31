@@ -1487,6 +1487,7 @@ bool is_can_be_keyword(char* token) {
 		case '.': {
 			iter++;
 			switch (*iter) {
+				case 'e':
 				case '0' ... '9': {
 					goto FAILURE_INVALID_KEYWORD;
 				} break;
@@ -1494,8 +1495,13 @@ bool is_can_be_keyword(char* token) {
 		} break;
 		case '0' ... '9':
 		case '@':
+		case '(':
+		case ')':
+		case '{':
+		case '}':
 		case '#':
 		case '$':
+		case '\\':
 		case '\'':
 		case '\"':
 		case '\0': {
