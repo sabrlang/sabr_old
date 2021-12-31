@@ -1101,32 +1101,32 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			strcat(import_filename, token);
 		#endif
 
-		// 	char filename_full[PATH_MAX];
-		// 	bool filepath = false;
+			char filename_full[PATH_MAX];
+			bool filepath = false;
 
-		// 	#if defined(_WIN32)
-		// 		if (!(_fullpath(filename_full, import_filename, PATH_MAX))) filepath = true;
-		// 	#else
-		// 		if (!(realpath(import_filename, filename_full))) filepath = true;
-		// 	#endif
-		// 	if (filepath) {
-		// 		fprintf(stderr, console_yellow console_bold "%s" console_reset "\n", filename_full);
-		// 		fprintf(stderr, "error : %s\n", strerror(errno));
-		// 		return false;
-		// 	}
+			#if defined(_WIN32)
+				if (!(_fullpath(filename_full, import_filename, PATH_MAX))) filepath = true;
+			#else
+				if (!(realpath(import_filename, filename_full))) filepath = true;
+			#endif
+			if (filepath) {
+				fprintf(stderr, console_yellow console_bold "%s" console_reset "\n", filename_full);
+				fprintf(stderr, "error : %s\n", strerror(errno));
+				return false;
+			}
 
-		// 	trie* filename_trie_result = trie_find(&comp->filename_trie, filename_full);
+			trie* filename_trie_result = trie_find(&comp->filename_trie, filename_full);
 			
 			free(vector_back(preproc_data, &comp->preproc_tokens_stack)->code);
 			if (!vector_pop_back(preproc_data, &comp->preproc_tokens_stack)) return false;
 
-		// 	if (filename_trie_result) {
-		// 		if (filename_trie_result->type == (uint8_t) true) {
-		// 			return true;
-		// 		}
-		// 	}
+			if (filename_trie_result) {
+				if (filename_trie_result->type == (uint8_t) true) {
+					return true;
+				}
+			}
 
-		// 	if (!compiler_compile_source(comp, import_filename)) return false;
+			if (!compiler_compile_source(comp, import_filename)) return false;
 		} break;
 		case CTRL_DEFINE: {
 			preproc_data* token;
