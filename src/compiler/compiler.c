@@ -1061,20 +1061,20 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 
 			printf("token : %s", token);
 
-		// 	import_local_file = (*token == ':');
+			import_local_file = (*token == ':');
 
-		// 	if (import_local_file) {
-		// 		if (comp->filename_vector.size == 0) goto FAILURE_TEXTCODE;
-		// 		current_filename = *vector_at(cctl_ptr(char), &comp->filename_vector, filename_index);
-		// 		token++;
-		// 	}
-		// 	else {
-		// 	#if defined(_WIN32)
-		// 		GetModuleFileName(NULL, binary_path, PATH_MAX);
-		// 	#elif defined(__linux__)
-		// 		if (readlink("/proc/self/exe", binary_path, PATH_MAX) < 0) return false;
-		// 	#endif
-		// 	}
+			if (import_local_file) {
+				if (comp->filename_vector.size == 0) goto FAILURE_TEXTCODE;
+				current_filename = *vector_at(cctl_ptr(char), &comp->filename_vector, filename_index);
+				token++;
+			}
+			else {
+			#if defined(_WIN32)
+				GetModuleFileName(NULL, binary_path, PATH_MAX);
+			#elif defined(__linux__)
+				if (readlink("/proc/self/exe", binary_path, PATH_MAX) < 0) return false;
+			#endif
+			}
 
 		// #if defined(_WIN32)
 		// 	char drive[_MAX_DRIVE];
