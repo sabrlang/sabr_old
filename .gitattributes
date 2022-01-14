@@ -2,8 +2,8 @@
 * text=auto
 
 # Language
-*.c linguist-language=C
-*.h linguist-language=C
+*.c     linguist-language=C
+*.h     linguist-language=C
 
 # Sources
 *.c     text diff=c
