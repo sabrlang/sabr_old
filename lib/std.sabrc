@@ -4,7 +4,7 @@
 #? { 0 != } define ( x -- b )
 #and { ? swap ? & } define ( x1 x2 -- b )
 #or { ? swap ? | } define ( x1 x2 -- b )
-
+#select { if drop else nip end } ( x1 x2 b -- x )
 
 #++to { dup call ++ swap to } define ( id -- )
 #--to { dup call -- swap to } define ( id -- )
