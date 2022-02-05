@@ -54,6 +54,7 @@
 } define ( ... c u -- )
 #putsln { puts cr } define ( ... c u -- )
 
+#cells { 8 * } define ( u -- u )
 #at { swap 8 * + } define ( u addr -- addr )
 
 #for {

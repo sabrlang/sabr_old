@@ -1,0 +1,53 @@
+#std import
+
+$Array struct
+	$data member
+	$size member
+end
+
+#Array.at {
+	Array.data fetch at
+} define ( u Array -- x )
+
+$Array.init func ( ... x u Array:this -- b )
+	$this to
+	this Array.size store
+	dup alloc
+	dup not if
+		loop
+			dup 0 >
+		while
+			swap drop --
+		end
+		return
+	end
+	this Array.data store
+	0
+	loop
+		dup this Array.size fetch <
+	while
+		tuck this Array.at store
+		++
+	end
+defer
+	drop
+end
+
+$Array.put func ( Array -- )
+	dup Array.data fetch
+	swap Array.size fetch
+	loop
+		dup 0 >
+	while
+		swap dup fetch putc
+		1 cells + swap
+		--
+	end
+	2drop
+end
+
+$Array.free func ( Array:this -- )
+	$this to
+	this Array.data fetch free
+	0 this Array.size store
+end
