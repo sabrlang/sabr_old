@@ -33,17 +33,21 @@ defer
 	drop
 end
 
-$Array.put func ( Array -- )
+#Array.foreach {
 	dup Array.data fetch
 	swap Array.size fetch
 	loop
 		dup 0 >
 	while
-		swap dup fetch putc
+		swap dup fetch eval
 		1 cells + swap
 		--
 	end
 	2drop
+} define ( #code Array -- )
+
+$Array.putc func ( Array -- )
+	#putc Array.foreach
 end
 
 $Array.free func ( Array:this -- )

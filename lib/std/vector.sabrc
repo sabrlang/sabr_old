@@ -74,14 +74,14 @@ $Vector.pop_back func ( Vector:this -- b )
 	end
 end
 
-$Vector.at macro ( u Vector -- x )
+#Vector.at {
 	Vector.data fetch at
-end
+} define ( u Vector -- addr )
 
-$Vector.front macro ( Vector -- x )
+#Vector.front {
 	Vector.data fetch
-end
+} define ( Vector -- addr )
 
-$Vector.back macro ( Vector -- x )
+#Vector.back {
 	dup Vector.size fetch 1 - swap Vector.data fetch at
-end
+} define ( Vector -- addr )
