@@ -11,15 +11,15 @@ end
 
 $Array.init func ( ... x u Array:this -- b )
 	$this to
-	this Array.size store
-	dup alloc
+	dup this Array.size store
+	cells alloc
 	dup not if
 		loop
 			dup 0 >
 		while
 			swap drop --
 		end
-		return
+		false return
 	end
 	this Array.data store
 	0
@@ -29,8 +29,9 @@ $Array.init func ( ... x u Array:this -- b )
 		tuck this Array.at store
 		++
 	end
+	true
 defer
-	drop
+	nip
 end
 
 #Array.foreach {

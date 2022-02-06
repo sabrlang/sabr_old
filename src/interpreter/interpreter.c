@@ -308,7 +308,7 @@ bool interpreter_run(interpreter* inter) {
 						value v;
 						vector(uint64_t)* temp_struct = *vector_at(cctl_ptr(vector(uint64_t)), &inter->struct_vector, node->data);
 						if (!temp_struct) goto FAILURE_STRUCT;
-						v.u = temp_struct->size;
+						v.u = temp_struct->size * sizeof(value);
 						if (!interpreter_push(inter, v)) goto FAILURE_STACK;
 					} break;
 				}
@@ -720,7 +720,7 @@ bool interpreter_run(interpreter* inter) {
 				value v;
 				if (!interpreter_pop(inter, &v)) goto FAILURE_STACK;
 				if (!v.u) v.p = NULL;
-				else v.p = malloc(v.u * sizeof(value));
+				else v.p = malloc(v.u);
 				if (!interpreter_push(inter, v)) goto FAILURE_STACK;
 			} break;
 			case OP_RESIZE: {
@@ -731,7 +731,7 @@ bool interpreter_run(interpreter* inter) {
 					free(b.p);
 					b.p = NULL;
 				}
-				else b.p = realloc((void*) b.p, a.u * sizeof(value));
+				else b.p = realloc((void*) b.p, a.u);
 				if (!interpreter_push(inter, b)) goto FAILURE_STACK;
 			} break;
 			case OP_FREE: {
