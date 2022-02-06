@@ -7,7 +7,7 @@ end
 
 #Array.at {
 	Array.data fetch at
-} define ( u Array -- x )
+} define ( u Array -- addr )
 
 $Array.init func ( ... x u Array:this -- b )
 	$this to
