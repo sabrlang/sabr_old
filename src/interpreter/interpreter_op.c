@@ -1084,7 +1084,7 @@ uint32_t interpreter_op_show(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-const (*interpreter_op[])(interpreter*, size_t) = {
+const (*interpreter_op_functions[])(interpreter*, size_t) = {
 	interpreter_op_value,
 	interpreter_op_if,
 	interpreter_op_jump,
@@ -1172,3 +1172,5 @@ const (*interpreter_op[])(interpreter*, size_t) = {
 	interpreter_op_putf,
 	interpreter_op_show
 };
+
+size_t interpreter_op_functions_len = sizeof(interpreter_op_functions) / sizeof(char*);
