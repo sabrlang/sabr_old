@@ -1,4 +1,9 @@
+#ifndef __INTERPRETER_OP_H__
+#define __INTERPRETER_OP_H__
+
 #include "interpreter.h"
+
+typedef struct interpreter_struct interpreter;
 
 typedef enum interpreter_op_errcode_enum {
 	OPERR_NONE,
@@ -15,7 +20,7 @@ typedef enum interpreter_op_errcode_enum {
 	OPERR_UNICODE
 } interpreter_op_errcode;
 
-extern size_t interpreter_op_len;
+extern size_t interpreter_op_functions_len;
 extern const uint32_t (*interpreter_op_functions[])(interpreter*, size_t*);
 
 uint32_t interpreter_op_value(interpreter* inter, size_t* index);
@@ -104,3 +109,5 @@ uint32_t interpreter_op_puti(interpreter* inter, size_t* index);
 uint32_t interpreter_op_putu(interpreter* inter, size_t* index);
 uint32_t interpreter_op_putf(interpreter* inter, size_t* index);
 uint32_t interpreter_op_show(interpreter* inter, size_t* index);
+
+#endif
