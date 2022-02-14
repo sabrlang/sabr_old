@@ -9,8 +9,7 @@ end
 	Array.data fetch at
 } define ( u Array -- addr )
 
-$Array.init func ( ... x u Array:this -- b )
-	$this to
+$Array.init method ( ... x u Array:this -- b )
 	dup this Array.size store
 	cells alloc
 	dup not if
@@ -51,8 +50,7 @@ $Array.putc func ( Array -- )
 	#putc Array.foreach
 end
 
-$Array.free func ( Array:this -- )
-	$this to
+$Array.free method ( Array:this -- )
 	this Array.data fetch free
 	0 this Array.size store
 end

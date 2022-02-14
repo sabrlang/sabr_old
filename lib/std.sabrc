@@ -57,6 +57,10 @@
 #cells { 8 * } define ( u -- u )
 #at { swap 8 * + } define ( u addr -- addr )
 
+#method {
+	func $this to
+} define ( id -- )
+
 #for {
 	trot tdup eval -- trot trot tdup #$ tswap concat eval to \ start -- $var to
 	loop

@@ -6,21 +6,18 @@ $Vector struct
 	$capacity member
 end
 
-$Vector.init func ( Vector:this -- )
-	$this to
+$Vector.init method ( Vector:this -- )
 	0 this Vector.data store
 	0 this Vector.size store
 	0 this Vector.capacity store
 end
 
-$Vector.free func ( Vector:this -- )
-	$this to
+$Vector.free method ( Vector:this -- )
 	this Vector.data fetch free
 	this Vector.init
 end
 
-$Vector.reserve func ( u:size Vector:this -- b )
-	$this to
+$Vector.reserve method ( u:size Vector:this -- b )
 	$size to
 	this Vector.capacity fetch size >= if
 		true return
@@ -45,8 +42,7 @@ $Vector.reserve func ( u:size Vector:this -- b )
 	true
 end
 
-$Vector.resize func ( u:size Vector:this -- b )
-	$this to
+$Vector.resize method ( u:size Vector:this -- b )
 	$size to
 	size this Vector.reserve if
 		size this Vector.size store
@@ -55,8 +51,7 @@ $Vector.resize func ( u:size Vector:this -- b )
 	end
 end
 
-$Vector.push_back func ( x:item Vector:this -- b )
-	$this to
+$Vector.push_back method ( x:item Vector:this -- b )
 	$item to
 	this dup Vector.size fetch 1 + swap Vector.resize if
 		item this dup Vector.size fetch 1 - swap Vector.data fetch at store
@@ -65,8 +60,7 @@ $Vector.push_back func ( x:item Vector:this -- b )
 	end
 end
 
-$Vector.pop_back func ( Vector:this -- b )
-	$this to
+$Vector.pop_back method ( Vector:this -- b )
 	this Vector.size fetch if
 		this Vector.size --store
 		true
