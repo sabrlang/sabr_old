@@ -15,6 +15,8 @@ typedef enum interpreter_op_errcode_enum {
 	OPERR_UNICODE
 } interpreter_op_errcode;
 
+extern const (*interpreter_op[])(interpreter*, size_t);
+
 uint32_t interpreter_op_value(interpreter* inter, size_t* index);
 uint32_t interpreter_op_if(interpreter* inter, size_t* index);
 uint32_t interpreter_op_jump(interpreter* inter, size_t* index);
@@ -27,6 +29,7 @@ uint32_t interpreter_op_return_func(interpreter* inter, size_t* index);
 uint32_t interpreter_op_return_macro(interpreter* inter, size_t* index);
 uint32_t interpreter_op_struct(interpreter* inter, size_t* index);
 uint32_t interpreter_op_member(interpreter* inter, size_t* index);
+uint32_t interpreter_op_end_struct(interpreter* inter, size_t* index);
 uint32_t interpreter_op_call_member(interpreter* inter, size_t* index);
 uint32_t interpreter_op_to(interpreter* inter, size_t* index);
 uint32_t interpreter_op_call(interpreter* inter, size_t* index);
