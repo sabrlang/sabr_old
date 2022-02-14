@@ -953,6 +953,9 @@ FAILURE_STRUCT:
 FAILURE_STDIN:
 	fputs("error: Input error\n", stderr);
 	return false;
+
+	fputs("error : Division by zero\n", stderr);
+	fputs("error : Unicode encoding failure\n", stderr);
 }
 
 bool interpreter_pop(interpreter* inter, value* v) {
