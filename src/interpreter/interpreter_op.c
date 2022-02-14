@@ -247,15 +247,15 @@ uint32_t interpreter_op_call(interpreter* inter, size_t* index) {
 
 	switch (node->type) {
 		case KWRD_FUNC: {
-			if (!deque_push_back(size_t, &inter->call_stack, index + 1)) return OPERR_CALL;
+			if (!deque_push_back(size_t, &inter->call_stack, *index + 1)) return OPERR_CALL;
 			local_words = rbt_new();
 			if (!local_words) return OPERR_CALL;
 			if (!deque_push_back(cctl_ptr(rbt), &inter->local_words_stack, local_words)) return OPERR_CALL;
-			index = node->data - 1;
+			*index = node->data - 1;
 		} break;
 		case KWRD_MACRO: {
-			if (!deque_push_back(size_t, &inter->call_stack, index + 1)) return OPERR_CALL;
-			index = node->data - 1;
+			if (!deque_push_back(size_t, &inter->call_stack, *index + 1)) return OPERR_CALL;
+			*index = node->data - 1;
 		} break;
 		case KWRD_VAR: {
 			value v;
@@ -1084,7 +1084,7 @@ uint32_t interpreter_op_show(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-const (*interpreter_op_functions[])(interpreter*, size_t) = {
+const uint32_t (*interpreter_op_functions[])(interpreter*, size_t*) = {
 	interpreter_op_value,
 	interpreter_op_if,
 	interpreter_op_jump,
