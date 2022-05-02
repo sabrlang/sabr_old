@@ -1,5 +1,6 @@
 #true #-1 define ( -- b )
 #false #0 define ( -- b )
+#null #0 define ( -- addr )
 #not { 0 = } define ( x -- b )
 #? { 0 != } define ( x -- b )
 #and { ? swap ? & } define ( x1 x2 -- b )
@@ -62,19 +63,19 @@
 } define ( id -- )
 
 #for {
-	trot tdup eval -- trot trot tdup #$ tswap concat eval to \ start -- $var to
+	trot tdup eval -- trot trot tdup #$ tswap concat eval to \ _start -- $var to
 	loop
 		tdup #$ tswap concat eval dup call ++ swap to \ $var dup call ++ swap to
-		tdup eval tdrop tnip eval < \ var end <
+		tdup eval tdrop tnip eval < \ _var _end <
 	while
 		\ code
-} define ( #start #end #var -- )
+} define ( #_start #_end #_var -- )
 
 #-for {
-	trot tdup eval ++ trot trot tdup #$ tswap concat eval to \ start ++ $var to
+	trot tdup eval ++ trot trot tdup #$ tswap concat eval to \ _start ++ $var to
 	loop
 		tdup #$ tswap concat eval dup call -- swap to \ $var dup call -- swap to
-		tdup eval tdrop tnip eval > \ var end <
+		tdup eval tdrop tnip eval > \ _var _end <
 	while
 		\ code
-} define ( #start #end #var -- )
+} define ( #_start #_end #_var -- )
