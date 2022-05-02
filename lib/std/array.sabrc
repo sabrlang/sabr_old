@@ -33,6 +33,8 @@ defer
 	nip
 end
 
+#Array.init? { Array.init not if } define ( ... x u Array:this -- )
+
 #Array.foreach {
 	dup Array.data fetch
 	swap Array.size fetch
@@ -44,7 +46,7 @@ end
 		--
 	end
 	2drop
-} define ( #code Array -- )
+} define ( #_code Array -- )
 
 $Array.putc func ( Array -- )
 	#putc Array.foreach
