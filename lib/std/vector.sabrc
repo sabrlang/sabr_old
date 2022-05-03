@@ -79,3 +79,15 @@ end
 #Vector.back {
 	dup Vector.size fetch 1 - swap Vector.data fetch at
 } define ( Vector -- addr )
+
+#Vector.foreach {
+	dup Vector.data fetch
+	swap Vector.size fetch
+	loop
+		dup 0 >
+	while
+		swap dup fetch eval
+		1 cells + swap
+	end
+	2drop
+} define ( #_code Vector -- )
