@@ -1,5 +1,10 @@
 #include "interpreter_op.h"
 
+uint32_t interpreter_op_exit(interpreter* inter, size_t* index) {
+	*index = inter->bytecode_size;
+	return OPERR_NONE;
+}
+
 uint32_t interpreter_op_value(interpreter* inter, size_t* index) {
 	value v;
 	for (int i = 0; i < 8; i++) {
@@ -1085,6 +1090,7 @@ uint32_t interpreter_op_show(interpreter* inter, size_t* index) {
 }
 
 const uint32_t (*interpreter_op_functions[])(interpreter*, size_t*) = {
+	interpreter_op_exit,
 	interpreter_op_value,
 	interpreter_op_if,
 	interpreter_op_jump,

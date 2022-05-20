@@ -2,8 +2,9 @@
 #false #0 define ( -- b )
 #null #0 define ( -- addr )
 #not { 0 = } define ( x -- b )
-#and { ? swap ? & } define ( x1 x2 -- b )
-#or { ? swap ? | } define ( x1 x2 -- b )
+#buf { 0 != } define ( x -- b )
+#and { buf swap buf & } define ( x1 x2 -- b )
+#or { buf swap buf | } define ( x1 x2 -- b )
 #select { if drop else nip end } define ( x1 x2 b -- x )
 
 #++to { dup call ++ swap to } define ( id -- )
@@ -56,8 +57,8 @@
 
 #cells { 8 * } define ( u -- u )
 #at { swap 8 * + } define ( u addr -- addr )
-#new { cells alloc } define ( u -- )
-#new? { new dup not if } define ( u -- addr )
+#new { alloc } define ( u -- )
+#new!? { new dup not if } define ( u -- addr )
 
 #method {
 	func $this to

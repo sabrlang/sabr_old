@@ -1,6 +1,7 @@
 #include "operation.h"
 
 const char* operation_names[] = {
+	"exit",
 	"call",
 	"to",
 	"+",
@@ -76,6 +77,7 @@ const char* operation_names[] = {
 };
 
 const opcode operation_indices[] = {
+	OP_EXIT,
 	OP_CALL,
 	OP_TO,
 	OP_ADD,

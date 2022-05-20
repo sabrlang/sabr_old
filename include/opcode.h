@@ -3,6 +3,7 @@
 
 typedef enum opcode_enum {
 	OP_NONE,
+	OP_EXIT,
 	OP_VALUE,
 	OP_IF,
 	OP_JUMP,
