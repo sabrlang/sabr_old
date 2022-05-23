@@ -1,4 +1,4 @@
-[![GitHub license](https://img.shields.io/github/license/mhcoma/sabr?style=for-the-badge)](https://github.com/mhcoma/sabr/blob/main/LICENSE)
+[![GitHub license](https://img.shields.io/github/license/sabrlang/sabr?style=for-the-badge)](https://github.com/sabrlang/sabr/blob/main/LICENSE)
 
 [English](README.md)
 
@@ -7,7 +7,7 @@ Sabr 는 단순한 스택 기반 프로그래밍 언어입니다.
 
 # 소스에서 빌드하기
 ```sh
-git clone --depth=1 https://github.com/mhcoma/sabr.git
+git clone --depth=1 https://github.com/sabrlang/sabr.git
 cd sabr
 mkdir build
 cd build
@@ -90,7 +90,7 @@ $ sabre {bytecode file name}
 
 # 명세
 Sabr 프로그램은 UTF-8로 쓰여져야 합니다.
-## Data types
+## 자료형
 Sabr는 타입 검사가 없습니다. 모든 스택 값들은 8 바이트입니다.
 * `x` : 셀 (아무 값)
 * `n` : 정수

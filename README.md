@@ -1,4 +1,4 @@
-[![GitHub license](https://img.shields.io/github/license/mhcoma/sabr?style=for-the-badge)](https://github.com/mhcoma/sabr/blob/main/LICENSE)
+[![GitHub license](https://img.shields.io/github/license/sabrlang/sabr?style=for-the-badge)](https://github.com/sabrlang/sabr/blob/main/LICENSE)
 
 [한국어](korean.md)
 
@@ -7,7 +7,7 @@ Sabr is simple stack-oriented programming language.
 
 # Build from source
 ```sh
-git clone --depth=1 https://github.com/mhcoma/sabr.git
+git clone --depth=1 https://github.com/sabrlang/sabr.git
 cd sabr
 mkdir build
 cd build
