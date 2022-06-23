@@ -30,6 +30,7 @@ typedef struct interpreter_struct {
 	deque(size_t) call_stack;
 	rbt* global_words;
 	deque(cctl_ptr(rbt)) local_words_stack;
+	deque(cctl_ptr(vector(value))) local_memories_stack;
 	mbstate_t convert_state;
 
 	vector(cctl_ptr(vector(uint64_t))) struct_vector;

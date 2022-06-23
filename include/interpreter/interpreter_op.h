@@ -17,7 +17,8 @@ typedef enum interpreter_op_errcode_enum {
 	OPERR_INVALID_KWRD,
 	OPERR_DIV_BY_ZERO,
 	OPERR_STDIN,
-	OPERR_UNICODE
+	OPERR_UNICODE,
+	OPERR_MEMORY
 } interpreter_op_errcode;
 
 extern size_t interpreter_op_functions_len;
@@ -95,6 +96,7 @@ uint32_t interpreter_op_trot(interpreter* inter, size_t* index);
 uint32_t interpreter_op_alloc(interpreter* inter, size_t* index);
 uint32_t interpreter_op_resize(interpreter* inter, size_t* index);
 uint32_t interpreter_op_free(interpreter* inter, size_t* index);
+uint32_t interpreter_op_allot(interpreter* inter, size_t* index);
 uint32_t interpreter_op_fetch(interpreter* inter, size_t* index);
 uint32_t interpreter_op_store(interpreter* inter, size_t* index);
 uint32_t interpreter_op_stof(interpreter* inter, size_t* index);

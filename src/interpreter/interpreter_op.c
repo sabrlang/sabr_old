@@ -113,6 +113,16 @@ uint32_t interpreter_op_return_func(interpreter* inter, size_t* index) {
 	if (!deque_pop_back(cctl_ptr(rbt), &inter->local_words_stack)) return OPERR_CALL;
 	*index = pos - 1;
 
+	vector(value)* local_memories = *deque_back(cctl_ptr(vector(value)), &inter->local_memories_stack);
+	for (size_t i = 0; i < local_memories->size; i++) {
+		value v = *vector_at(value, local_memories, i);
+		free(v.p);
+	}
+	vector_free(value, local_memories);
+	free(local_memories);
+
+	if (!deque_pop_back(cctl_ptr(vector(value)), &inter->local_memories_stack)) return OPERR_CALL;
+
 	return OPERR_NONE;
 }
 
@@ -237,6 +247,7 @@ uint32_t interpreter_op_call(interpreter* inter, size_t* index) {
 	value kwrd;
 	rbt* local_words = NULL;
 	rbt_node* node = NULL;
+	vector(value)* local_memories = NULL;
 
 	if (!interpreter_pop(inter, &kwrd)) return OPERR_STACK;
 
@@ -256,6 +267,12 @@ uint32_t interpreter_op_call(interpreter* inter, size_t* index) {
 			local_words = rbt_new();
 			if (!local_words) return OPERR_CALL;
 			if (!deque_push_back(cctl_ptr(rbt), &inter->local_words_stack, local_words)) return OPERR_CALL;
+			
+			local_memories = (vector(value)*) malloc(sizeof(vector(value)));
+			if (!local_memories) return OPERR_CALL;
+			vector_init(value, local_memories);
+			if (!deque_push_back(cctl_ptr(vector(value)), &inter->local_memories_stack, local_memories)) return OPERR_CALL;
+
 			*index = node->data - 1;
 		} break;
 		case KWRD_MACRO: {
@@ -867,6 +884,23 @@ uint32_t interpreter_op_free(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
+uint32_t interpreter_op_allot(interpreter* inter, size_t* index) {
+	value v;
+	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
+
+	if (!v.u) v.p = NULL;
+	else {
+		v.p = malloc(v.u);
+		if (!v.p) return OPERR_MEMORY;
+
+		vector(value)* local_memories = *deque_back(cctl_ptr(vector(value)), &inter->local_memories_stack);
+		if (!vector_push_back(value, local_memories, v)) return OPERR_MEMORY;
+	}
+
+	if (!interpreter_push(inter, v)) return OPERR_STACK;
+	return OPERR_NONE;
+}
+
 uint32_t interpreter_op_fetch(interpreter* inter, size_t* index) {
 	value v;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
@@ -1162,6 +1196,7 @@ const uint32_t (*interpreter_op_functions[])(interpreter*, size_t*) = {
 	interpreter_op_alloc,
 	interpreter_op_resize,
 	interpreter_op_free,
+	interpreter_op_allot,
 	interpreter_op_fetch,
 	interpreter_op_store,
 	interpreter_op_stof,

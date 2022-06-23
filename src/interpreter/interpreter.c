@@ -22,6 +22,12 @@ bool interpreter_init(interpreter* inter) {
 		return false;
 	}
 
+	deque_init(cctl_ptr(vector(value)), &inter->local_memories_stack);
+	vector(value)* local_memories = (vector(value)*) malloc(sizeof(vector(value)));
+	if (!local_memories) return false;
+	vector_init(value, local_memories);
+	if (!deque_push_back(cctl_ptr(vector(value)), &inter->local_memories_stack, local_memories)) return false;
+
 	vector_init(cctl_ptr(vector(uint64_t)), &inter->struct_vector);
 
 	return true;
@@ -37,6 +43,17 @@ void interpreter_del(interpreter* inter) {
 	}
 	deque_free(cctl_ptr(rbt), &inter->local_words_stack);
 	rbt_free(inter->global_words);
+
+	for (size_t i = 0; i < inter->local_memories_stack.size; i++) {
+		vector(value)* local_memories = *deque_at(cctl_ptr(vector(value)), &inter->local_memories_stack, i);
+		
+		for (size_t j = 0; j < local_memories->size; j++) {
+			value v = *vector_at(value, local_memories, j);
+			free(v.p);
+		}
+		vector_free(value, local_memories);
+	}
+	deque_free(cctl_ptr(vector(value)), &inter->local_memories_stack);
 
 	for (size_t i = 0; i < inter->struct_vector.size; i++) {
 		vector_free(uint64_t, *vector_at(cctl_ptr(vector(uint64_t)), &inter->struct_vector, i));
@@ -137,6 +154,10 @@ bool interpreter_run(interpreter* inter) {
 				break;
 			case OPERR_UNICODE:
 				fputs("error : Unicode encoding failure\n", stderr);
+				return false;
+				break;
+			case OPERR_MEMORY:
+				fputs("error : Memory allocation failure\n", stderr);
 				return false;
 				break;
 		}

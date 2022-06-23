@@ -87,7 +87,7 @@ end
 		dup 0 >
 	while
 		swap dup fetch eval
-		1 cells + swap
+		1 cells + swap 1 -
 	end
 	2drop
 } define ( #_code Vector -- )

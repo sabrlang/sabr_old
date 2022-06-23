@@ -84,6 +84,8 @@ typedef enum opcode_enum {
 	OP_RESIZE,
 	OP_FREE,
 
+	OP_ALLOT,
+
 	OP_FETCH,
 	OP_STORE,
 
