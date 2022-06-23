@@ -57,8 +57,7 @@
 
 #cells { 8 * } define ( u -- u )
 #at { swap 8 * + } define ( u addr -- addr )
-#new { alloc } define ( u -- )
-#new!? { new dup not if } define ( u -- addr )
+#alloc~? { alloc dup not if } define ( u -- addr )
 
 #method {
 	func $this to

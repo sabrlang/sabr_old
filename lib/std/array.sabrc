@@ -33,7 +33,7 @@ defer
 	nip
 end
 
-#Array.init? { Array.init not if } define ( ... x u Array:this -- )
+#Array.init~? { Array.init not if } define ( ... x u Array:this -- )
 
 #Array.foreach {
 	dup Array.data fetch
