@@ -50,10 +50,10 @@
 
 #cr { '\n' putc } define ( -- )
 #space { ' ' putc } define ( -- )
-#nputc {
+#putcn {
 	loop dup 0 > while swap putc -- end drop
 } define ( ... c u -- )
-#nputcln { nputc cr } define ( ... c u -- )
+#putcnln { putcn cr } define ( ... c u -- )
 
 #cells { 8 * } define ( u -- u )
 #at { swap 8 * + } define ( u addr -- addr )
