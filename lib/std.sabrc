@@ -7,25 +7,25 @@
 #or { buf swap buf | } define ( x1 x2 -- b )
 #select { if drop else nip end } define ( x1 x2 b -- x )
 
-#++to { dup call ++ swap to } define ( id -- )
-#--to { dup call -- swap to } define ( id -- )
-#~to { dup call ~ swap to } define ( id -- )
+#++set { dup call ++ swap set } define ( id -- )
+#--set { dup call -- swap set } define ( id -- )
+#~set { dup call ~ swap set } define ( id -- )
 
-#+to { dup call rot + swap to } define ( n id -- )
-#-to { dup call rot - swap to } define ( n id -- )
-#*to { dup call rot * swap to } define ( n id -- )
-#/to { dup call rot / swap to } define ( n id -- )
-#%to { dup call rot % swap to } define ( n id -- )
-#f+to { dup call rot f+ swap to } define ( f id -- )
-#f-to { dup call rot f- swap to } define ( f id -- )
-#f*to { dup call rot f* swap to } define ( f id -- )
-#f/to { dup call rot f/ swap to } define ( f id -- )
-#f%to { dup call rot f% swap to } define ( f id -- )
-#<<to { dup call rot << swap to } define ( x id -- )
-#>>to { dup call rot >> swap to } define ( x id -- )
-#&to { dup call rot & swap to } define ( x id -- )
-#|to { dup call rot | swap to } define ( x id -- )
-#^to { dup call rot ^ swap to } define ( x id -- )
+#+set { dup call rot + swap set } define ( n id -- )
+#-set { dup call rot - swap set } define ( n id -- )
+#*set { dup call rot * swap set } define ( n id -- )
+#/set { dup call rot / swap set } define ( n id -- )
+#%set { dup call rot % swap set } define ( n id -- )
+#f+set { dup call rot f+ swap set } define ( f id -- )
+#f-set { dup call rot f- swap set } define ( f id -- )
+#f*set { dup call rot f* swap set } define ( f id -- )
+#f/set { dup call rot f/ swap set } define ( f id -- )
+#f%set { dup call rot f% swap set } define ( f id -- )
+#<<set { dup call rot << swap set } define ( x id -- )
+#>>set { dup call rot >> swap set } define ( x id -- )
+#&set { dup call rot & swap set } define ( x id -- )
+#|set { dup call rot | swap set } define ( x id -- )
+#^set { dup call rot ^ swap set } define ( x id -- )
 
 
 #++store { dup fetch ++ swap store } define ( addr -- )
@@ -60,22 +60,22 @@
 #alloc~? { alloc dup not if } define ( u -- addr )
 
 #method {
-	func $this to
+	func $this set
 } define ( id -- )
 
 #for {
-	trot tdup eval -- trot trot tdup #$ tswap concat eval to \ _start -- $var to
+	trot tdup eval -- trot trot tdup #$ tswap concat eval set \ _start -- $var set
 	loop
-		tdup #$ tswap concat eval dup call ++ swap to \ $var dup call ++ swap to
+		tdup #$ tswap concat eval dup call ++ swap set \ $var dup call ++ swap set
 		tdup eval tdrop tnip eval < \ _var _end <
 	while
 		\ code
 } define ( #_start #_end #_var -- )
 
 #-for {
-	trot tdup eval ++ trot trot tdup #$ tswap concat eval to \ _start ++ $var to
+	trot tdup eval ++ trot trot tdup #$ tswap concat eval set \ _start ++ $var set
 	loop
-		tdup #$ tswap concat eval dup call -- swap to \ $var dup call -- swap to
+		tdup #$ tswap concat eval dup call -- swap set \ $var dup call -- swap set
 		tdup eval tdrop tnip eval > \ _var _end <
 	while
 		\ code

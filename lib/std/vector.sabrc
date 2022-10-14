@@ -18,16 +18,16 @@ $Vector.free method ( Vector:this -- )
 end
 
 $Vector.reserve method ( u:size Vector:this -- b )
-	$size to
+	$size set
 	this Vector.capacity fetch size >= if
 		true return
 	end
-	1 $capacity to
+	1 $capacity set
 	size 0 > if
 		loop
 			capacity size <=
 		while
-			1 $capacity <<to
+			1 $capacity <<set
 		end
 	end
 	this Vector.capacity fetch size < if
@@ -43,7 +43,7 @@ $Vector.reserve method ( u:size Vector:this -- b )
 end
 
 $Vector.resize method ( u:size Vector:this -- b )
-	$size to
+	$size set
 	size this Vector.reserve if
 		size this Vector.size store
 		true
@@ -52,7 +52,7 @@ $Vector.resize method ( u:size Vector:this -- b )
 end
 
 $Vector.push_back method ( x:item Vector:this -- b )
-	$item to
+	$item set
 	this dup Vector.size fetch 1 + swap Vector.resize if
 		item this dup Vector.size fetch 1 - swap Vector.data fetch at store
 		true
