@@ -172,6 +172,23 @@ If `(value)` is equal to `(case 1)`, `(code 1)` is executed.
 If `(value)` is equal to `(case 3)` or `(case 4)`, `(code 3)` is executed.  
 If there is no matching value, `(code 4)` is executed.
 
+#### if-elif-else style
+```
+(true) switch
+	(flag 1) case (code 1) pass
+	(flag 2) case (code 2) pass
+	(flag 3) case
+	(flag 4) case
+		(code 3)
+	pass
+	(code 4)
+end
+```
+
+If `(flag 1)` is true, `(code 1)` is executed.  
+If `(flag 3)` or `(flag 4)` is true, `(code 3)` is excuted.  
+If every flag is false, `(code 4)` is executed.
+
 ### func and macro
 ```
 $(keyword) func

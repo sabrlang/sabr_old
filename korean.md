@@ -172,6 +172,23 @@ end
 만약 `(value)`의 값이 `(case 3)`또는 `(case 4)`와 같다면, `(code 3)`가 실행됩니다.  
 일치하는 값이 없다면, `(code 4)`가 실행됩니다.
 
+#### if-elif-else 스타일
+```
+(true) switch
+	(flag 1) case (code 1) pass
+	(flag 2) case (code 2) pass
+	(flag 3) case
+	(flag 4) case
+		(code 3)
+	pass
+	(code 4)
+end
+```
+
+만약 `(flag 1)`이 참이면, `(code 1)`이 실행됩니다.  
+만약 `(flag 3)` 또는 `(flag 4)`가 참이면, `(code 3)`이 실행됩니다.  
+만약 모든 플래그가 거짓이라면, `(code 4)`가 실행됩니다.
+
 ### func 와 macro
 ```
 $(keyword) func
