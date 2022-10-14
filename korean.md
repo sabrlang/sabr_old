@@ -40,20 +40,20 @@ Hello, world!
 ```
 $cr macro '\n' putc end
 $draw func
-	$count to
-	0 $i to
+	$count set
+	0 $i set
 	loop
 		i count <
 	while
-		0 $j to
+		0 $j set
 		loop
 			j i <=
 		while
 			'*' putc
-			j 1 + $j to
+			j 1 + $j set
 		end
 		cr
-		i 1 + $i to
+		i 1 + $i set
 	end
 end
 
