@@ -325,7 +325,7 @@ f = -f1
 ```
 * `call` ( id -- ? )
 ```
-10 $var to \ Define variable 'var' with an initial value of 10.
+10 $var set \ Define variable 'var' with an initial value of 10.
 $var call \ Get value of variable 'var'.
 var \ Get value of variable 'var'.
 
@@ -434,7 +434,7 @@ Pos is the name of the struct, and it has two member variables, x and y.
 To use a struct, allocate memory space equal to the size of the struct. The name of the structure returns the size of the struct.
 The members of the struct are used in the form `Pos.x`, It must be preceded by the address of a block of memory in that struct type. This will return the address of the member variable.
 ```
-Pos cells allot $p1 to \ After allocating the Pos struct, it is assigned to the p1 variable.
+Pos cells allot $p1 set \ After allocating the Pos struct, it is assigned to the p1 variable.
 50 p1 Pos.x store \ Storing the value of 50 in the member variable x of p1.
 p1 Pos.x fetch puti \ Outputs the value of the member variable x of p1.
 ```
