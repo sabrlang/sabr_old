@@ -3,7 +3,7 @@
 const char* operation_names[] = {
 	"exit",
 	"call",
-	"to",
+	"set",
 	"+",
 	"-",
 	"*",
@@ -80,7 +80,7 @@ const char* operation_names[] = {
 const opcode operation_indices[] = {
 	OP_EXIT,
 	OP_CALL,
-	OP_TO,
+	OP_SET,
 	OP_ADD,
 	OP_SUB,
 	OP_MUL,

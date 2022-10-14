@@ -39,7 +39,7 @@ uint32_t interpreter_op_struct(interpreter* inter, size_t* index);
 uint32_t interpreter_op_member(interpreter* inter, size_t* index);
 uint32_t interpreter_op_end_struct(interpreter* inter, size_t* index);
 uint32_t interpreter_op_call_member(interpreter* inter, size_t* index);
-uint32_t interpreter_op_to(interpreter* inter, size_t* index);
+uint32_t interpreter_op_set(interpreter* inter, size_t* index);
 uint32_t interpreter_op_call(interpreter* inter, size_t* index);
 uint32_t interpreter_op_add(interpreter* inter, size_t* index);
 uint32_t interpreter_op_sub(interpreter* inter, size_t* index);

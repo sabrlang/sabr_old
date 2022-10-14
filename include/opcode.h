@@ -18,7 +18,7 @@ typedef enum opcode_enum {
 	OP_MEMBER,
 	OP_END_STRUCT,
 	OP_CALL_MEMBER,
-	OP_TO,
+	OP_SET,
 	OP_CALL,
 
 	OP_ADD,

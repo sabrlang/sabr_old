@@ -22,13 +22,10 @@ bool interpreter_init(interpreter* inter) {
 		return false;
 	}
 
-	deque_init(cctl_ptr(vector(value)), &inter->local_memories_stack);
-	vector(value)* local_memories = (vector(value)*) malloc(sizeof(vector(value)));
-	if (!local_memories) return false;
-	vector_init(value, local_memories);
-	if (!deque_push_back(cctl_ptr(vector(value)), &inter->local_memories_stack, local_memories)) return false;
-
 	vector_init(cctl_ptr(vector(uint64_t)), &inter->struct_vector);
+
+	deque_init(size_t, &inter->local_memory_size_stack);
+	deque_push_back(size_t, &inter->local_memory_size_stack, 0);
 
 	return true;
 }
@@ -44,21 +41,22 @@ void interpreter_del(interpreter* inter) {
 	deque_free(cctl_ptr(rbt), &inter->local_words_stack);
 	rbt_free(inter->global_words);
 
-	for (size_t i = 0; i < inter->local_memories_stack.size; i++) {
-		vector(value)* local_memories = *deque_at(cctl_ptr(vector(value)), &inter->local_memories_stack, i);
-		
-		for (size_t j = 0; j < local_memories->size; j++) {
-			value v = *vector_at(value, local_memories, j);
-			free(v.p);
-		}
-		vector_free(value, local_memories);
-	}
-	deque_free(cctl_ptr(vector(value)), &inter->local_memories_stack);
-
 	for (size_t i = 0; i < inter->struct_vector.size; i++) {
 		vector_free(uint64_t, *vector_at(cctl_ptr(vector(uint64_t)), &inter->struct_vector, i));
 	}
 	vector_free(cctl_ptr(vector(uint64_t)), &inter->struct_vector);
+
+	deque_free(size_t, &inter->local_memory_size_stack);
+	free(inter->memory_pool);
+	inter->memory_pool = NULL;
+}
+
+bool interpreter_memory_pool_init(interpreter* inter, size_t size) {
+	inter->memory_pool = (value*) malloc(sizeof(size_t) * size);
+	inter->memory_pool_size = size;
+	inter->memory_pool_index = 0;
+	if (!inter->memory_pool) return false;
+	return true;
 }
 
 bool interpreter_load_code(interpreter* inter, char* filename) {
@@ -181,4 +179,20 @@ bool interpreter_push(interpreter* inter, value v) {
 		return false;
 	}
 	return true;
+}
+
+bool interpreter_mem_alloc(interpreter* inter, size_t size) {
+	if (inter->memory_pool_index + size >= inter->memory_pool_size) return false;
+	inter->memory_pool_index += size;
+	return true;
+}
+
+bool interpreter_mem_free(interpreter* inter, size_t size) {
+	if (inter->memory_pool_index - size < inter->memory_pool_index) return false;
+	inter->memory_pool_index -= size;
+	return true;
+}
+
+value* interpreter_mem_top(interpreter* inter) {
+	return inter->memory_pool + inter->memory_pool_index;
 }

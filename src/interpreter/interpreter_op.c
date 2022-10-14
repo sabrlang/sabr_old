@@ -113,15 +113,10 @@ uint32_t interpreter_op_return_func(interpreter* inter, size_t* index) {
 	if (!deque_pop_back(cctl_ptr(rbt), &inter->local_words_stack)) return OPERR_CALL;
 	*index = pos - 1;
 
-	vector(value)* local_memories = *deque_back(cctl_ptr(vector(value)), &inter->local_memories_stack);
-	for (size_t i = 0; i < local_memories->size; i++) {
-		value v = *vector_at(value, local_memories, i);
-		free(v.p);
-	}
-	vector_free(value, local_memories);
-	free(local_memories);
-
-	if (!deque_pop_back(cctl_ptr(vector(value)), &inter->local_memories_stack)) return OPERR_CALL;
+	size_t* local_memory_size = deque_back(size_t, &inter->local_memory_size_stack);
+	if (!local_memory_size) return OPERR_CALL;
+	if (!interpreter_mem_free(inter, *local_memory_size)) return OPERR_CALL;
+	if (!deque_pop_back(size_t, &inter->local_memory_size_stack)) return OPERR_CALL;
 
 	return OPERR_NONE;
 }
@@ -210,7 +205,7 @@ uint32_t interpreter_op_call_member(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_to(interpreter* inter, size_t* index) {
+uint32_t interpreter_op_set(interpreter* inter, size_t* index) {
 	value kwrd;
 	value v;
 	rbt* words = NULL;
@@ -232,11 +227,20 @@ uint32_t interpreter_op_to(interpreter* inter, size_t* index) {
 		node = rbt_node_new(kwrd.u);
 		if (!node) return OPERR_DEFINE;
 		node->type = KWRD_VAR;
+		
+		value* p = interpreter_mem_top(inter);
+		size_t* local_memory_size = deque_back(size_t, &inter->local_memory_size_stack);
+		if (!local_memory_size) return OPERR_MEMORY;
+		local_memory_size++;
+		if (!interpreter_mem_alloc(inter, 1)) return OPERR_MEMORY;
+		node->data = (size_t) p;
+
 		rbt_insert(words, node);
 	}
 
 	if (node->type == KWRD_VAR) {
-		node->data = v.u;
+		value* p = (value*) node->data;
+		p->u = v.u;
 	}
 	else return OPERR_INVALID_KWRD;
 
@@ -247,7 +251,6 @@ uint32_t interpreter_op_call(interpreter* inter, size_t* index) {
 	value kwrd;
 	rbt* local_words = NULL;
 	rbt_node* node = NULL;
-	vector(value)* local_memories = NULL;
 
 	if (!interpreter_pop(inter, &kwrd)) return OPERR_STACK;
 
@@ -267,11 +270,8 @@ uint32_t interpreter_op_call(interpreter* inter, size_t* index) {
 			local_words = rbt_new();
 			if (!local_words) return OPERR_CALL;
 			if (!deque_push_back(cctl_ptr(rbt), &inter->local_words_stack, local_words)) return OPERR_CALL;
-			
-			local_memories = (vector(value)*) malloc(sizeof(vector(value)));
-			if (!local_memories) return OPERR_CALL;
-			vector_init(value, local_memories);
-			if (!deque_push_back(cctl_ptr(vector(value)), &inter->local_memories_stack, local_memories)) return OPERR_CALL;
+
+			deque_push_back(size_t, &inter->local_memory_size_stack, 0);
 
 			*index = node->data - 1;
 		} break;
@@ -281,7 +281,8 @@ uint32_t interpreter_op_call(interpreter* inter, size_t* index) {
 		} break;
 		case KWRD_VAR: {
 			value v;
-			v.u = node->data;
+			value* p = (value*) node->data;
+			v.u = p->u;
 			if (!interpreter_push(inter, v)) return OPERR_STACK;
 		} break;
 		case KWRD_STRUCT: {
@@ -888,14 +889,14 @@ uint32_t interpreter_op_allot(interpreter* inter, size_t* index) {
 	value v;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
 
-	if (!v.u) v.p = NULL;
-	else {
-		v.p = malloc(v.u);
-		if (!v.p) return OPERR_MEMORY;
+	value* p = interpreter_mem_top(inter);
 
-		vector(value)* local_memories = *deque_back(cctl_ptr(vector(value)), &inter->local_memories_stack);
-		if (!vector_push_back(value, local_memories, v)) return OPERR_MEMORY;
-	}
+	size_t* local_memory_size = deque_back(size_t, &inter->local_memory_size_stack);
+	if (!local_memory_size) return OPERR_MEMORY;
+	local_memory_size += v.u / sizeof(value);
+
+	if (!interpreter_mem_alloc(inter, v.u / sizeof(value))) return OPERR_MEMORY;
+	v.p = (uint64_t*) p;
 
 	if (!interpreter_push(inter, v)) return OPERR_STACK;
 	return OPERR_NONE;
@@ -1139,7 +1140,7 @@ const uint32_t (*interpreter_op_functions[])(interpreter*, size_t*) = {
 	interpreter_op_member,
 	interpreter_op_end_struct,
 	interpreter_op_call_member,
-	interpreter_op_to,
+	interpreter_op_set,
 	interpreter_op_call,
 	interpreter_op_add,
 	interpreter_op_sub,

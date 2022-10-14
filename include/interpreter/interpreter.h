@@ -30,19 +30,31 @@ typedef struct interpreter_struct {
 	deque(size_t) call_stack;
 	rbt* global_words;
 	deque(cctl_ptr(rbt)) local_words_stack;
-	deque(cctl_ptr(vector(value))) local_memories_stack;
-	mbstate_t convert_state;
 
 	vector(cctl_ptr(vector(uint64_t))) struct_vector;
+	mbstate_t convert_state;
+
+	// deque(cctl_ptr(vector(value))) local_memories_stack;
+
+	value* memory_pool;
+	size_t memory_pool_size;
+	size_t memory_pool_index;
+	deque(size_t) local_memory_size_stack;
+
 
 } interpreter;
 
 bool interpreter_init(interpreter* inter);
 void interpreter_del(interpreter* inter);
+bool interpreter_memory_pool_init(interpreter* inter, size_t size);
 bool interpreter_load_code(interpreter* inter, char* filename);
 bool interpreter_run(interpreter* inter);
 
 bool interpreter_pop(interpreter* inter, value* v);
 bool interpreter_push(interpreter* inter, value v);
+
+bool interpreter_mem_alloc(interpreter* inter, size_t size);
+bool interpreter_mem_free(interpreter* inter, size_t size);
+value* interpreter_mem_top(interpreter* inter);
 
 #endif

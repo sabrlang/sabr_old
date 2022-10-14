@@ -11,6 +11,7 @@ int main(int argc, char* argv[]) {
 		fputs("error : No input files\n", stderr);
 		return 2;
 	}
+	interpreter_memory_pool_init(&inter, 131072);
 	interpreter_load_code(&inter, argv[1]);
 	interpreter_run(&inter);
 
