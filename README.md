@@ -334,17 +334,21 @@ $cr call \ Call macro 'cr'.
 cr \ Call macro 'cr'.
 ```
 
-
-### Memory allocation
+### Memory
+#### Dynamic memory allocation
 * `alloc` ( u -- addr )  
 Allocate *u* bytes and returns a pointer to the allocated memory.
 * `resize` ( u addr -- addr )  
 Change the size of the memory block *addr* to *u* bytes. And returns a pointer to the re-allocated memory.
 * `free` ( addr -- )  
 Free memory block *addr*.
+
+#### Local stack memory allocation
 * `allot` ( u -- addr )  
 Allocate *u* bytes from memory pool, and returns a pointer to the allocated memory.  
 The allocated memory is freed when the function call is finished.
+
+#### Memory access
 * `fetch` ( addr -- x )  
 Fetch the value that stored at *addr*.
 * `store` ( x addr -- )  
