@@ -174,7 +174,7 @@ end
 
 #### if-elif-else 스타일
 ```
-(true) switch
+(non-zero) switch
 	(flag 1) case (code 1) pass
 	(flag 2) case (code 2) pass
 	(flag 3) case

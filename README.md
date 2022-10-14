@@ -174,7 +174,7 @@ If there is no matching value, `(code 4)` is executed.
 
 #### if-elif-else style
 ```
-(true) switch
+(non-zero) switch
 	(flag 1) case (code 1) pass
 	(flag 2) case (code 2) pass
 	(flag 3) case
