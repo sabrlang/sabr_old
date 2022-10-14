@@ -301,10 +301,10 @@ f = -f1
 * `2rot` ( x1 x2 x3 x4 x5 x6 -- x3 x4 x5 x6 x1 x2 )
 
 ### Callable and Variables
-* `to` ( x id -- )  
+* `set` ( x id -- )  
 ```
-10 $var to \ Define variable 'var' with an initial value of 10.
-20 $var to \ Change the value of variable 'var' to 20.
+10 $var set \ Define variable 'var' with an initial value of 10.
+20 $var set \ Change the value of variable 'var' to 20.
 ```
 * `call` ( id -- ? )
 ```
@@ -318,13 +318,16 @@ cr \ Call macro 'cr'.
 ```
 
 
-### Dynamic allocation
+### Memory allocation
 * `alloc` ( u -- addr )  
 Allocate *u* bytes and returns a pointer to the allocated memory.
 * `resize` ( u addr -- addr )  
 Change the size of the memory block *addr* to *u* bytes. And returns a pointer to the re-allocated memory.
 * `free` ( addr -- )  
 Free memory block *addr*.
+* `allot` ( u -- addr )  
+Allocate *u* bytes from memory pool, and returns a pointer to the allocated memory.  
+The allocated memory is freed when the function call is finished.
 * `fetch` ( addr -- x )  
 Fetch the value that stored at *addr*.
 * `store` ( x addr -- )  
