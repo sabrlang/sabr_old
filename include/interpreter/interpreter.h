@@ -34,14 +34,10 @@ typedef struct interpreter_struct {
 	vector(cctl_ptr(vector(uint64_t))) struct_vector;
 	mbstate_t convert_state;
 
-	// deque(cctl_ptr(vector(value))) local_memories_stack;
-
 	value* memory_pool;
 	size_t memory_pool_size;
 	size_t memory_pool_index;
 	deque(size_t) local_memory_size_stack;
-
-
 } interpreter;
 
 bool interpreter_init(interpreter* inter);
