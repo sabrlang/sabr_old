@@ -119,7 +119,7 @@ uint32_t interpreter_op_return_func(interpreter* inter, size_t* index) {
 
 	size_t* local_memory_size = deque_back(size_t, &inter->local_memory_size_stack);
 	if (!local_memory_size) return OPERR_CALL;
-	if (!interpreter_mem_free(inter, *local_memory_size)) return OPERR_CALL;
+	if (!memory_pool_free(&inter->memory_pool, *local_memory_size)) return OPERR_CALL;
 	if (!deque_pop_back(size_t, &inter->local_memory_size_stack)) return OPERR_CALL;
 
 	return OPERR_NONE;
@@ -232,11 +232,11 @@ uint32_t interpreter_op_set(interpreter* inter, size_t* index) {
 		if (!node) return OPERR_DEFINE;
 		node->type = KWRD_VAR;
 		
-		value* p = interpreter_mem_top(inter);
+		value* p = memory_pool_top(&inter->memory_pool);
 		size_t* local_memory_size = deque_back(size_t, &inter->local_memory_size_stack);
 		if (!local_memory_size) return OPERR_MEMORY;
 		local_memory_size++;
-		if (!interpreter_mem_alloc(inter, 1)) return OPERR_MEMORY;
+		if (!memory_pool_alloc(&inter->memory_pool, 1)) return OPERR_MEMORY;
 		node->data = (size_t) p;
 
 		rbt_insert(words, node);
@@ -893,13 +893,13 @@ uint32_t interpreter_op_allot(interpreter* inter, size_t* index) {
 	value v;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
 
-	value* p = interpreter_mem_top(inter);
+	value* p = memory_pool_top(&inter->memory_pool);
 
 	size_t* local_memory_size = deque_back(size_t, &inter->local_memory_size_stack);
 	if (!local_memory_size) return OPERR_MEMORY;
 	local_memory_size += v.u / sizeof(value);
 
-	if (!interpreter_mem_alloc(inter, v.u / sizeof(value))) return OPERR_MEMORY;
+	if (!memory_pool_alloc(&inter->memory_pool, v.u / sizeof(value))) return OPERR_MEMORY;
 	v.p = (uint64_t*) p;
 
 	if (!interpreter_push(inter, v)) return OPERR_STACK;

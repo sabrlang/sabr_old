@@ -1,6 +1,10 @@
 #include "interpreter.h"
 #include "interpreter_op.h"
 
+extern inline bool memory_pool_alloc(memory_pool* pool, size_t size);
+extern inline bool memory_pool_free(memory_pool* pool, size_t size);
+extern inline value* memory_pool_top(memory_pool* pool);
+
 bool interpreter_init(interpreter* inter) {
 	setlocale(LC_ALL, "en_US.utf8");
 
@@ -191,20 +195,4 @@ bool interpreter_push(interpreter* inter, value v) {
 		return false;
 	}
 	return true;
-}
-
-bool interpreter_mem_alloc(interpreter* inter, size_t size) {
-	if (inter->memory_pool.index + size >= inter->memory_pool.size) return false;
-	inter->memory_pool.index += size;
-	return true;
-}
-
-bool interpreter_mem_free(interpreter* inter, size_t size) {
-	if (inter->memory_pool.index - size < inter->memory_pool.index) return false;
-	inter->memory_pool.index -= size;
-	return true;
-}
-
-value* interpreter_mem_top(interpreter* inter) {
-	return inter->memory_pool.data + inter->memory_pool.index;
 }

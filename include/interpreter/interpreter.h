@@ -61,8 +61,20 @@ bool interpreter_run(interpreter* inter);
 bool interpreter_pop(interpreter* inter, value* v);
 bool interpreter_push(interpreter* inter, value v);
 
-bool interpreter_mem_alloc(interpreter* inter, size_t size);
-bool interpreter_mem_free(interpreter* inter, size_t size);
-value* interpreter_mem_top(interpreter* inter);
+inline bool memory_pool_alloc(memory_pool* pool, size_t size) {
+	if (pool->index + size >= pool->size) return false;
+	pool->index += size;
+	return true;
+}
+
+inline bool memory_pool_free(memory_pool* pool, size_t size) {
+	if (pool->index - size < pool->index) return false;
+	pool->index -= size;
+	return true;
+}
+
+inline value* memory_pool_top(memory_pool* pool) {
+	return pool->data + pool->index;
+}
 
 #endif
