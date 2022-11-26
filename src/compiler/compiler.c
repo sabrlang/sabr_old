@@ -929,6 +929,10 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 								defer_ctrl = *iter;
 							} break;
 							case CTRL_RETURN: {
+								if (defer_existance) {
+									__free_func_vecs__;
+									goto FAILURE_CTRL;
+								}
 								if (!vector_push_back(control_data, &return_vec, *iter)) {
 									__free_func_vecs__;
 									goto FAILURE_CTRL_VECTOR;
