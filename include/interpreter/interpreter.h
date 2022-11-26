@@ -22,13 +22,14 @@
 
 #include "interpreter_cctl_define.h"
 
-typedef struct memory_pool_struct {
+typedef struct memory_pool_struct memory_pool;
+struct memory_pool_struct {
 	value* data;
 	size_t size;
 	size_t index;
-} memory_pool;
+};
 
-typedef struct interpreter_struct {
+struct interpreter_struct {
 	uint8_t* bytecode;
 	size_t bytecode_size;
 	deque(value) data_stack;
@@ -39,15 +40,21 @@ typedef struct interpreter_struct {
 
 	vector(cctl_ptr(vector(uint64_t))) struct_vector;
 	mbstate_t convert_state;
-
-	memory_pool stack_memory_pool;
-
+	
 	deque(size_t) local_memory_size_stack;
-} interpreter;
+	memory_pool memory_pool;
+	memory_pool global_memory_pool;
+};
+
+typedef struct interpreter_struct interpreter;
 
 bool interpreter_init(interpreter* inter);
 void interpreter_del(interpreter* inter);
-bool interpreter_memory_pool_init(interpreter* inter, size_t size);
+
+bool interpreter_memory_pool_init(interpreter* inter, size_t size, size_t global_size);
+bool memory_pool_init(memory_pool* pool, size_t size);
+void memory_pool_del(memory_pool* pool);
+
 bool interpreter_load_code(interpreter* inter, char* filename);
 bool interpreter_run(interpreter* inter);
 
