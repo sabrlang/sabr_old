@@ -47,15 +47,15 @@ void interpreter_del(interpreter* inter) {
 	vector_free(cctl_ptr(vector(uint64_t)), &inter->struct_vector);
 
 	deque_free(size_t, &inter->local_memory_size_stack);
-	free(inter->stack_memory_pool);
-	inter->stack_memory_pool = NULL;
+	free(inter->stack_memory_pool.data);
+	inter->stack_memory_pool.data = NULL;
 }
 
 bool interpreter_memory_pool_init(interpreter* inter, size_t size) {
-	inter->stack_memory_pool = (value*) malloc(sizeof(size_t) * size);
-	inter->stack_memory_pool_size = size;
-	inter->stack_memory_pool_index = 0;
-	if (!inter->stack_memory_pool) return false;
+	inter->stack_memory_pool.data = (value*) malloc(sizeof(size_t) * size);
+	inter->stack_memory_pool.size = size;
+	inter->stack_memory_pool.index = 0;
+	if (!inter->stack_memory_pool.data) return false;
 	return true;
 }
 
@@ -182,17 +182,17 @@ bool interpreter_push(interpreter* inter, value v) {
 }
 
 bool interpreter_mem_alloc(interpreter* inter, size_t size) {
-	if (inter->stack_memory_pool_index + size >= inter->stack_memory_pool_size) return false;
-	inter->stack_memory_pool_index += size;
+	if (inter->stack_memory_pool.index + size >= inter->stack_memory_pool.size) return false;
+	inter->stack_memory_pool.index += size;
 	return true;
 }
 
 bool interpreter_mem_free(interpreter* inter, size_t size) {
-	if (inter->stack_memory_pool_index - size < inter->stack_memory_pool_index) return false;
-	inter->stack_memory_pool_index -= size;
+	if (inter->stack_memory_pool.index - size < inter->stack_memory_pool.index) return false;
+	inter->stack_memory_pool.index -= size;
 	return true;
 }
 
 value* interpreter_mem_top(interpreter* inter) {
-	return inter->stack_memory_pool + inter->stack_memory_pool_index;
+	return inter->stack_memory_pool.data + inter->stack_memory_pool.index;
 }

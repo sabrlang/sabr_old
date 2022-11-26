@@ -22,6 +22,12 @@
 
 #include "interpreter_cctl_define.h"
 
+typedef struct memory_pool_struct {
+	value* data;
+	size_t size;
+	size_t index;
+} memory_pool;
+
 typedef struct interpreter_struct {
 	uint8_t* bytecode;
 	size_t bytecode_size;
@@ -34,9 +40,8 @@ typedef struct interpreter_struct {
 	vector(cctl_ptr(vector(uint64_t))) struct_vector;
 	mbstate_t convert_state;
 
-	value* stack_memory_pool;
-	size_t stack_memory_pool_size;
-	size_t stack_memory_pool_index;
+	memory_pool stack_memory_pool;
+
 	deque(size_t) local_memory_size_stack;
 } interpreter;
 
