@@ -33,6 +33,9 @@ uint32_t interpreter_op_case(interpreter* inter, size_t* index);
 uint32_t interpreter_op_end_switch(interpreter* inter, size_t* index);
 uint32_t interpreter_op_func(interpreter* inter, size_t* index);
 uint32_t interpreter_op_macro(interpreter* inter, size_t* index);
+
+uint32_t interpreter_op_callable(interpreter* inter, size_t* index);
+
 uint32_t interpreter_op_return_func(interpreter* inter, size_t* index);
 uint32_t interpreter_op_return_macro(interpreter* inter, size_t* index);
 uint32_t interpreter_op_struct(interpreter* inter, size_t* index);

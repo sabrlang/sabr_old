@@ -104,6 +104,10 @@ uint32_t interpreter_op_macro(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
+uint32_t interpreter_op_callable(interpreter* inter, size_t* index) {
+	
+}
+
 uint32_t interpreter_op_return_func(interpreter* inter, size_t* index) {
 	if (inter->call_stack.size < 1) return OPERR_CALL;
 	size_t pos = *deque_back(size_t, &inter->call_stack);
