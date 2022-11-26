@@ -214,6 +214,9 @@ uint32_t interpreter_op_set(interpreter* inter, size_t* index) {
 	value v;
 	rbt* words = NULL;
 	rbt_node* node = NULL;
+
+	bool is_global = false;
+
 	if (!interpreter_pop(inter, &kwrd)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
 
@@ -225,6 +228,7 @@ uint32_t interpreter_op_set(interpreter* inter, size_t* index) {
 		}
 		else {
 			words = inter->global_words;
+			is_global = true;
 		}
 	}
 	if (!node) {
@@ -232,11 +236,18 @@ uint32_t interpreter_op_set(interpreter* inter, size_t* index) {
 		if (!node) return OPERR_DEFINE;
 		node->type = KWRD_VAR;
 		
-		value* p = memory_pool_top(&inter->memory_pool);
-		size_t* local_memory_size = deque_back(size_t, &inter->local_memory_size_stack);
-		if (!local_memory_size) return OPERR_MEMORY;
-		local_memory_size++;
-		if (!memory_pool_alloc(&inter->memory_pool, 1)) return OPERR_MEMORY;
+		value* p;
+		if (is_global) {
+			p = memory_pool_top(&inter->global_memory_pool);
+			if (!memory_pool_alloc(&inter->global_memory_pool, 1)) return OPERR_MEMORY;
+		}
+		else {
+			p = memory_pool_top(&inter->memory_pool);
+			if (!memory_pool_alloc(&inter->memory_pool, 1)) return OPERR_MEMORY;
+			size_t* local_memory_size = deque_back(size_t, &inter->local_memory_size_stack);
+			if (!local_memory_size) return OPERR_MEMORY;
+			local_memory_size++;
+		}
 		node->data = (size_t) p;
 
 		rbt_insert(words, node);
@@ -893,13 +904,21 @@ uint32_t interpreter_op_allot(interpreter* inter, size_t* index) {
 	value v;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
 
-	value* p = memory_pool_top(&inter->memory_pool);
+	value* p;
+	size_t alloted_size = v.u / sizeof(value);
 
-	size_t* local_memory_size = deque_back(size_t, &inter->local_memory_size_stack);
-	if (!local_memory_size) return OPERR_MEMORY;
-	local_memory_size += v.u / sizeof(value);
+	if (inter->local_words_stack.size > 0) {
+		p = memory_pool_top(&inter->memory_pool);
+		size_t* local_memory_size = deque_back(size_t, &inter->local_memory_size_stack);
+		if (!local_memory_size) return OPERR_MEMORY;
+		local_memory_size += alloted_size;
+		if (!memory_pool_alloc(&inter->memory_pool, alloted_size)) return OPERR_MEMORY;
+	}
+	else {
+		p = memory_pool_top(&inter->global_memory_pool);
+		if (!memory_pool_alloc(&inter->global_memory_pool, alloted_size)) return OPERR_MEMORY;
+	}
 
-	if (!memory_pool_alloc(&inter->memory_pool, v.u / sizeof(value))) return OPERR_MEMORY;
 	v.p = (uint64_t*) p;
 
 	if (!interpreter_push(inter, v)) return OPERR_STACK;

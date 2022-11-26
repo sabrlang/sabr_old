@@ -1,6 +1,8 @@
 #include "interpreter.h"
 #include "interpreter_op.h"
 
+extern inline bool memory_pool_init(memory_pool* pool, size_t size);
+extern inline void memory_pool_del(memory_pool* pool);
 extern inline bool memory_pool_alloc(memory_pool* pool, size_t size);
 extern inline bool memory_pool_free(memory_pool* pool, size_t size);
 extern inline value* memory_pool_top(memory_pool* pool);
@@ -60,19 +62,6 @@ bool interpreter_memory_pool_init(interpreter* inter, size_t size, size_t global
 	if (!memory_pool_init(&inter->memory_pool, size)) return false;
 	if (!memory_pool_init(&inter->global_memory_pool, global_size)) return false;
 	return true;
-}
-
-bool memory_pool_init(memory_pool* pool, size_t size) {
-	pool->data = (value*) malloc(sizeof(size_t) * size);
-	pool->size = size;
-	pool->index = 0;
-	if (pool->data) return false;
-	return true;
-}
-
-void memory_pool_del(memory_pool* pool) {
-	free(pool->data);
-	pool->data = NULL;
 }
 
 bool interpreter_load_code(interpreter* inter, char* filename) {

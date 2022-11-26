@@ -52,14 +52,27 @@ bool interpreter_init(interpreter* inter);
 void interpreter_del(interpreter* inter);
 
 bool interpreter_memory_pool_init(interpreter* inter, size_t size, size_t global_size);
-bool memory_pool_init(memory_pool* pool, size_t size);
-void memory_pool_del(memory_pool* pool);
 
 bool interpreter_load_code(interpreter* inter, char* filename);
 bool interpreter_run(interpreter* inter);
 
 bool interpreter_pop(interpreter* inter, value* v);
 bool interpreter_push(interpreter* inter, value v);
+
+
+
+inline bool memory_pool_init(memory_pool* pool, size_t size) {
+	pool->data = (value*) malloc(sizeof(size_t) * size);
+	pool->size = size;
+	pool->index = 0;
+	if (pool->data) return true;
+	return false;
+}
+
+inline void memory_pool_del(memory_pool* pool) {
+	free(pool->data);
+	pool->data = NULL;
+}
 
 inline bool memory_pool_alloc(memory_pool* pool, size_t size) {
 	if (pool->index + size >= pool->size) return false;
