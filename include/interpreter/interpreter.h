@@ -34,9 +34,9 @@ typedef struct interpreter_struct {
 	vector(cctl_ptr(vector(uint64_t))) struct_vector;
 	mbstate_t convert_state;
 
-	value* memory_pool;
-	size_t memory_pool_size;
-	size_t memory_pool_index;
+	value* stack_memory_pool;
+	size_t stack_memory_pool_size;
+	size_t stack_memory_pool_index;
 	deque(size_t) local_memory_size_stack;
 } interpreter;
 

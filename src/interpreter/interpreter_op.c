@@ -105,7 +105,7 @@ uint32_t interpreter_op_macro(interpreter* inter, size_t* index) {
 }
 
 uint32_t interpreter_op_callable(interpreter* inter, size_t* index) {
-	
+	return OPERR_NONE;
 }
 
 uint32_t interpreter_op_return_func(interpreter* inter, size_t* index) {
