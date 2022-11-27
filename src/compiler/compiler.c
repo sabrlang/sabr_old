@@ -564,13 +564,13 @@ bool compiler_parse_word_token(compiler* comp, trie* trie_result) {
 		} break;
 		case WTT_KWRD: {
 			value v = trie_result->data;
-			if (!compiler_push_bytecode_with_value(comp, OP_VALUE, v)) return false;
-			if (!compiler_push_bytecode(comp, OP_CALL)) return false;
+			if (!compiler_write_bytecode_with_value(comp, OP_VALUE, v)) return false;
+			if (!compiler_write_bytecode(comp, OP_CALL)) return false;
 			result = true;
 		} break;
 		case WTT_OP: {
 			value v = trie_result->data;
-			if (!compiler_push_bytecode(comp, (opcode) (v.u))) return false;
+			if (!compiler_write_bytecode(comp, (opcode) (v.u))) return false;
 			result = true;
 		} break;
 		case WTT_DFN: {
@@ -615,13 +615,13 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			vector_init(control_data, temp_ctrl_vec);
 			if (!vector_push_back(control_data, temp_ctrl_vec, current_ctrl)) goto FAILURE_CTRL_VECTOR;
 			if (!vector_push_back(cctl_ptr(vector(control_data)), &comp->control_data_stack, temp_ctrl_vec)) goto FAILURE_CTRL_STACK;
-			if (!compiler_push_bytecode_with_null(comp, OP_IF)) return false;
+			if (!compiler_write_bytecode_with_null(comp, OP_IF)) return false;
 		} break;
 		case CTRL_ELSE: {
 			if (!comp->control_data_stack.size) goto FAILURE_CTRL;
 			temp_ctrl_vec = *vector_back(cctl_ptr(vector(control_data)), &comp->control_data_stack);
 			if (!vector_push_back(control_data, temp_ctrl_vec, current_ctrl)) goto FAILURE_CTRL_VECTOR;
-			if (!compiler_push_bytecode_with_null(comp, OP_JUMP)) return false;
+			if (!compiler_write_bytecode_with_null(comp, OP_JUMP)) return false;
 		} break;
 		case CTRL_LOOP: {
 			temp_ctrl_vec = (vector(control_data)*) malloc(sizeof(vector(control_data)));
@@ -634,14 +634,14 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			if (!comp->control_data_stack.size) goto FAILURE_CTRL;
 			temp_ctrl_vec = *vector_back(cctl_ptr(vector(control_data)), &comp->control_data_stack);
 			if (!vector_push_back(control_data, temp_ctrl_vec, current_ctrl)) goto FAILURE_CTRL_VECTOR;
-			if (!compiler_push_bytecode_with_null(comp, OP_IF)) return false;
+			if (!compiler_write_bytecode_with_null(comp, OP_IF)) return false;
 		} break;
 		case CTRL_CONTINUE:
 		case CTRL_BREAK: {
 			if (!comp->control_data_stack.size) goto FAILURE_CTRL;
 			temp_ctrl_vec = *vector_back(cctl_ptr(vector(control_data)), &comp->control_data_stack);
 			if (!vector_push_back(control_data, temp_ctrl_vec, current_ctrl)) goto FAILURE_CTRL_VECTOR;
-			if (!compiler_push_bytecode_with_null(comp, OP_JUMP)) return false;
+			if (!compiler_write_bytecode_with_null(comp, OP_JUMP)) return false;
 		} break;
 		case CTRL_SWITCH: {
 			temp_ctrl_vec = (vector(control_data)*) malloc(sizeof(vector(control_data)));
@@ -649,21 +649,21 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			vector_init(control_data, temp_ctrl_vec);
 			if (!vector_push_back(control_data, temp_ctrl_vec, current_ctrl)) goto FAILURE_CTRL_VECTOR;
 			if (!vector_push_back(cctl_ptr(vector(control_data)), &comp->control_data_stack, temp_ctrl_vec)) goto FAILURE_CTRL_STACK;
-			if (!compiler_push_bytecode(comp, OP_SWITCH)) return false;
+			if (!compiler_write_bytecode(comp, OP_SWITCH)) return false;
 		} break;
 		case CTRL_CASE: {
 			if (!comp->control_data_stack.size) goto FAILURE_CTRL;
 			temp_ctrl_vec = *vector_back(cctl_ptr(vector(control_data)), &comp->control_data_stack);
 			if (!vector_push_back(control_data, temp_ctrl_vec, current_ctrl)) goto FAILURE_CTRL_VECTOR;
-			if (!compiler_push_bytecode(comp, OP_CASE)) return false;
-			if (!compiler_push_bytecode(comp, OP_EQU)) return false;
-			if (!compiler_push_bytecode_with_null(comp, OP_IF)) return false;
+			if (!compiler_write_bytecode(comp, OP_CASE)) return false;
+			if (!compiler_write_bytecode(comp, OP_EQU)) return false;
+			if (!compiler_write_bytecode_with_null(comp, OP_IF)) return false;
 		} break;
 		case CTRL_PASS: {
 			if (!comp->control_data_stack.size) goto FAILURE_CTRL;
 			temp_ctrl_vec = *vector_back(cctl_ptr(vector(control_data)), &comp->control_data_stack);
 			if (!vector_push_back(control_data, temp_ctrl_vec, current_ctrl)) goto FAILURE_CTRL_VECTOR;
-			if (!compiler_push_bytecode_with_null(comp, OP_JUMP)) return false;
+			if (!compiler_write_bytecode_with_null(comp, OP_JUMP)) return false;
 		} break;
 		case CTRL_FUNC: {
 			temp_ctrl_vec = (vector(control_data)*) malloc(sizeof(vector(control_data)));
@@ -671,7 +671,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			vector_init(control_data, temp_ctrl_vec);
 			if (!vector_push_back(control_data, temp_ctrl_vec, current_ctrl)) goto FAILURE_CTRL_VECTOR;
 			if (!vector_push_back(cctl_ptr(vector(control_data)), &comp->control_data_stack, temp_ctrl_vec)) goto FAILURE_CTRL_STACK;
-			if (!compiler_push_bytecode_with_null(comp, OP_FUNC)) return false;
+			if (!compiler_write_bytecode_with_null(comp, OP_FUNC)) return false;
 		} break;
 		case CTRL_MACRO: {
 			temp_ctrl_vec = (vector(control_data)*) malloc(sizeof(vector(control_data)));
@@ -679,7 +679,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			vector_init(control_data, temp_ctrl_vec);
 			if (!vector_push_back(control_data, temp_ctrl_vec, current_ctrl)) goto FAILURE_CTRL_VECTOR;
 			if (!vector_push_back(cctl_ptr(vector(control_data)), &comp->control_data_stack, temp_ctrl_vec)) goto FAILURE_CTRL_STACK;
-			if (!compiler_push_bytecode_with_null(comp, OP_MACRO)) return false;
+			if (!compiler_write_bytecode_with_null(comp, OP_MACRO)) return false;
 		} break;
 		case CTRL_DEFER: {
 			if (!comp->control_data_stack.size) goto FAILURE_CTRL;
@@ -690,7 +690,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			if (!comp->control_data_stack.size) goto FAILURE_CTRL;
 			temp_ctrl_vec = *vector_back(cctl_ptr(vector(control_data)), &comp->control_data_stack);
 			if (!vector_push_back(control_data, temp_ctrl_vec, current_ctrl)) goto FAILURE_CTRL_VECTOR;
-			if (!compiler_push_bytecode_with_null(comp, OP_RETURN_FUNC)) return false;
+			if (!compiler_write_bytecode_with_null(comp, OP_RETURN_FUNC)) return false;
 		} break;
 		case CTRL_STRUCT: {
 			temp_ctrl_vec = (vector(control_data)*) malloc(sizeof(vector(control_data)));
@@ -698,13 +698,13 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			vector_init(control_data, temp_ctrl_vec);
 			if (!vector_push_back(control_data, temp_ctrl_vec, current_ctrl)) goto FAILURE_CTRL_VECTOR;
 			if (!vector_push_back(cctl_ptr(vector(control_data)), &comp->control_data_stack, temp_ctrl_vec)) goto FAILURE_CTRL_STACK;
-			if (!compiler_push_bytecode(comp, OP_STRUCT)) return false;
+			if (!compiler_write_bytecode(comp, OP_STRUCT)) return false;
 		} break;
 		case CTRL_MEMBER: {
 			if (!comp->control_data_stack.size) goto FAILURE_CTRL;
 			temp_ctrl_vec = *vector_back(cctl_ptr(vector(control_data)), &comp->control_data_stack);
 			if (!vector_push_back(control_data, temp_ctrl_vec, current_ctrl)) goto FAILURE_CTRL_VECTOR;
-			if (!compiler_push_bytecode(comp, OP_MEMBER)) return false;
+			if (!compiler_write_bytecode(comp, OP_MEMBER)) return false;
 		} break;
 		case CTRL_END: {
 			value pos;
@@ -791,7 +791,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 						}
 					}
 					pos.u = first_ctrl->pos;
-					if (!compiler_push_bytecode_with_value(comp, OP_JUMP, pos)) return false;
+					if (!compiler_write_bytecode_with_value(comp, OP_JUMP, pos)) return false;
 				} break;
 				case CTRL_SWITCH: {
 					vector(control_data) case_vec;
@@ -905,7 +905,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 
 					__free_switch_vecs__;
 					
-					if (!compiler_push_bytecode(comp, OP_END_SWITCH)) return false;
+					if (!compiler_write_bytecode(comp, OP_END_SWITCH)) return false;
 				} break;
 				case CTRL_FUNC: {
 					bool defer_existance = false;
@@ -966,7 +966,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 
 					__free_func_vecs__;
 
-					if (!compiler_push_bytecode(comp, OP_RETURN_FUNC)) return false;
+					if (!compiler_write_bytecode(comp, OP_RETURN_FUNC)) return false;
 				} break;
 				case CTRL_MACRO: {
 					bool defer_existance = false;
@@ -1028,7 +1028,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 
 					__free_func_vecs__;
 
-					if (!compiler_push_bytecode(comp, OP_RETURN_MACRO)) return false;
+					if (!compiler_write_bytecode(comp, OP_RETURN_MACRO)) return false;
 				} break;
 				case CTRL_STRUCT: {
 					for (
@@ -1044,7 +1044,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 							}
 						}
 					}
-					if (!compiler_push_bytecode(comp, OP_END_STRUCT)) return false;
+					if (!compiler_write_bytecode(comp, OP_END_STRUCT)) return false;
 				} break;
 			}
 			vector_free(control_data, temp_ctrl_vec);
@@ -1544,7 +1544,7 @@ bool compiler_parse_keyword_value(compiler* comp, char* token) {
 		}
 		word->data.u = comp->dictionary_keyword_count;
 	}
-	if (!compiler_push_bytecode_with_value(comp, OP_VALUE, word->data)) return false;
+	if (!compiler_write_bytecode_with_value(comp, OP_VALUE, word->data)) return false;
 
 	return true;
 }
@@ -1594,7 +1594,7 @@ bool compiler_parse_base_n_num(compiler* comp, char* token, size_t index, bool n
 		return false;
 	}
 
-	result = compiler_push_bytecode_with_value(comp, OP_VALUE, v);
+	result = compiler_write_bytecode_with_value(comp, OP_VALUE, v);
 
 	return result;
 }
@@ -1620,7 +1620,7 @@ bool compiler_parse_num(compiler* comp, char* token) {
 		fputs("error : Number parsing failure\n", stderr);
 		return false;
 	}
-	result = compiler_push_bytecode_with_value(comp, OP_VALUE, v);
+	result = compiler_write_bytecode_with_value(comp, OP_VALUE, v);
 
 	return result;
 }
@@ -1737,12 +1737,12 @@ bool compiler_parse_char(compiler* comp, char* token, bool push_length) {
 	}
 	
 	for (size_t i = value_reverser.size - 1; i < -1; i--) {
-		if (!compiler_push_bytecode_with_value(comp, OP_VALUE, *vector_at(value, &value_reverser, i))) return false;
+		if (!compiler_write_bytecode_with_value(comp, OP_VALUE, *vector_at(value, &value_reverser, i))) return false;
 	}
 
 	if (push_length) {
 		v.u = value_reverser.size;
-		if (!compiler_push_bytecode_with_value(comp, OP_VALUE, v)) return false;
+		if (!compiler_write_bytecode_with_value(comp, OP_VALUE, v)) return false;
 	}
 
 	vector_free(value, &value_reverser);
@@ -1780,13 +1780,13 @@ bool compiler_parse_struct_member(compiler* comp, char* token) {
 	result = compiler_parse_keyword_value(comp, find_token);
 	if (!result) return false;
 
-	if (!compiler_push_bytecode(comp, OP_CALL_MEMBER)) return false;
+	if (!compiler_write_bytecode(comp, OP_CALL_MEMBER)) return false;
 
 	token[index] = temp;
 	return true;
 }
 
-bool compiler_push_bytecode(compiler* comp, opcode op) {
+bool compiler_write_bytecode(compiler* comp, opcode op) {
 	if (!vector_push_back(uint8_t, &comp->bytecode, (uint8_t) op)) {
 		fputs("error : Bytecode memory allocation faliure\n", stderr);
 		return false;
@@ -1794,7 +1794,7 @@ bool compiler_push_bytecode(compiler* comp, opcode op) {
 	return true;
 }
 
-bool compiler_push_bytecode_with_value(compiler* comp, opcode op, value v) {
+bool compiler_write_bytecode_with_value(compiler* comp, opcode op, value v) {
 	if (!vector_push_back(uint8_t, &comp->bytecode, (uint8_t) op)) goto FAILURE;
 	for (int i = 0; i < 8; i++) {
 		if (!vector_push_back(uint8_t, &comp->bytecode, v.bytes[i])) goto FAILURE;
@@ -1806,10 +1806,10 @@ FAILURE:
 	return false;
 }
 
-bool compiler_push_bytecode_with_null(compiler* comp, opcode op) {
+bool compiler_write_bytecode_with_null(compiler* comp, opcode op) {
 	value v;
 	v.u = 0;
-	return compiler_push_bytecode_with_value(comp, op, v);
+	return compiler_write_bytecode_with_value(comp, op, v);
 }
 
 bool compiler_push_preproc_token(compiler* comp, char* token) {

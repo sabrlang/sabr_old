@@ -84,9 +84,9 @@ bool compiler_parse_num(compiler* comp, char* token);
 bool compiler_parse_char(compiler* comp, char* token, bool push_length);
 bool compiler_parsed_num_to_bytecode(compiler* comp, value v);
 bool compiler_parse_struct_member(compiler* comp, char* token);
-bool compiler_push_bytecode(compiler* comp, opcode op);
-bool compiler_push_bytecode_with_value(compiler* comp, opcode op, value v);
-bool compiler_push_bytecode_with_null(compiler* comp, opcode op);
+bool compiler_write_bytecode(compiler* comp, opcode op);
+bool compiler_write_bytecode_with_value(compiler* comp, opcode op, value v);
+bool compiler_write_bytecode_with_null(compiler* comp, opcode op);
 bool compiler_push_preproc_token(compiler* comp, char* token);
 
 inline size_t* compiler_current_column(compiler *comp) {
