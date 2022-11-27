@@ -5,7 +5,7 @@ extern inline size_t* compiler_current_column_prev(compiler* comp);
 extern inline size_t* compiler_current_line(compiler* comp);
 extern inline size_t* compiler_current_file_index(compiler* comp);
 extern inline size_t* compiler_current_filename_index(compiler* comp);
-extern inline bool* compiler_current_is_concat(compiler* comp);
+extern inline bool* compiler_is_current_token_concated(compiler* comp);
 extern inline preproc_data* compiler_last_preproc_data(compiler* comp, size_t index);
 extern inline preproc_data preproc_data_copy(preproc_data token);
 
@@ -23,7 +23,7 @@ bool compiler_init(compiler* comp) {
 	vector_init(size_t, &comp->line_count_stack);
 	vector_init(size_t, &comp->column_count_stack);
 	vector_init(size_t, &comp->column_count_prev_stack);
-	vector_init(bool, &comp->is_concat_stack);
+	vector_init(bool, &comp->is_token_concated_stack);
 	if (!vector_push_back(size_t, &comp->column_count_prev_stack, 0)) return false;
 	trie_init(&comp->dictionary);
 	trie_init(&comp->filename_trie);
@@ -81,7 +81,7 @@ bool compiler_del(compiler* comp) {
 	vector_free(size_t, &comp->line_count_stack);
 	vector_free(size_t, &comp->column_count_stack);
 	vector_free(size_t, &comp->column_count_prev_stack);
-	vector_free(bool, &comp->is_concat_stack);
+	vector_free(bool, &comp->is_token_concated_stack);
 
 	trie_del(&comp->dictionary);
 	trie_del(&comp->filename_trie);
@@ -217,7 +217,7 @@ bool compiler_save_code(compiler* comp, char* filename) {
 	return true;
 }
 
-bool compiler_push_code_data(compiler* comp, size_t line, size_t column, size_t column_prev, int code_index, size_t filename_index, bool is_concat) {
+bool compiler_push_code_data(compiler* comp, size_t line, size_t column, size_t column_prev, int code_index, size_t filename_index, bool is_concated) {
 	
 	if (!vector_push_back(size_t, &comp->line_count_stack, line)) {
 		fputs("error : Textcode line count stack memory allocation failure\n", stderr);
@@ -244,7 +244,7 @@ bool compiler_push_code_data(compiler* comp, size_t line, size_t column, size_t 
 		return false;
 	}
 
-	if (!vector_push_back(bool, &comp->is_concat_stack, is_concat)) {
+	if (!vector_push_back(bool, &comp->is_token_concated_stack, is_concated)) {
 		fputs("error : Concatenated string stack memory allocation failure\n", stderr);
 		return false;
 	}
@@ -279,7 +279,7 @@ bool compiler_pop_code_data(compiler* comp) {
 		return false;
 	}
 
-	if (!vector_pop_back(bool, &comp->is_concat_stack)) {
+	if (!vector_pop_back(bool, &comp->is_token_concated_stack)) {
 		fputs("error : Concatenated string stack memory allocation failure\n", stderr);
 		return false;
 	}
@@ -312,7 +312,7 @@ bool compiler_tokenize(compiler* comp) {
 	while (*iterator) {
 		switch (*iterator) {
 			case '\n': 
-				if (!*compiler_current_is_concat(comp)) {
+				if (!*compiler_is_current_token_concated(comp)) {
 					(*compiler_current_line(comp))++;
 					*compiler_current_column_prev(comp) = (*compiler_current_column(comp));
 					(*compiler_current_column(comp)) = 0;
@@ -467,7 +467,7 @@ bool compiler_tokenize(compiler* comp) {
 		iterator++;
 		
 		if (((signed char) *iterator) >= -64) {
-			if (!*compiler_current_is_concat(comp)) {
+			if (!*compiler_is_current_token_concated(comp)) {
 				(*compiler_current_column(comp))++;
 			}
 		}
@@ -546,7 +546,7 @@ bool compiler_parse(compiler* comp, char* begin, char* end) {
 			(*compiler_current_line(comp)),
 			(*compiler_current_column(comp))
 		);
-		if (*compiler_current_is_concat(comp))
+		if (*compiler_is_current_token_concated(comp))
 			fprintf(stderr, ", " console_cyan "Concatenated token" console_reset);
 		fputc(10, stderr);
 	}
@@ -579,7 +579,7 @@ bool compiler_parse_word_token(compiler* comp, trie* trie_result) {
 				&comp->macro_vector,
 				trie_result->data.u
 			);
-			if (!compiler_push_code_data(comp, macro->line, macro->column, *compiler_current_column_prev(comp), macro->code_index, macro->filename_index, macro->is_concat)) return false;
+			if (!compiler_push_code_data(comp, macro->line, macro->column, *compiler_current_column_prev(comp), macro->code_index, macro->filename_index, macro->is_concated)) return false;
 			if (!compiler_tokenize(comp)) {
 				fputs("error : Tokenization failure\n", stderr);
 				if (!compiler_pop_code_data(comp)) return false;
@@ -990,6 +990,10 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 								defer_ctrl = *iter;
 							} break;
 							case CTRL_RETURN: {
+								if (defer_existance) {
+									__free_func_vecs__;
+									goto FAILURE_CTRL;
+								}
 								*vector_at(uint8_t, &comp->bytecode, iter->pos) = OP_RETURN_MACRO;
 								if (!vector_push_back(control_data, &return_vec, *iter)) {
 									__free_func_vecs__;
@@ -1197,7 +1201,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			macro.line = code->line;
 			macro.code_index = comp->textcode_vector.size;
 			macro.filename_index = code->filename_index;
-			macro.is_concat = code->is_concat;
+			macro.is_concated = code->is_concated;
 
 			if (!vector_push_back(macro_data, &comp->macro_vector, macro)) {
 				fputs("error : Macro vector memory allocation faliure\n", stderr);
@@ -1242,7 +1246,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 
 			if (!compiler_push_code_data(
 				comp, token->line, token->column, *compiler_current_column_prev(comp),
-				index, *compiler_current_filename_index(comp), token->is_concat)
+				index, *compiler_current_filename_index(comp), token->is_concated)
 			) return false;
 
 			free(token->code);
@@ -1282,7 +1286,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			data.line = 0;
 			data.column = *compiler_current_column(comp);
 			data.line = *compiler_current_line(comp);
-			data.is_concat = true;
+			data.is_concated = true;
 
 			free(token_front->code);
 			free(token_back->code);
@@ -1822,7 +1826,7 @@ bool compiler_push_preproc_token(compiler* comp, char* token) {
 	data.code = new_token;
 	data.code_index = *compiler_current_file_index(comp);
 	data.filename_index = *compiler_current_filename_index(comp);
-	data.is_concat = false;
+	data.is_concated = false;
 	data.column = 0;
 	while (true) {
 		if (*temp == '\n') break;
