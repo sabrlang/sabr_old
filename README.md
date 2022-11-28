@@ -345,8 +345,8 @@ Free memory block *addr*.
 
 #### Local stack memory allocation
 * `allot` ( u -- addr )  
-Allocate *u* bytes from memory pool, and returns a pointer to the allocated memory.  
-The allocated memory is freed when the function call is finished.
+Reserve *u* bytes from memory pool, and returns a pointer to the reserved memory.  
+The reserved memory is released when the function call is finished.
 
 #### Memory access
 * `fetch` ( addr -- x )  
