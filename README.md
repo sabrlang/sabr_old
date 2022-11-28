@@ -333,19 +333,24 @@ $cr macro 10 putc end \ Define macro 'cr'.
 $cr call \ Call macro 'cr'.
 cr \ Call macro 'cr'.
 ```
+* `address` ( id -- addr ) *not implemented*  
+If *id* is a variable, return address of variable *id*. 
+* `ref` ( addr id -- ) *not implemented*  
+Declare a variable *id* that refers to address *addr*.  
+If *addr* is 0, an error occurs.
 
 ### Memory
 #### Dynamic memory allocation
 * `alloc` ( u -- addr )  
-Allocate *u* bytes and returns a pointer to the allocated memory.
+Allocate *u* bytes and return a pointer to the allocated memory.
 * `resize` ( u addr -- addr )  
-Change the size of the memory block *addr* to *u* bytes. And returns a pointer to the re-allocated memory.
+Change the size of the memory block *addr* to *u* bytes. And return a pointer to the re-allocated memory.
 * `free` ( addr -- )  
 Free memory block *addr*.
 
 #### Local stack memory allocation
 * `allot` ( u -- addr )  
-Reserve *u* bytes from memory pool, and returns a pointer to the reserved memory.  
+Reserve *u* bytes from memory pool, and return a pointer to the reserved memory.  
 The reserved memory is released when the function call is finished.
 
 #### Memory access
@@ -431,7 +436,7 @@ end
 ```
 Pos is the name of the struct, and it has two member variables, x and y.
 
-To use a struct, allocate memory space equal to the size of the struct. The name of the structure returns the size of the struct.
+To use a struct, allocate memory space equal to the size of the struct. The name of the structure return the size of the struct.
 The members of the struct are used in the form `Pos.x`, It must be preceded by the address of a block of memory in that struct type. This will return the address of the member variable.
 ```
 Pos cells allot $p1 set \ After allocating the Pos struct, it is assigned to the p1 variable.
