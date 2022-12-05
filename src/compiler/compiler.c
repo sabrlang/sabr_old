@@ -103,8 +103,8 @@ bool compiler_compile(compiler* comp, char* input_filename, char* output_filenam
 }
 
 bool compiler_compile_source(compiler* comp, char* input_filename) {
-	int index = compiler_load_code(comp, input_filename);
-	if (!index) {
+	size_t index;
+	if (!compiler_load_code(comp, input_filename, &index)) {
 		fputs("error : Loading code failure\n", stderr);
 		return false;
 	}
@@ -118,86 +118,128 @@ bool compiler_compile_source(compiler* comp, char* input_filename) {
 	return true;
 }
 
-size_t compiler_load_code(compiler* comp, char* filename) {
+bool compiler_load_code(compiler* comp, char* filename, size_t* const index) {
 	FILE* file;
 	size_t size;
 
-	char filename_full[PATH_MAX];
+	char filename_full[PATH_MAX] = {0, };
 
 #if defined(_WIN32)
-	if (!(_fullpath(filename_full, filename, PATH_MAX))) goto FAILURE_FILEPATH;
+	wchar_t filename_windows[PATH_MAX] = {0, };
+	wchar_t filename_full_windows[PATH_MAX] = {0, };
+
+	char* u8_cvt_iter = filename;
+	wchar_t* store_iter = filename_windows;
+	const char* end = filename + strlen(filename);
+
+	while (true) {
+		char16_t out;
+		size_t rc = mbrtoc16(
+			&out,
+			u8_cvt_iter,
+			end - u8_cvt_iter + 1,
+			&(comp->convert_state)
+		);
+		if (!rc) break;
+		if (rc == (size_t) -3) {
+			store_iter++;
+		}
+		if (rc > (size_t) -3) goto FAILURE_FILEPATH;
+
+		u8_cvt_iter += rc;
+		*store_iter = out;
+		store_iter++;
+	}
+
+	if (!_wfullpath(filename_full_windows, filename_windows, PATH_MAX)) goto FAILURE_FILEPATH;
+	if (!_fullpath(filename_full, filename, PATH_MAX)) goto FAILURE_FILEPATH;
+	file = _wfopen(filename_full_windows, L"rb");
 #else
 	if (!(realpath(filename, filename_full))) goto FAILURE_FILEPATH;
+	file = fopen(filename_full, "rb");
 #endif
 
-	file = fopen(filename_full, "rb");
-	if (!file) {
-		fprintf(stderr, console_yellow console_bold "%s" console_reset "\n", filename_full);
-		fputs("error : File reading failure\n", stderr);
-		return 0;
-	}
+	if (!file) goto FAILURE_LOAD_FILE;
 
 	fseek(file, 0, SEEK_END);
 	size = ftell(file);
 	rewind(file);
 
-	int filename_size = strlen(filename_full) + 1;
-
 	char* textcode = (char*) malloc(size + 3);
+	
+	int filename_size = strlen(filename_full) + 1;
 	char* filename_full_new = (char*) malloc(filename_size);
-	if (!(textcode && filename_full_new)) {
-		fclose(file);
-		fputs("error : Textcode memory allocation failure\n", stderr);
-		return 0;
-	}
 
+	if (!(textcode && filename_full_new)) goto FAILURE_ALLOC;
+	
 	int read_result = fread(textcode, size, 1, file);
-	if (read_result != 1) {
-		free(textcode);
-		fclose(file);
-		fputs("error : Entire reading failure\n", stderr);
-		return 0;
-	}
+	if (read_result != 1) goto FAILURE_FILE_READ;
 
 	textcode[size] = '\n';
 	textcode[size + 1] = '\n';
 	textcode[size + 2] = '\0';
 
-#if defined(_WIN32)
-	memcpy_s(filename_full_new, filename_size, filename_full, filename_size);
-#else
-	memcpy(filename_full_new, filename_full, filename_size);
-#endif
+	#if defined(_WIN32)
+		memcpy_s(filename_full_new, filename_size, filename_full, filename_size);
+	#else
+		memcpy(filename_full_new, filename_full, filename_size);
+	#endif
 
 	trie* filename_trie_result;
 	bool already_imported = false;
 	filename_trie_result = trie_find(&comp->filename_trie, filename_full_new);
 	if (filename_trie_result) {
-		if (filename_trie_result->type == (uint8_t) true) already_imported = true;
+		already_imported = (filename_trie_result->type == (uint8_t) true);
 	}
-	if (!already_imported) filename_trie_result = trie_insert(&comp->filename_trie, filename_full_new, (uint8_t) true);
+	if (!already_imported) filename_trie_result = trie_insert(
+		&comp->filename_trie,
+		filename_full_new,
+		(uint8_t) true
+	);
+
+	if (!filename_trie_result) goto FAILURE_TRIE_ALLOC;
 
 	if (!(
-			vector_push_back(cctl_ptr(char), &comp->textcode_vector, textcode) &&
-			vector_push_back(cctl_ptr(char), &comp->filename_vector, filename_full_new) &&
-			filename_trie_result
-		)) {
-		free(textcode);
-		free(filename_full_new);
-		fclose(file);
-		fputs("error : Textcode vector memory allocation failure\n", stderr);
-		return 0;
-	}
+		vector_push_back(cctl_ptr(char), &comp->textcode_vector, textcode) &&
+		vector_push_back(cctl_ptr(char), &comp->filename_vector, filename_full_new) 
+	)) goto FAILURE_VECTOR_ALLOC;
 
-	filename_trie_result->data.u = comp->textcode_vector.size - 1;
+	*index = comp->textcode_vector.size - 1;
+	filename_trie_result->data.u = *index;
 
 	fclose(file);
 
-	return comp->textcode_vector.size;
+	return true;
 
 FAILURE_FILEPATH:
+	return false;
+
+FAILURE_LOAD_FILE:
 	fprintf(stderr, console_yellow console_bold "%s" console_reset "\n", filename_full);
-	fprintf(stderr, "error : %s\n", strerror(errno));
+	fputs("error : File reading failure\n", stderr);
+	return false;
+
+FAILURE_ALLOC:
+	fputs("error : Textcode and filename string memory allocation failure\n", stderr);
+	fclose(file);
+	return false;
+
+FAILURE_FILE_READ:
+	fputs("error : Entire reading failure\n", stderr);
+	goto ALL_FREE;
+
+FAILURE_TRIE_ALLOC:
+	fputs("error : Filename trie memory allocation failure\n", stderr);
+	goto ALL_FREE;
+
+FAILURE_VECTOR_ALLOC:
+	fputs("error : Textcode and filename vector memory allocation failure\n", stderr);
+	goto ALL_FREE;
+
+ALL_FREE:
+	free(textcode);
+	free(filename_full_new);
+	fclose(file);
 	return 0;
 }
 
@@ -217,7 +259,7 @@ bool compiler_save_code(compiler* comp, char* filename) {
 	return true;
 }
 
-bool compiler_push_code_data(compiler* comp, size_t line, size_t column, size_t column_prev, int code_index, size_t filename_index, bool is_concated) {
+bool compiler_push_code_data(compiler* comp, size_t line, size_t column, size_t column_prev, size_t code_index, size_t filename_index, bool is_concated) {
 	
 	if (!vector_push_back(size_t, &comp->line_count_stack, line)) {
 		fputs("error : Textcode line count stack memory allocation failure\n", stderr);
@@ -234,7 +276,8 @@ bool compiler_push_code_data(compiler* comp, size_t line, size_t column, size_t 
 		return false;
 	}
 
-	if (!vector_push_back(size_t, &comp->textcode_index_stack, code_index - 1)) {
+	printf("code_index = %zu\n", code_index);
+	if (!vector_push_back(size_t, &comp->textcode_index_stack, code_index)) {
 		fputs("error : Textcode index stack memory allocation failure\n", stderr);
 		return false;
 	}
@@ -1199,7 +1242,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			macro_data macro;
 			macro.column = code->column;
 			macro.line = code->line;
-			macro.code_index = comp->textcode_vector.size;
+			macro.code_index = comp->textcode_vector.size - 1;
 			macro.filename_index = code->filename_index;
 			macro.is_concated = code->is_concated;
 
