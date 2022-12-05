@@ -276,7 +276,6 @@ bool compiler_push_code_data(compiler* comp, size_t line, size_t column, size_t 
 		return false;
 	}
 
-	printf("code_index = %zu\n", code_index);
 	if (!vector_push_back(size_t, &comp->textcode_index_stack, code_index)) {
 		fputs("error : Textcode index stack memory allocation failure\n", stderr);
 		return false;
@@ -1285,7 +1284,7 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 				return false;
 			}
 
-			size_t index = comp->textcode_vector.size;
+			size_t index = comp->textcode_vector.size - 1;
 
 			if (!compiler_push_code_data(
 				comp, token->line, token->column, *compiler_current_column_prev(comp),
