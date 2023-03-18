@@ -101,7 +101,8 @@ Sabr has no type checking. All stack values are 8 bytes wide.
 * `addr` : Address
 * `id` : Identifier
 ## Control
-### if statements
+### Conditionals
+#### if statements
 False is 0, and true is non-zero values.
 
 ```
@@ -123,7 +124,7 @@ If `(flag)` is true, `(code 1)` is executed.
 If `(flag)` is false, `(code 2)` is executed.
 
 
-### switch statements
+#### switch statements
 ```
 (value) switch
 	(case 1) case (code 1) pass
@@ -141,7 +142,7 @@ If `(value)` is equal to `(case 1)`, `(code 1)` is executed.
 If `(value)` is equal to `(case 3)` or `(case 4)`, `(code 3)` is executed.  
 If there is no matching value, `(code 4)` is executed.
 
-#### if-elif-else style
+##### if-elif-else style
 ```
 (non-zero) switch
 	(flag 1) case (code 1) pass
