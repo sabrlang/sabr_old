@@ -109,7 +109,70 @@ uint32_t interpreter_op_for_step(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
+uint32_t interpreter_op_for_incjmp(interpreter* inter, size_t* index) {
+	for_data* data = NULL;
+	value pos;
+
+	for (int i = 0; i < 8; i++) {
+		pos.bytes[i] = inter->bytecode[++(*index)];
+	}
+	*index = pos.u - 1;
+	
+	data = deque_back(for_data, &inter->for_data_stack);
+
+	value* v = interpreter_get_variable_addr(inter, data->variable_kwrd);
+	if (!v) return OPERR_UNDEFINED;
+
+	switch (data->foty) {
+		case FOTY_I:
+			v->i += data->step.i;
+			break;
+		case FOTY_U:
+			v->u += data->step.u;
+			break;
+		case FOTY_F:
+			v->f += data->step.f;
+			break;
+	}
+
+	return OPERR_NONE;
+}
+
 uint32_t interpreter_op_for_check(interpreter* inter, size_t* index) {
+	for_data* data = NULL;
+	value pos;
+
+	data = deque_back(for_data, &inter->for_data_stack);
+
+	for (int i = 0; i < 8; i++) {
+		pos.bytes[i] = inter->bytecode[++(*index)];
+	}
+
+	value* v = interpreter_get_variable_addr(inter, data->variable_kwrd);
+	if (!v) return OPERR_UNDEFINED;
+
+	bool result = false;
+	switch (data->foty) {
+		case FOTY_I:
+			result = (data->step.i > 0) ? data->end.i < v->i : data->end.i > v->i;
+			break;
+		case FOTY_U:
+			result = (data->step.u > 0) ? data->end.u < v->u : data->end.u > v->u;
+			break;
+		case FOTY_F:
+			result = (data->step.f > 0.0) ? data->end.f < v->f : data->end.f > v->f;
+			break;
+	}
+
+	if (result) {
+		*index = pos.u - 1;
+	}
+
+	return OPERR_NONE;
+}
+
+uint32_t interpreter_op_end_for(interpreter* inter, size_t* index) {
+	if (!deque_pop_back(for_data, &inter->for_data_stack)) return OPERR_FOR;
 
 	return OPERR_NONE;
 }
@@ -341,56 +404,9 @@ uint32_t interpreter_op_set(interpreter* inter, size_t* index) {
 
 uint32_t interpreter_op_call(interpreter* inter, size_t* index) {
 	value kwrd;
-	rbt* local_words = NULL;
-	rbt_node* node = NULL;
 
 	if (!interpreter_pop(inter, &kwrd)) return OPERR_STACK;
-
-	node = rbt_search(inter->global_words, kwrd.u);
-	if (!node) {
-		if (inter->local_words_stack.size > 0) {
-			local_words = *deque_back(cctl_ptr(rbt), &inter->local_words_stack);
-			node = rbt_search(local_words, kwrd.u);
-		}
-	}
-
-	if (!node) return OPERR_UNDEFINED;
-	
-	cs_data csd;
-
-	switch (node->type) {
-		case KWRD_FUNC: {
-			csd.pos = *index + 1;
-			if (!deque_push_back(cs_data, &inter->call_stack, csd)) return OPERR_CALL;
-			local_words = rbt_new();
-			if (!local_words) return OPERR_CALL;
-			if (!deque_push_back(cctl_ptr(rbt), &inter->local_words_stack, local_words)) return OPERR_CALL;
-
-			deque_push_back(size_t, &inter->local_memory_size_stack, 0);
-
-			*index = node->data - 1;
-		} break;
-		case KWRD_MACRO: {
-			csd.pos = *index + 1;
-			if (!deque_push_back(cs_data, &inter->call_stack, csd)) return OPERR_CALL;
-			*index = node->data - 1;
-		} break;
-		case KWRD_VAR: {
-			value v;
-			value* p = (value*) node->data;
-			v.u = p->u;
-			if (!interpreter_push(inter, v)) return OPERR_STACK;
-		} break;
-		case KWRD_STRUCT: {
-			value v;
-			vector(uint64_t)* temp_struct = *vector_at(cctl_ptr(vector(uint64_t)), &inter->struct_vector, node->data);
-			if (!temp_struct) return OPERR_STRUCT;
-			v.u = temp_struct->size * sizeof(value);
-			if (!interpreter_push(inter, v)) return OPERR_STACK;
-		} break;
-	}
-
-	return OPERR_NONE;
+	return interpreter_call_kwrd(inter, index, kwrd);
 }
 
 uint32_t interpreter_op_add(interpreter* inter, size_t* index) {

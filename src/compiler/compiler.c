@@ -951,13 +951,15 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 						iter <= vector_back(control_data, &continue_vec);
 						iter++
 					) {
+						*vector_at(uint8_t, &comp->bytecode, iter->pos) = OP_FOR_INCJMP;
 						for (int i = 0; i < 8; i++) {
 							*vector_at(uint8_t, &comp->bytecode, iter->pos + 1 + i) = check_pos.bytes[i];
 						}
 					}
 
 					__free_for_vecs__;
-					if (!compiler_write_bytecode_with_value(comp, OP_JUMP, pos)) return false;
+					if (!compiler_write_bytecode_with_value(comp, OP_FOR_INCJMP, pos)) return false;
+					if (!compiler_write_bytecode(comp, OP_END_FOR)) return false;
 					
 					#undef __free_for_vecs__
 				} break;

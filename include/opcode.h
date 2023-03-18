@@ -13,6 +13,8 @@ typedef enum opcode_enum {
 	OP_FOR_TO,
 	OP_FOR_STEP,
 	OP_FOR_CHECK,
+	OP_FOR_INCJMP,
+	OP_END_FOR,
 
 	OP_SWITCH,
 	OP_CASE,

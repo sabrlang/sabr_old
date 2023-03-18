@@ -27,16 +27,22 @@ extern const uint32_t (*interpreter_op_functions[])(interpreter*, size_t*);
 
 uint32_t interpreter_op_exit(interpreter* inter, size_t* index);
 uint32_t interpreter_op_value(interpreter* inter, size_t* index);
+
 uint32_t interpreter_op_if(interpreter* inter, size_t* index);
 uint32_t interpreter_op_jump(interpreter* inter, size_t* index);
+
 uint32_t interpreter_op_for(interpreter* inter, size_t* index);
 uint32_t interpreter_op_for_from(interpreter* inter, size_t* index);
 uint32_t interpreter_op_for_to(interpreter* inter, size_t* index);
 uint32_t interpreter_op_for_step(interpreter* inter, size_t* index);
 uint32_t interpreter_op_for_check(interpreter* inter, size_t* index);
+uint32_t interpreter_op_for_incjmp(interpreter* inter, size_t* index);
+uint32_t interpreter_op_end_for(interpreter* inter, size_t* index);
+
 uint32_t interpreter_op_switch(interpreter* inter, size_t* index);
 uint32_t interpreter_op_case(interpreter* inter, size_t* index);
 uint32_t interpreter_op_end_switch(interpreter* inter, size_t* index);
+
 uint32_t interpreter_op_func(interpreter* inter, size_t* index);
 uint32_t interpreter_op_macro(interpreter* inter, size_t* index);
 
