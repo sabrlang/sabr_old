@@ -19,7 +19,8 @@ bool interpreter_init(interpreter* inter) {
 
 	deque_init(value, &inter->data_stack);
 	deque_init(value, &inter->switch_stack);
-	deque_init(size_t, &inter->call_stack);
+	deque_init(for_data, &inter->for_data_stack);
+	deque_init(cs_data, &inter->call_stack);
 
 	deque_init(cctl_ptr(rbt), &inter->local_words_stack);
 	inter->global_words = rbt_new();
@@ -29,7 +30,6 @@ bool interpreter_init(interpreter* inter) {
 	}
 
 	vector_init(cctl_ptr(vector(uint64_t)), &inter->struct_vector);
-	vector_init(for_data, &inter->for_data_stack);
 
 	deque_init(size_t, &inter->local_memory_size_stack);
 	deque_push_back(size_t, &inter->local_memory_size_stack, 0);
@@ -40,7 +40,8 @@ bool interpreter_init(interpreter* inter) {
 void interpreter_del(interpreter* inter) {
 	deque_free(value, &inter->data_stack);
 	deque_free(value, &inter->switch_stack);
-	deque_free(size_t, &inter->call_stack);
+	deque_free(for_data, &inter->for_data_stack);
+	deque_free(cs_data, &inter->call_stack);
 	
 	for (size_t i = 0; i < inter->local_words_stack.size; i++) {
 		rbt_free(*deque_at(cctl_ptr(rbt), &inter->local_words_stack, i));
@@ -52,7 +53,6 @@ void interpreter_del(interpreter* inter) {
 		vector_free(uint64_t, *vector_at(cctl_ptr(vector(uint64_t)), &inter->struct_vector, i));
 	}
 	vector_free(cctl_ptr(vector(uint64_t)), &inter->struct_vector);
-	vector_free(for_data, &inter->for_data_stack);
 
 	deque_free(size_t, &inter->local_memory_size_stack);
 

@@ -10,5 +10,5 @@ deque_imp_c(cctl_ptr(vector(value)));
 vector_imp_c(uint64_t);
 vector_imp_c(cctl_ptr(vector(uint64_t)));
 
-vector_imp_c(for_data);
-vector_imp_c(cs_data);
+deque_imp_c(for_data);
+deque_imp_c(cs_data);

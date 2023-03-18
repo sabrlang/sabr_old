@@ -23,7 +23,7 @@ struct for_data_struct {
 
 typedef struct cs_data_struct cs_data;
 struct cs_data_struct {
-	size_t code_index;
+	size_t pos;
 	size_t switch_stack_index;
 	size_t for_data_stack_index;
 };

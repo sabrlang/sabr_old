@@ -35,8 +35,8 @@ struct interpreter_struct {
 	size_t bytecode_size;
 	deque(value) data_stack;
 	deque(value) switch_stack;
-	vector(for_data) for_data_stack;
-	deque(size_t) call_stack;
+	deque(for_data) for_data_stack;
+	deque(cs_data) call_stack;
 	rbt* global_words;
 	deque(cctl_ptr(rbt)) local_words_stack;
 
