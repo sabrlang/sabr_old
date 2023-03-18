@@ -22,7 +22,7 @@
 	void node_func(init, TYPE)(node(TYPE)* p_node);
 
 #define node_imp_c(TYPE) \
-	extern inline void node_func(init, TYPE)(node(TYPE)* p_node) { \
+	void node_func(init, TYPE)(node(TYPE)* p_node) { \
 		p_node->p_prev = p_node->p_next = NULL; \
 	}
 
@@ -59,12 +59,12 @@
 #define list_imp_c(TYPE) \
 	node_imp_c(TYPE) \
 	\
-	extern inline void list_func(init, TYPE)(list(TYPE)* p_l) { \
+	void list_func(init, TYPE)(list(TYPE)* p_l) { \
 		p_l->p_front = p_l->p_back = NULL; \
 		p_l->size = 0; \
 	} \
 	\
-	extern inline void list_func(free, TYPE)(list(TYPE)* p_l) { \
+	void list_func(free, TYPE)(list(TYPE)* p_l) { \
 		while (p_l->size) { \
 			list_func(pop_back, TYPE)(p_l); \
 		} \

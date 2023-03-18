@@ -68,20 +68,20 @@
 		return false; \
 	} \
 	\
-	extern inline void vector_func(init, TYPE)(vector(TYPE)* p_v) { \
+	void vector_func(init, TYPE)(vector(TYPE)* p_v) { \
 		p_v->p_data = NULL; \
 		p_v->size = 0; \
 		p_v->capacity = 0; \
 		return; \
 	} \
 	\
-	extern inline void vector_func(clear, TYPE)(vector(TYPE)* p_v) { \
+	void vector_func(clear, TYPE)(vector(TYPE)* p_v) { \
 		memset(p_v->p_data, 0, p_v->size * sizeof(TYPE)); \
 		p_v->size = 0; \
 		return; \
 	} \
 	\
-	extern inline void vector_func(free, TYPE)(vector(TYPE)* p_v) { \
+	void vector_func(free, TYPE)(vector(TYPE)* p_v) { \
 		vector_func(clear, TYPE)(p_v); \
 		free(p_v->p_data); \
 		vector_func(init, TYPE)(p_v); \
@@ -103,15 +103,15 @@
 		return true; \
 	} \
 	\
-	extern inline TYPE* vector_func(at, TYPE)(vector(TYPE)* p_v, size_t index) { \
+	TYPE* vector_func(at, TYPE)(vector(TYPE)* p_v, size_t index) { \
 		return p_v->p_data + index; \
 	} \
 	\
-	extern inline TYPE* vector_func(front, TYPE)(vector(TYPE)* p_v) { \
+	TYPE* vector_func(front, TYPE)(vector(TYPE)* p_v) { \
 		return p_v->p_data; \
 	} \
 	\
-	extern inline TYPE* vector_func(back, TYPE)(vector(TYPE)* p_v) { \
+	TYPE* vector_func(back, TYPE)(vector(TYPE)* p_v) { \
 		return p_v->p_data + p_v->size - 1; \
 	}
 

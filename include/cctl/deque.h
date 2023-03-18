@@ -63,7 +63,7 @@
 		return true; \
 	} \
 	\
-	extern inline void chunk_func(init, TYPE)(chunk(TYPE)* p_c) { \
+	void chunk_func(init, TYPE)(chunk(TYPE)* p_c) { \
 		p_c->p_data = NULL; \
 		p_c->begin = 0; \
 		p_c->end = -1; \
@@ -73,7 +73,7 @@
 		return; \
 	} \
 	\
-	extern inline void chunk_func(clear, TYPE)(chunk(TYPE)* p_c) { \
+	void chunk_func(clear, TYPE)(chunk(TYPE)* p_c) { \
 		memset(p_c->p_data, 0, p_c->capacity * sizeof(TYPE)); \
 		p_c->begin = 0; \
 		p_c->end = -1; \
@@ -81,7 +81,7 @@
 		return; \
 	} \
 	\
-	extern inline void chunk_func(free, TYPE)(chunk(TYPE)* p_c) { \
+	void chunk_func(free, TYPE)(chunk(TYPE)* p_c) { \
 		free(p_c->p_data); \
 		chunk_func(init, TYPE)(p_c); \
 		return; \
@@ -136,11 +136,11 @@
 		return p_c->p_data + p_c->begin + index; \
 	} \
 	\
-	extern inline TYPE* chunk_func(front, TYPE)(chunk(TYPE)* p_c) { \
+	TYPE* chunk_func(front, TYPE)(chunk(TYPE)* p_c) { \
 		return p_c->p_data + p_c->begin; \
 	} \
 	\
-	extern inline TYPE* chunk_func(back, TYPE)(chunk(TYPE)* p_c) { \
+	TYPE* chunk_func(back, TYPE)(chunk(TYPE)* p_c) { \
 		return p_c->p_data + p_c->end; \
 	}
 
@@ -278,11 +278,11 @@
 		return p_d->p_data + p_d->chunk_begin + index; \
 	} \
 	\
-	extern inline chunk(TYPE)* deque_chunk_func(front, TYPE)(deque(TYPE)* p_d) { \
+	chunk(TYPE)* deque_chunk_func(front, TYPE)(deque(TYPE)* p_d) { \
 		return p_d->p_data + p_d->chunk_begin; \
 	} \
 	\
-	extern inline chunk(TYPE)* deque_chunk_func(back, TYPE)(deque(TYPE)* p_d) { \
+	chunk(TYPE)* deque_chunk_func(back, TYPE)(deque(TYPE)* p_d) { \
 		return p_d->p_data + p_d->chunk_end; \
 	} \
 	\
@@ -303,7 +303,7 @@
 		return true; \
 	} \
 	\
-	extern inline void deque_func(init, TYPE)(deque(TYPE)* p_d) { \
+	void deque_func(init, TYPE)(deque(TYPE)* p_d) { \
 		p_d->p_data = NULL; \
 		p_d->chunk_begin = 0; \
 		p_d->chunk_end = 0; \
@@ -313,7 +313,7 @@
 		p_d->size = 0; \
 	} \
 	\
-	extern inline void deque_func(clear, TYPE)(deque(TYPE)* p_d) { \
+	void deque_func(clear, TYPE)(deque(TYPE)* p_d) { \
 		for (size_t i = 0; i < p_d->chunk_count; i++) { \
 			chunk_func(free, TYPE)(deque_chunk_func(at, TYPE)(p_d, i)); \
 		} \
@@ -323,7 +323,7 @@
 		p_d->size = 0; \
 	} \
 	\
-	extern inline void deque_func(free, TYPE)(deque(TYPE)* p_d) { \
+	void deque_func(free, TYPE)(deque(TYPE)* p_d) { \
 		for (size_t i = 0; i < p_d->chunk_count; i++) { \
 			chunk_func(free, TYPE)(deque_chunk_func(at, TYPE)(p_d, i)); \
 		} \
