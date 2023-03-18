@@ -122,37 +122,6 @@ end
 If `(flag)` is true, `(code 1)` is executed.  
 If `(flag)` is false, `(code 2)` is executed.
 
-### loop statements
-```
-loop
-	(code 1)
-end
-```
-
-This is an endless loop.
-
-```
-loop
-	(code)
-	(flag)
-	while
-end
-```
-
-`(code)` is excuted. `while` pops the flag value from the stack.  
-If `(flag)` is true, the loop is restarted.
-
-```
-loop
-	(code 1)
-	(flag)
-	while
-	(code 2)
-end
-```
-
-`(code 1)` is executed. `while` pops the flag value from the stack.  
-If `(flag)` is true, `(code 2)` is executed and the loop is restarted.
 
 ### switch statements
 ```
@@ -189,7 +158,81 @@ If `(flag 1)` is true, `(code 1)` is executed.
 If `(flag 3)` or `(flag 4)` is true, `(code 3)` is excuted.  
 If every flag is false, `(code 4)` is executed.
 
-### func and macro
+### Loops
+#### loop statements
+```
+loop
+	(code 1)
+end
+```
+
+This is an endless loop.
+
+```
+loop
+	(code)
+	(flag)
+	while
+end
+```
+
+`(code)` is excuted. `while` pops the flag value from the stack.  
+If `(flag)` is true, the loop is restarted.
+
+```
+loop
+	(code 1)
+	(flag)
+	while
+	(code 2)
+end
+```
+
+`(code 1)` is executed. `while` pops the flag value from the stack.  
+If `(flag)` is true, `(code 2)` is executed and the loop is restarted.
+
+
+#### for statements
+```
+$(keyward) for (start) from (end) to (step) step
+	(code)
+end 
+```
+
+`for`, `from`, `to`, `step` pop the values from stack.  
+`(keyward)` will be counter variable's name.
+
+`(start)` is starting value.  
+if `(start) from` is not present, `(start)` is treated as 0.
+
+The loop ends when the value of the variable exceeds `(end)`.  
+if `(end) to` is not present, the loop will be infinite loop.
+
+Each iteration increments the value of the variable by `(step)`.  
+if `(step) step` is not present, `(step)` is treated as 1.
+
+`for` only works with signed integers.  
+You can use `ufor` for unsigned integers and `ffor` for floating point.
+
+
+#### continue and break
+```
+loop
+	continue
+end
+```
+
+`continue` skips the rest of the current iteration.
+
+```
+loop
+	break
+end
+```
+
+`break` terminates the loop.
+
+### Subroutines
 ```
 $(keyword) func
 	(code)

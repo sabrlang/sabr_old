@@ -122,37 +122,6 @@ end
 만약 `(flag)`가 참이면, `(code 1)`이 실행됩니다.  
 만약 `(flag)`가 거짓이면, `(code 2)`가 실행됩니다.
 
-### loop 문
-```
-loop
-	(code 1)
-end
-```
-
-무한 루프입니다.
-
-```
-loop
-	(code)
-	(flag)
-	while
-end
-```
-
-우선 `(code)`가 실행됩니다. `while`은 스택으로부터 플래그 값을 뽑습니다.  
-만약 `(flag)`가 참이면, 반복문이 재시작됩니다.
-
-```
-loop
-	(code 1)
-	(flag)
-	while
-	(code 2)
-end
-```
-
-우선 `(code 1)`이 실행됩니다. `while`은 스택으로부터 플래그 값을 뽑습니다.  
-만약 `(flag)`가 참이면, `(code 2)`가 실행되고 반복문이 재시작됩니다.
 
 ### switch 문
 ```
@@ -189,7 +158,83 @@ end
 만약 `(flag 3)` 또는 `(flag 4)`가 참이면, `(code 3)`이 실행됩니다.  
 만약 모든 플래그가 거짓이라면, `(code 4)`가 실행됩니다.
 
-### func 와 macro
+
+### 반복문
+#### loop 문
+```
+loop
+	(code 1)
+end
+```
+
+무한 루프입니다.
+
+```
+loop
+	(code)
+	(flag)
+	while
+end
+```
+
+우선 `(code)`가 실행됩니다. `while`은 스택으로부터 플래그 값을 뽑습니다.  
+만약 `(flag)`가 참이면, 반복문이 재시작됩니다.
+
+```
+loop
+	(code 1)
+	(flag)
+	while
+	(code 2)
+end
+```
+
+우선 `(code 1)`이 실행됩니다. `while`은 스택으로부터 플래그 값을 뽑습니다.  
+만약 `(flag)`가 참이면, `(code 2)`가 실행되고 반복문이 재시작됩니다.
+
+
+#### for 문
+```
+$(keyward) for (start) from (end) to (step) step
+	(code)
+end 
+```
+
+`for`, `from`, `to`, `step`은 스택으로부터 각각 값을 뽑습니다.  
+`(keyward)` 는 카운터 변수의 이름이 됩니다.
+
+`(start)`는 시작하는 값입니다.  
+만약 `(start) from`이 없다면, `(start)`는 0으로 취급됩니다.  
+
+변수의 값이 `(end)`를 넘으면 반복문이 끝납니다.  
+만약 `(end) to`가 없다면, 무한 루프가 됩니다.
+
+매번 반복할 때마다 변수의 값은 `(step)`만큼 증가합니다.  
+만약 `(step) step`이 없다면, `(step)`은 1로 취급됩니다.
+
+`for`는 부호 있는 정수로만 작동합니다.
+부호 없는 정수에 대해서 `ufor`과 부동소수점 실수에 대해 `ffor`를 사용할 수 있습니다.
+
+
+#### continue 와 break
+```
+loop
+	continue
+end
+```
+
+`continue`는 반복문의 남은 부분을 넘깁니다.
+
+```
+loop
+	break
+end
+```
+
+`break`는 반복문을 즉시 종료합니다.
+
+
+### 서브루틴
 ```
 $(keyword) func
 	(code)
