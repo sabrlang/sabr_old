@@ -9,6 +9,7 @@ typedef enum interpreter_op_errcode_enum {
 	OPERR_NONE,
 	OPERR_STACK,
 	OPERR_SWITCH,
+	OPERR_FOR,
 	OPERR_REDEFINE,
 	OPERR_DEFINE,
 	OPERR_UNDEFINED,
@@ -28,6 +29,11 @@ uint32_t interpreter_op_exit(interpreter* inter, size_t* index);
 uint32_t interpreter_op_value(interpreter* inter, size_t* index);
 uint32_t interpreter_op_if(interpreter* inter, size_t* index);
 uint32_t interpreter_op_jump(interpreter* inter, size_t* index);
+uint32_t interpreter_op_for(interpreter* inter, size_t* index);
+uint32_t interpreter_op_for_from(interpreter* inter, size_t* index);
+uint32_t interpreter_op_for_to(interpreter* inter, size_t* index);
+uint32_t interpreter_op_for_step(interpreter* inter, size_t* index);
+uint32_t interpreter_op_for_check(interpreter* inter, size_t* index);
 uint32_t interpreter_op_switch(interpreter* inter, size_t* index);
 uint32_t interpreter_op_case(interpreter* inter, size_t* index);
 uint32_t interpreter_op_end_switch(interpreter* inter, size_t* index);

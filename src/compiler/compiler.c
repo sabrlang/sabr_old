@@ -657,7 +657,6 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			if (!vector_push_back(control_data, temp_ctrl_vec, current_ctrl)) goto FAILURE_CTRL_VECTOR;
 			if (!compiler_write_bytecode_with_null(comp, OP_JUMP)) return false;
 		} break;
-
 		case CTRL_LOOP: {
 			temp_ctrl_vec = (vector(control_data)*) malloc(sizeof(vector(control_data)));
 			if (!temp_ctrl_vec) goto FAILURE_CTRL_VECTOR;
@@ -678,13 +677,23 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 			if (!vector_push_back(control_data, temp_ctrl_vec, current_ctrl)) goto FAILURE_CTRL_VECTOR;
 			if (!compiler_write_bytecode_with_null(comp, OP_JUMP)) return false;
 		} break;
-		case CTRL_FOR: {
+		case CTRL_FOR:
+		case CTRL_UFOR:
+		case CTRL_FFOR: {
+			value foty;
 			temp_ctrl_vec = (vector(control_data)*) malloc(sizeof(vector(control_data)));
 			if (!temp_ctrl_vec) goto FAILURE_CTRL_VECTOR;
 			vector_init(control_data, temp_ctrl_vec);
 			if (!vector_push_back(control_data, temp_ctrl_vec, current_ctrl)) goto FAILURE_CTRL_VECTOR;
 			if (!vector_push_back(cctl_ptr(vector(control_data)), &comp->control_data_stack, temp_ctrl_vec)) goto FAILURE_CTRL_STACK;
-			if (!compiler_write_bytecode(comp, OP_FOR)) return false;
+
+			switch (current_ctrl.ctrl) {
+				case CTRL_FOR: foty.u = 0; break;
+				case CTRL_UFOR: foty.u = 1; break;
+				case CTRL_FFOR: foty.u = 2; break;
+			}
+
+			if (!compiler_write_bytecode_with_value(comp, OP_FOR, foty)) return false;
 			if (!compiler_write_bytecode_with_null(comp, OP_NONE)) return false;
 		} break;
 		case CTRL_FROM: {

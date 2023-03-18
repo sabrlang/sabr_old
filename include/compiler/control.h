@@ -13,6 +13,8 @@ typedef enum control_enum {
 	CTRL_BREAK,
 	CTRL_CONTINUE,
 	CTRL_FOR,
+	CTRL_UFOR,
+	CTRL_FFOR,
 	CTRL_FROM,
 	CTRL_TO,
 	CTRL_STEP,

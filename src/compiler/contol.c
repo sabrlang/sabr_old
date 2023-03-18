@@ -9,6 +9,8 @@ const char* control_names[] = {
 	"break",
 	"continue",
 	"for",
+	"ufor",
+	"ffor",
 	"from",
 	"to",
 	"step",

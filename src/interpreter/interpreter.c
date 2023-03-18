@@ -29,6 +29,7 @@ bool interpreter_init(interpreter* inter) {
 	}
 
 	vector_init(cctl_ptr(vector(uint64_t)), &inter->struct_vector);
+	vector_init(for_data, &inter->for_data_stack);
 
 	deque_init(size_t, &inter->local_memory_size_stack);
 	deque_push_back(size_t, &inter->local_memory_size_stack, 0);
@@ -51,6 +52,7 @@ void interpreter_del(interpreter* inter) {
 		vector_free(uint64_t, *vector_at(cctl_ptr(vector(uint64_t)), &inter->struct_vector, i));
 	}
 	vector_free(cctl_ptr(vector(uint64_t)), &inter->struct_vector);
+	vector_free(for_data, &inter->for_data_stack);
 
 	deque_free(size_t, &inter->local_memory_size_stack);
 

@@ -21,6 +21,7 @@
 #include "encoding.h"
 
 #include "interpreter_cctl_define.h"
+#include "interpreter_data.h"
 
 typedef struct memory_pool_struct memory_pool;
 struct memory_pool_struct {
@@ -34,11 +35,13 @@ struct interpreter_struct {
 	size_t bytecode_size;
 	deque(value) data_stack;
 	deque(value) switch_stack;
+	vector(for_data) for_data_stack;
 	deque(size_t) call_stack;
 	rbt* global_words;
 	deque(cctl_ptr(rbt)) local_words_stack;
 
 	vector(cctl_ptr(vector(uint64_t))) struct_vector;
+
 	mbstate_t convert_state;
 	
 	deque(size_t) local_memory_size_stack;
@@ -58,8 +61,6 @@ bool interpreter_run(interpreter* inter);
 
 bool interpreter_pop(interpreter* inter, value* v);
 bool interpreter_push(interpreter* inter, value v);
-
-
 
 inline bool memory_pool_init(memory_pool* pool, size_t size) {
 	pool->data = (value*) malloc(sizeof(size_t) * size);

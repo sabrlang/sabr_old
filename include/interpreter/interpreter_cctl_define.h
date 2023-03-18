@@ -9,6 +9,7 @@
 #include "rbt.h"
 #include "value.h"
 
+#include "interpreter_data.h"
 
 deque_fd(value);
 deque_fd(size_t);
@@ -23,6 +24,9 @@ vector_fd(uint64_t);
 cctl_ptr_def(vector(uint64_t));
 vector_fd(cctl_ptr(vector(uint64_t)));
 
+vector_fd(for_data);
+vector_fd(cs_data);
+
 deque_imp_h(value);
 deque_imp_h(size_t);
 deque_imp_h(cctl_ptr(rbt));
@@ -33,5 +37,7 @@ deque_imp_h(cctl_ptr(vector(value)));
 vector_imp_h(uint64_t);
 vector_imp_h(cctl_ptr(vector(uint64_t)));
 
+vector_imp_h(for_data);
+vector_imp_h(cs_data);
 
 #endif

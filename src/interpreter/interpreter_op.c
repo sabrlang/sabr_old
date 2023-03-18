@@ -37,6 +37,83 @@ uint32_t interpreter_op_jump(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
+uint32_t interpreter_op_for(interpreter* inter, size_t* index) {
+	for_data data = for_data_init();
+	value kwrd;
+	value foty;
+	
+	for (int i = 0; i < 8; i++) {
+		foty.bytes[i] = inter->bytecode[++(*index)];
+	}
+
+	if (!interpreter_pop(inter, &kwrd)) return OPERR_STACK;
+
+	data.variable_kwrd = kwrd;
+	data.foty = foty.u;
+	if (data.foty == FOTY_F) {
+		data.step.f = 1.0;
+		data.end.f = INFINITY;
+	}
+
+	if (!vector_push_back(for_data, &inter->for_data_stack, data)) return OPERR_FOR;
+
+	return OPERR_NONE;
+}
+
+uint32_t interpreter_op_for_from(interpreter* inter, size_t* index) {
+	for_data* data = NULL;
+	value v;
+	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
+
+	data = vector_back(for_data, &inter->for_data_stack);
+	data->start.u = v.u;
+
+	return OPERR_NONE;
+}
+
+uint32_t interpreter_op_for_to(interpreter* inter, size_t* index) {
+	for_data* data = NULL;
+	value v;
+	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
+
+	data = vector_back(for_data, &inter->for_data_stack);
+	data->end.u = v.u;
+
+	if (data->foty == FOTY_I) {
+		if (data->start.i > data->end.i) {
+			data->step.i = -1;
+		}
+	}
+	else if (data->foty == FOTY_U) {
+		if (data->start.u > data->end.u) {
+			data->step.i = -1;
+		}
+	}
+	else if (data->foty == FOTY_F) {
+		if (data->start.f > data->end.f) {
+			data->step.f = -1.0;
+		}
+	}
+
+	return OPERR_NONE;
+}
+
+uint32_t interpreter_op_for_step(interpreter* inter, size_t* index) {
+	for_data* data = NULL;
+	value v;
+	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
+
+	data = vector_back(for_data, &inter->for_data_stack);
+	data->step.u = v.u;
+
+	return OPERR_NONE;
+}
+
+uint32_t interpreter_op_for_check(interpreter* inter, size_t* index) {
+
+	return OPERR_NONE;
+}
+
 uint32_t interpreter_op_switch(interpreter* inter, size_t* index) {
 	value v;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
