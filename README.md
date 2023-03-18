@@ -100,6 +100,7 @@ Sabr has no type checking. All stack values are 8 bytes wide.
 * `b` : Boolean
 * `addr` : Address
 * `id` : Identifier
+
 ## Control
 ### Conditionals
 #### if statements

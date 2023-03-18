@@ -100,8 +100,10 @@ Sabr는 타입 검사가 없습니다. 모든 스택 값들은 8 바이트입니
 * `b` : 불리언
 * `addr` : 주소
 * `id` : 식별자
+
 ## 제어문
-### if 문
+### 조건문
+#### if 문
 0은 거짓이고, 0이 아닌 값은 참입니다.
 
 ```
@@ -123,7 +125,7 @@ end
 만약 `(flag)`가 거짓이면, `(code 2)`가 실행됩니다.
 
 
-### switch 문
+#### switch 문
 ```
 (value) switch
 	(case 1) case (code 1) pass
@@ -141,7 +143,7 @@ end
 만약 `(value)`의 값이 `(case 3)`또는 `(case 4)`와 같다면, `(code 3)`가 실행됩니다.  
 일치하는 값이 없다면, `(code 4)`가 실행됩니다.
 
-#### if-elif-else 스타일
+##### if-elif-else 스타일
 ```
 (non-zero) switch
 	(flag 1) case (code 1) pass
