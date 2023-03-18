@@ -867,7 +867,9 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 					pos.u = first_ctrl->pos;
 					if (!compiler_write_bytecode_with_value(comp, OP_JUMP, pos)) return false;
 				} break;
-				case CTRL_FOR: {
+				case CTRL_FOR:
+				case CTRL_UFOR:
+				case CTRL_FFOR: {
 					#define __free_for_vecs__ \
 						vector_free(control_data, &continue_vec);
 					
@@ -938,7 +940,12 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 						}
 					}
 
-					check_pos.u = check_ctrl->pos + 1;
+					if (!(from_existence || to_existence || step_existence)) {
+						check_pos.u = check_ctrl->pos + 9;
+					}
+					else {
+						check_pos.u = check_ctrl->pos + 1;
+					}
 					pos.u = current_ctrl.pos + 9;
 
 					*vector_at(uint8_t, &comp->bytecode, check_pos.u) = OP_FOR_CHECK;
@@ -946,19 +953,21 @@ bool compiler_parse_control_words(compiler* comp, trie* trie_result) {
 						*vector_at(uint8_t, &comp->bytecode, check_pos.u + 1 + i) = pos.bytes[i];
 					}
 
-					for (
-						control_data* iter = vector_front(control_data, &continue_vec);
-						iter <= vector_back(control_data, &continue_vec);
-						iter++
-					) {
-						*vector_at(uint8_t, &comp->bytecode, iter->pos) = OP_FOR_INCJMP;
-						for (int i = 0; i < 8; i++) {
-							*vector_at(uint8_t, &comp->bytecode, iter->pos + 1 + i) = check_pos.bytes[i];
+					if (continue_vec.size > 0) {
+						for (
+							control_data* iter = vector_front(control_data, &continue_vec);
+							iter <= vector_back(control_data, &continue_vec);
+							iter++
+						) {
+							*vector_at(uint8_t, &comp->bytecode, iter->pos) = OP_FOR_INCJMP;
+							for (int i = 0; i < 8; i++) {
+								*vector_at(uint8_t, &comp->bytecode, iter->pos + 1 + i) = check_pos.bytes[i];
+							}
 						}
 					}
 
 					__free_for_vecs__;
-					if (!compiler_write_bytecode_with_value(comp, OP_FOR_INCJMP, pos)) return false;
+					if (!compiler_write_bytecode_with_value(comp, OP_FOR_INCJMP, check_pos)) return false;
 					if (!compiler_write_bytecode(comp, OP_END_FOR)) return false;
 					
 					#undef __free_for_vecs__

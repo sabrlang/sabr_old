@@ -55,6 +55,11 @@ uint32_t interpreter_op_for(interpreter* inter, size_t* index) {
 		data.end.f = INFINITY;
 	}
 
+	int32_t result = interpreter_set_variable(inter, index, data.variable_kwrd, data.start);
+	if (result) return result;
+
+	data.variable_addr = interpreter_get_variable_addr(inter, data.variable_kwrd);
+
 	if (!deque_push_back(for_data, &inter->for_data_stack, data)) return OPERR_FOR;
 
 	return OPERR_NONE;
@@ -68,7 +73,7 @@ uint32_t interpreter_op_for_from(interpreter* inter, size_t* index) {
 	data = deque_back(for_data, &inter->for_data_stack);
 	data->start.u = v.u;
 
-	return OPERR_NONE;
+	return interpreter_set_variable(inter, index, data->variable_kwrd, data->start);
 }
 
 uint32_t interpreter_op_for_to(interpreter* inter, size_t* index) {
@@ -95,6 +100,8 @@ uint32_t interpreter_op_for_to(interpreter* inter, size_t* index) {
 		}
 	}
 
+	data->is_infinite = false;
+
 	return OPERR_NONE;
 }
 
@@ -120,7 +127,7 @@ uint32_t interpreter_op_for_incjmp(interpreter* inter, size_t* index) {
 	
 	data = deque_back(for_data, &inter->for_data_stack);
 
-	value* v = interpreter_get_variable_addr(inter, data->variable_kwrd);
+	value* v = data->variable_addr;
 	if (!v) return OPERR_UNDEFINED;
 
 	switch (data->foty) {
@@ -148,24 +155,38 @@ uint32_t interpreter_op_for_check(interpreter* inter, size_t* index) {
 		pos.bytes[i] = inter->bytecode[++(*index)];
 	}
 
-	value* v = interpreter_get_variable_addr(inter, data->variable_kwrd);
+	value* v = data->variable_addr;
 	if (!v) return OPERR_UNDEFINED;
 
 	bool result = false;
-	switch (data->foty) {
-		case FOTY_I:
-			result = (data->step.i > 0) ? data->end.i < v->i : data->end.i > v->i;
-			break;
-		case FOTY_U:
-			result = (data->step.u > 0) ? data->end.u < v->u : data->end.u > v->u;
-			break;
-		case FOTY_F:
-			result = (data->step.f > 0.0) ? data->end.f < v->f : data->end.f > v->f;
-			break;
+
+	if (!data->is_infinite) {
+		switch (data->foty) {
+			case FOTY_I:
+				result = (data->step.i > 0) ? data->end.i <= v->i : data->end.i >= v->i;
+				break;
+			case FOTY_U:
+				result = (data->step.u > 0) ? data->end.u <= v->u : data->end.u >= v->u;
+				break;
+			case FOTY_F:
+				result = (data->step.f > 0.0) ? data->end.f <= v->f : data->end.f >= v->f;
+				break;
+		}
 	}
 
 	if (result) {
 		*index = pos.u - 1;
+		switch (data->foty) {
+			case FOTY_I:
+				v->i -= data->step.i;
+				break;
+			case FOTY_U:
+				v->u -= data->step.u;
+				break;
+			case FOTY_F:
+				v->f -= data->step.f;
+				break;
+		}
 	}
 
 	return OPERR_NONE;
@@ -255,7 +276,19 @@ uint32_t interpreter_op_return_func(interpreter* inter, size_t* index) {
 	rbt* local_words = *deque_back(cctl_ptr(rbt), &inter->local_words_stack);
 	rbt_free(local_words);
 	if (!deque_pop_back(cctl_ptr(rbt), &inter->local_words_stack)) return OPERR_CALL;
+
 	*index = csd.pos - 1;
+	size_t count;
+
+	count = inter->for_data_stack.size - csd.for_data_stack_size;
+	for (size_t i = 0; i < count; i++) {
+		if (!deque_pop_back(for_data, &inter->for_data_stack)) return OPERR_FOR;
+	}
+
+	count = inter->switch_stack.size - csd.switch_stack_size;
+	for (size_t i = 0; i < count; i++) {
+		if (!deque_pop_back(value, &inter->switch_stack)) return OPERR_FOR;
+	}
 
 	size_t* local_memory_size = deque_back(size_t, &inter->local_memory_size_stack);
 	if (!local_memory_size) return OPERR_CALL;
@@ -352,54 +385,11 @@ uint32_t interpreter_op_call_member(interpreter* inter, size_t* index) {
 uint32_t interpreter_op_set(interpreter* inter, size_t* index) {
 	value kwrd;
 	value v;
-	rbt* words = NULL;
-	rbt_node* node = NULL;
-
-	bool is_global = false;
 
 	if (!interpreter_pop(inter, &kwrd)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
 
-	node = rbt_search(inter->global_words, kwrd.u);
-	if (!node) {
-		if (inter->local_words_stack.size > 0) {
-			words = *deque_back(cctl_ptr(rbt), &inter->local_words_stack);
-			node = rbt_search(words, kwrd.u);
-		}
-		else {
-			words = inter->global_words;
-			is_global = true;
-		}
-	}
-	if (!node) {
-		node = rbt_node_new(kwrd.u);
-		if (!node) return OPERR_DEFINE;
-		node->type = KWRD_VAR;
-		
-		value* p;
-		if (is_global) {
-			p = memory_pool_top(&inter->global_memory_pool);
-			if (!memory_pool_alloc(&inter->global_memory_pool, 1)) return OPERR_MEMORY;
-		}
-		else {
-			p = memory_pool_top(&inter->memory_pool);
-			if (!memory_pool_alloc(&inter->memory_pool, 1)) return OPERR_MEMORY;
-			size_t* local_memory_size = deque_back(size_t, &inter->local_memory_size_stack);
-			if (!local_memory_size) return OPERR_MEMORY;
-			local_memory_size++;
-		}
-		node->data = (size_t) p;
-
-		rbt_insert(words, node);
-	}
-
-	if (node->type == KWRD_VAR) {
-		value* p = (value*) node->data;
-		p->u = v.u;
-	}
-	else return OPERR_INVALID_KWRD;
-
-	return OPERR_NONE;
+	return interpreter_set_variable(inter, index, kwrd, v);
 }
 
 uint32_t interpreter_op_call(interpreter* inter, size_t* index) {
@@ -1249,6 +1239,13 @@ const uint32_t (*interpreter_op_functions[])(interpreter*, size_t*) = {
 	interpreter_op_value,
 	interpreter_op_if,
 	interpreter_op_jump,
+	interpreter_op_for,
+	interpreter_op_for_from,
+	interpreter_op_for_to,
+	interpreter_op_for_step,
+	interpreter_op_for_check,
+	interpreter_op_for_incjmp,
+	interpreter_op_end_for,
 	interpreter_op_switch,
 	interpreter_op_case,
 	interpreter_op_end_switch,

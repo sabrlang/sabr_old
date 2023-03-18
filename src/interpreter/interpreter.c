@@ -106,68 +106,77 @@ bool interpreter_run(interpreter* inter) {
 	uint8_t* code;
 	uint32_t errcode;
 
-	for (size_t index = 0; index < inter->bytecode_size; index++) {
+	size_t index, index_temp;
+
+	for (index = 0; index < inter->bytecode_size; index++) {
 		code = inter->bytecode + index;
-		if ((*code == 0) || (*code > interpreter_op_functions_len)) {
+		if ((*code > interpreter_op_functions_len)) {
 			fprintf(stderr, "\'%u\'\n", *code);
 			fputs("error : Invalid operation code\n", stderr);
-			return false;
+			goto FAILURE;
 		}
+		if (*code == 0) {
+			continue;
+		}
+		index_temp = index;
 		errcode = interpreter_op_functions[*code - 1](inter, &index);
 		switch (errcode) {
 			case OPERR_NONE:
 				break;
 			case OPERR_STACK:
 				fputs("error : Stack memory error\n", stderr);
-				return false;
+				goto FAILURE;
 				break;
 			case OPERR_SWITCH:
 				fputs("error : Switch stack error\n", stderr);
-				return false;
+				goto FAILURE;
 				break;
 			case OPERR_REDEFINE:
 				fputs("error : Redefined keyword\n", stderr);
-				return false;
+				goto FAILURE;
 				break;
 			case OPERR_DEFINE:
 				fputs("error : Definition failure\n", stderr);
-				return false;
+				goto FAILURE;
 				break;
 			case OPERR_UNDEFINED:
 				fputs("error : Undefined keyword\n", stderr);
-				return false;
+				goto FAILURE;
 				break;
 			case OPERR_CALL:
 				fputs("error : Call stack error\n", stderr);
-				return false;
+				goto FAILURE;
 				break;
 			case OPERR_STRUCT:
 				fputs("error : Struct definition failure", stderr);
-				return false;
+				goto FAILURE;
 				break;
 			case OPERR_INVALID_KWRD:
 				fputs("error : Invalid keyword\n", stderr);
-				return false;
+				goto FAILURE;
 				break;
 			case OPERR_DIV_BY_ZERO:
 				fputs("error : Division by zero\n", stderr);
-				return false;
+				goto FAILURE;
 				break;
 			case OPERR_STDIN:
 				fputs("error: Input error\n", stderr);
-				return false;
+				goto FAILURE;
 				break;
 			case OPERR_UNICODE:
 				fputs("error : Unicode encoding failure\n", stderr);
-				return false;
+				goto FAILURE;
 				break;
 			case OPERR_MEMORY:
 				fputs("error : Memory allocation failure\n", stderr);
-				return false;
+				goto FAILURE;
 				break;
 		}
 	}
 	return true;
+FAILURE:
+	fprintf(stderr, "at index %zu (%zx)\n", index_temp, index_temp);
+	return false;
 }
 
 bool interpreter_pop(interpreter* inter, value* v) {
@@ -186,6 +195,54 @@ bool interpreter_push(interpreter* inter, value v) {
 		return false;
 	}
 	return true;
+}
+
+uint32_t interpreter_set_variable(interpreter* inter, size_t* index, value kwrd, value v) {
+	rbt* words = NULL;
+	rbt_node* node = NULL;
+
+	bool is_global = false;
+
+	node = rbt_search(inter->global_words, kwrd.u);
+	if (!node) {
+		if (inter->local_words_stack.size > 0) {
+			words = *deque_back(cctl_ptr(rbt), &inter->local_words_stack);
+			node = rbt_search(words, kwrd.u);
+		}
+		else {
+			words = inter->global_words;
+			is_global = true;
+		}
+	}
+	if (!node) {
+		node = rbt_node_new(kwrd.u);
+		if (!node) return OPERR_DEFINE;
+		node->type = KWRD_VAR;
+		
+		value* p;
+		if (is_global) {
+			p = memory_pool_top(&inter->global_memory_pool);
+			if (!memory_pool_alloc(&inter->global_memory_pool, 1)) return OPERR_MEMORY;
+		}
+		else {
+			p = memory_pool_top(&inter->memory_pool);
+			if (!memory_pool_alloc(&inter->memory_pool, 1)) return OPERR_MEMORY;
+			size_t* local_memory_size = deque_back(size_t, &inter->local_memory_size_stack);
+			if (!local_memory_size) return OPERR_MEMORY;
+			local_memory_size++;
+		}
+		node->data = (size_t) p;
+
+		rbt_insert(words, node);
+	}
+
+	if (node->type == KWRD_VAR) {
+		value* p = (value*) node->data;
+		p->u = v.u;
+	}
+	else return OPERR_INVALID_KWRD;
+
+	return OPERR_NONE;
 }
 
 uint32_t interpreter_call_kwrd(interpreter* inter, size_t* index, value kwrd) {
@@ -207,6 +264,9 @@ uint32_t interpreter_call_kwrd(interpreter* inter, size_t* index, value kwrd) {
 	switch (node->type) {
 		case KWRD_FUNC: {
 			csd.pos = *index + 1;
+			csd.for_data_stack_size = inter->for_data_stack.size;
+			csd.switch_stack_size = inter->switch_stack.size;
+
 			if (!deque_push_back(cs_data, &inter->call_stack, csd)) return OPERR_CALL;
 			local_words = rbt_new();
 			if (!local_words) return OPERR_CALL;
@@ -218,6 +278,9 @@ uint32_t interpreter_call_kwrd(interpreter* inter, size_t* index, value kwrd) {
 		} break;
 		case KWRD_MACRO: {
 			csd.pos = *index + 1;
+			csd.for_data_stack_size = inter->for_data_stack.size;
+			csd.switch_stack_size = inter->switch_stack.size;
+			
 			if (!deque_push_back(cs_data, &inter->call_stack, csd)) return OPERR_CALL;
 			*index = node->data - 1;
 		} break;
@@ -240,8 +303,15 @@ uint32_t interpreter_call_kwrd(interpreter* inter, size_t* index, value kwrd) {
 }
 
 value* interpreter_get_variable_addr(interpreter* inter, value kwrd) {
+	rbt* local_words = NULL;
 	rbt_node* node;
 	node = rbt_search(inter->global_words, kwrd.u);
+	if (!node) {
+		if (inter->local_words_stack.size > 0) {
+			local_words = *deque_back(cctl_ptr(rbt), &inter->local_words_stack);
+			node = rbt_search(local_words, kwrd.u);
+		}
+	}
 
 	if (!node) return NULL;
 	if (node->type != KWRD_VAR) return NULL;
