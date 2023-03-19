@@ -18,9 +18,10 @@
 #define vector_free(TYPE, p_v) vector_func(free, TYPE)(p_v)
 #define vector_push_back(TYPE, p_v, item) vector_func(push_back, TYPE)(p_v, item)
 #define vector_pop_back(TYPE, p_v) vector_func(pop_back, TYPE)(p_v)
-#define vector_at(TYPE, p_v, index) vector_func(at, TYPE)(p_v, index)
-#define vector_front(TYPE, p_v) vector_func(front, TYPE)(p_v)
-#define vector_back(TYPE, p_v) vector_func(back, TYPE)(p_v)
+
+#define vector_at(TYPE, p_v, index) ((p_v)->p_data + index)
+#define vector_front(TYPE, p_v) ((p_v)->p_data)
+#define vector_back(TYPE, p_v) ((p_v)->p_data + (p_v)->size - 1)
 
 #define vector_fd(TYPE) \
 	typedef struct vector_struct(TYPE) vector(TYPE);
@@ -37,10 +38,7 @@
 	void vector_func(clear, TYPE)(vector(TYPE)* p_v); \
 	void vector_func(free, TYPE)(vector(TYPE)* p_v); \
 	bool vector_func(push_back, TYPE)(vector(TYPE)* p_v, TYPE item); \
-	bool vector_func(pop_back, TYPE)(vector(TYPE)* p_v); \
-	TYPE* vector_func(at, TYPE)(vector(TYPE)* p_v, size_t index); \
-	TYPE* vector_func(front, TYPE)(vector(TYPE)* p_v); \
-	TYPE* vector_func(back, TYPE)(vector(TYPE)* p_v);
+	bool vector_func(pop_back, TYPE)(vector(TYPE)* p_v);
 
 #define vector_imp_c(TYPE) \
 	bool vector_func(reserve, TYPE)(vector(TYPE)* p_v, size_t size) { \
@@ -101,18 +99,6 @@
 		memset(p_v->p_data + p_v->size - 1, 0, sizeof(TYPE)); \
 		p_v->size--; \
 		return true; \
-	} \
-	\
-	TYPE* vector_func(at, TYPE)(vector(TYPE)* p_v, size_t index) { \
-		return p_v->p_data + index; \
-	} \
-	\
-	TYPE* vector_func(front, TYPE)(vector(TYPE)* p_v) { \
-		return p_v->p_data; \
-	} \
-	\
-	TYPE* vector_func(back, TYPE)(vector(TYPE)* p_v) { \
-		return p_v->p_data + p_v->size - 1; \
 	}
 
 #endif

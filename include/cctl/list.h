@@ -36,6 +36,12 @@
 #define list_push_back(TYPE, p_l, item) list_func(push_back, TYPE)(p_l, item)
 #define list_pop_front(TYPE, p_l) list_func(pop_front, TYPE)(p_l)
 #define list_pop_back(TYPE, p_l) list_func(pop_back, TYPE)(p_l)
+#define list_at(TYPE, p_l, index) list_func(at, TYPE)(p_l, index)
+
+#define list_node_front(TYPE, p_l) ((p_l)->p_front)
+#define list_node_back(TYPE, p_l) ((p_l)->p_back)
+#define list_front(TYPE, p_l) (&(list_node_front(TYPE, p_l)->data))
+#define list_back(TYPE, p_l) (&(list_node_back(TYPE, p_l)->data))
 
 #define list_fd(TYPE) \
 	typedef struct list_struct(TYPE) list(TYPE);
@@ -54,7 +60,8 @@
 	bool list_func(push_front, TYPE)(list(TYPE)* p_l, TYPE item); \
 	bool list_func(push_back, TYPE)(list(TYPE)* p_l, TYPE item); \
 	void list_func(pop_back, TYPE)(list(TYPE)* p_l); \
-	void list_func(pop_front, TYPE)(list(TYPE)* p_l);
+	void list_func(pop_front, TYPE)(list(TYPE)* p_l); \
+	TYPE* list_func(at, TYPE)(list(TYPE)* p_l, size_t index);
 
 #define list_imp_c(TYPE) \
 	node_imp_c(TYPE) \
@@ -124,6 +131,24 @@
 			p_l->size--; \
 			free(p_node); \
 		} \
+	} \
+	\
+	TYPE* list_func(at, TYPE)(list(TYPE)* p_l, size_t index) { \
+		bool direction = (index > (p_l->size / 2)); \
+		node(TYPE)* temp_node = direction ? list_node_back(TYPE, p_l) : list_node_front(TYPE, p_l); \
+		if (index == 0 || index == (p_l->size -1)) return &(temp_node->data); \
+		size_t temp_index = direction ? (p_l->size - 1) : 0; \
+		do { \
+			if (direction) { \
+				temp_index -= 1; \
+				temp_node = temp_node->p_prev; \
+			} \
+			else { \
+				temp_index += 1; \
+				temp_node = temp_node->p_next; \
+			} \
+		} while (temp_index != index); \
+		return &(temp_node->data); \
 	}
 	
 #endif

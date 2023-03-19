@@ -13,6 +13,9 @@
 #define chunk_func(FUNC, TYPE) cctl_join(chunk(TYPE), FUNC)
 #define chunk_struct(TYPE) cctl_join(chunk(TYPE), struct)
 
+#define chunk_front(T, p_c) ((p_c)->p_data + (p_c)->begin)
+#define chunk_back(T, p_c) ((p_c)->p_data + (p_c)->end)
+
 #define chunk_imp_h(TYPE) \
 	typedef struct chunk_struct(TYPE) chunk(TYPE); \
 	\
@@ -33,9 +36,7 @@
 	bool chunk_func(push_back, TYPE)(chunk(TYPE)* p_c, TYPE item); \
 	bool chunk_func(pop_front, TYPE)(chunk(TYPE)* p_c); \
 	bool chunk_func(pop_back, TYPE)(chunk(TYPE)* p_c); \
-	TYPE* chunk_func(at, TYPE)(chunk(TYPE)* p_c, size_t index); \
-	TYPE* chunk_func(front, TYPE)(chunk(TYPE)* p_c); \
-	TYPE* chunk_func(back, TYPE)(chunk(TYPE)* p_c);
+	TYPE* chunk_func(at, TYPE)(chunk(TYPE)* p_c, size_t index);
 
 #define chunk_imp_c(TYPE) \
 	bool chunk_func(reserve, TYPE)(chunk(TYPE)* p_c, size_t size) { \
@@ -134,14 +135,6 @@
 				return p_c->p_data + index - temp - 1; \
 		} \
 		return p_c->p_data + p_c->begin + index; \
-	} \
-	\
-	TYPE* chunk_func(front, TYPE)(chunk(TYPE)* p_c) { \
-		return p_c->p_data + p_c->begin; \
-	} \
-	\
-	TYPE* chunk_func(back, TYPE)(chunk(TYPE)* p_c) { \
-		return p_c->p_data + p_c->end; \
 	}
 
 #define deque(TYPE) cctl_join(TYPE, deque)
@@ -157,8 +150,11 @@
 #define deque_push_back(TYPE, p_d, item) deque_func(push_back, TYPE)(p_d, item)
 #define deque_pop_back(TYPE, p_d) deque_func(pop_back, TYPE)(p_d)
 #define deque_at(TYPE, p_d, index) deque_func(at, TYPE)(p_d, index)
-#define deque_front(TYPE, p_d) deque_func(front, TYPE)(p_d)
-#define deque_back(TYPE, p_d) deque_func(back, TYPE)(p_d)
+
+#define deque_chunk_front(TYPE, p_d) ((p_d)->p_data + (p_d)->chunk_begin)
+#define deque_chunk_back(TYPE, p_d) ((p_d)->p_data + (p_d)->chunk_end)
+#define deque_front(TYPE, p_d) chunk_front(TYPE, deque_chunk_front(TYPE, p_d))
+#define deque_back(TYPE, p_d) chunk_back(TYPE, deque_chunk_back(TYPE, p_d))
 
 #define deque_fd(TYPE) \
 	typedef struct deque_struct(TYPE) deque(TYPE);
@@ -182,8 +178,6 @@
 	bool deque_chunk_func(pop_front, TYPE)(deque(TYPE)* p_d); \
 	bool deque_chunk_func(pop_back, TYPE)(deque(TYPE)* p_d); \
 	chunk(TYPE)* deque_chunk_func(at, TYPE)(deque(TYPE)* p_d, size_t index); \
-	chunk(TYPE)* deque_chunk_func(front, TYPE)(deque(TYPE)* p_d); \
-	chunk(TYPE)* deque_chunk_func(back, TYPE)(deque(TYPE)* p_d); \
 	\
 	bool deque_func(resize, TYPE)(deque(TYPE)* p_d, size_t size); \
 	void deque_func(init, TYPE)(deque(TYPE)* p_d); \
@@ -193,9 +187,7 @@
 	bool deque_func(push_back, TYPE)(deque(TYPE)* p_d, TYPE item); \
 	bool deque_func(pop_front, TYPE)(deque(TYPE)* p_d); \
 	bool deque_func(pop_back, TYPE)(deque(TYPE)* p_d); \
-	TYPE* deque_func(at, TYPE)(deque(TYPE)* p_d, size_t index); \
-	TYPE* deque_func(front, TYPE)(deque(TYPE)* p_d); \
-	TYPE* deque_func(back, TYPE)(deque(TYPE)* p_d);
+	TYPE* deque_func(at, TYPE)(deque(TYPE)* p_d, size_t index);
 
 #define deque_imp_c(TYPE) \
 	chunk_imp_c(TYPE); \
@@ -254,7 +246,7 @@
 	bool deque_chunk_func(pop_front, TYPE)(deque(TYPE)* p_d) { \
 		if (p_d->chunk_count == 0) return false; \
 		p_d->chunk_count--; \
-		chunk_func(free, TYPE)(deque_chunk_func(front, TYPE)(p_d)); \
+		chunk_func(free, TYPE)(deque_chunk_front(TYPE, p_d)); \
 		if (p_d->chunk_begin == p_d->chunk_capacity - 1) p_d->chunk_begin = -1; \
 		p_d->chunk_begin++; \
 		return true; \
@@ -263,7 +255,7 @@
 	bool deque_chunk_func(pop_back, TYPE)(deque(TYPE)* p_d) { \
 		if (p_d->chunk_count == 0) return false; \
 		p_d->chunk_count--; \
-		chunk_func(free, TYPE)(deque_chunk_func(back, TYPE)(p_d)); \
+		chunk_func(free, TYPE)(deque_chunk_back(TYPE, p_d)); \
 		if (p_d->chunk_end == 0) p_d->chunk_end = p_d->chunk_capacity; \
 		p_d->chunk_end--; \
 		return true; \
@@ -276,14 +268,6 @@
 				return p_d->p_data + index - temp - 1; \
 		} \
 		return p_d->p_data + p_d->chunk_begin + index; \
-	} \
-	\
-	chunk(TYPE)* deque_chunk_func(front, TYPE)(deque(TYPE)* p_d) { \
-		return p_d->p_data + p_d->chunk_begin; \
-	} \
-	\
-	chunk(TYPE)* deque_chunk_func(back, TYPE)(deque(TYPE)* p_d) { \
-		return p_d->p_data + p_d->chunk_end; \
 	} \
 	\
 	bool deque_func(resize, TYPE)(deque(TYPE)* p_d, size_t new_size) { \
@@ -333,39 +317,39 @@
 	\
 	bool deque_func(push_front, TYPE)(deque(TYPE)* p_d, TYPE item) { \
 		if (p_d->chunk_count > 0) { \
-			if (deque_chunk_func(front, TYPE)(p_d)->size >= cctl_deque_chunk_max) { \
+			if (deque_chunk_front(TYPE, p_d)->size >= cctl_deque_chunk_max) { \
 				if (!deque_chunk_func(push_front, TYPE)(p_d)) return false; \
 			} \
 		} \
 		else { \
 			if (!deque_chunk_func(push_front, TYPE)(p_d)) return false; \
 		} \
-		if (!chunk_func(push_front, TYPE)(deque_chunk_func(front, TYPE)(p_d), item)) return false; \
+		if (!chunk_func(push_front, TYPE)(deque_chunk_front(TYPE, p_d), item)) return false; \
 		p_d->size++; \
 		return true; \
 	} \
 	\
 	bool deque_func(push_back, TYPE)(deque(TYPE)* p_d, TYPE item) { \
 		if (p_d->chunk_count > 0) { \
-			if (deque_chunk_func(back, TYPE)(p_d)->size >= cctl_deque_chunk_max) { \
+			if (deque_chunk_back(TYPE, p_d)->size >= cctl_deque_chunk_max) { \
 				if (!deque_chunk_func(push_back, TYPE)(p_d)) return false; \
 			} \
 		} \
 		else { \
 			if (!deque_chunk_func(push_back, TYPE)(p_d)) return false; \
 		} \
-		if (!chunk_func(push_back, TYPE)(deque_chunk_func(back, TYPE)(p_d), item)) return false; \
+		if (!chunk_func(push_back, TYPE)(deque_chunk_back(TYPE, p_d), item)) return false; \
 		p_d->size++; \
 		return true; \
 	} \
 	\
 	bool deque_func(pop_front, TYPE)(deque(TYPE)* p_d) { \
 		if (p_d->chunk_count == 0) return false; \
-		if (deque_chunk_func(front, TYPE)(p_d)->size == 0) { \
+		if (deque_chunk_front(TYPE, p_d)->size == 0) { \
 			if (!deque_chunk_func(pop_front, TYPE)(p_d)) return false; \
 		} \
-		if (!chunk_func(pop_front, TYPE)(deque_chunk_func(front, TYPE)(p_d))) return false; \
-		if (deque_chunk_func(front, TYPE)(p_d)->size == 0) { \
+		if (!chunk_func(pop_front, TYPE)(deque_chunk_front(TYPE, p_d))) return false; \
+		if (deque_chunk_front(TYPE, p_d)->size == 0) { \
 			if (!deque_chunk_func(pop_front, TYPE)(p_d)) return false; \
 		} \
 		p_d->size--; \
@@ -374,11 +358,11 @@
 	\
 	bool deque_func(pop_back, TYPE)(deque(TYPE)* p_d) { \
 		if (p_d->chunk_count == 0) return false; \
-		if (deque_chunk_func(back, TYPE)(p_d)->size == 0) { \
+		if (deque_chunk_back(TYPE, p_d)->size == 0) { \
 			if (!deque_chunk_func(pop_back, TYPE)(p_d)) return false; \
 		} \
-		if (!chunk_func(pop_back, TYPE)(deque_chunk_func(back, TYPE)(p_d))) return false; \
-		if (deque_chunk_func(back, TYPE)(p_d)->size == 0) { \
+		if (!chunk_func(pop_back, TYPE)(deque_chunk_back(TYPE, p_d))) return false; \
+		if (deque_chunk_back(TYPE, p_d)->size == 0) { \
 			if (!deque_chunk_func(pop_back, TYPE)(p_d)) return false; \
 		} \
 		p_d->size--; \
@@ -386,22 +370,14 @@
 	} \
 	\
 	TYPE* deque_func(at, TYPE)(deque(TYPE)* p_d, size_t index) { \
-		size_t front_size = deque_chunk_func(front, TYPE)(p_d)->size; \
+		size_t front_size = deque_chunk_front(TYPE, p_d)->size; \
 		size_t chunk_index; \
 		if (index < front_size) \
-			return chunk_func(at, TYPE)(deque_chunk_func(front, TYPE)(p_d), index); \
+			return chunk_func(at, TYPE)(deque_chunk_front(TYPE, p_d), index); \
 		index -= front_size; \
 		chunk_index = index / cctl_deque_chunk_max + 1; \
 		index %= cctl_deque_chunk_max; \
 		return chunk_func(at, TYPE)(deque_chunk_func(at, TYPE)(p_d, chunk_index), index); \
-	} \
-	\
-	TYPE* deque_func(front, TYPE)(deque(TYPE)* p_d) { \
-		return chunk_func(front, TYPE)(deque_chunk_func(front, TYPE)(p_d)); \
-	} \
-	\
-	TYPE* deque_func(back, TYPE)(deque(TYPE)* p_d) { \
-		return chunk_func(back, TYPE)(deque_chunk_func(back, TYPE)(p_d)); \
 	}
 
 #endif
