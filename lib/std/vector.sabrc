@@ -1,25 +1,41 @@
 #std import
 
+#Vector.at {
+	Vector._data fetch at
+} define ( u Vector -- addr )
+
+#Vector.front {
+	Vector._data fetch
+} define ( Vector -- addr )
+
+#Vector.back {
+	dup Vector.size 1 - swap Vector._data fetch at
+} define ( Vector -- addr )
+
+#Vector.size {
+	Vector._size fetch
+} define ( Vector -- u )
+
 $Vector struct
-	$data member
-	$size member
-	$capacity member
+	$_data member
+	$_size member
+	$_capacity member
 end
 
 $Vector.init method ( Vector:this -- )
-	0 this Vector.data store
-	0 this Vector.size store
-	0 this Vector.capacity store
+	0 this Vector._data store
+	0 this Vector._size store
+	0 this Vector._capacity store
 end
 
 $Vector.free method ( Vector:this -- )
-	this Vector.data fetch free
+	this Vector._data fetch free
 	this Vector.init
 end
 
 $Vector.reserve method ( u:size Vector:this -- b )
 	$size set
-	this Vector.capacity fetch size >= if
+	this Vector._capacity fetch size >= if
 		true return
 	end
 	1 $capacity set
@@ -30,14 +46,14 @@ $Vector.reserve method ( u:size Vector:this -- b )
 			1 $capacity <<set
 		end
 	end
-	this Vector.capacity fetch size < if
-		this Vector.capacity fetch if
-			capacity cells this Vector.data fetch resize this Vector.data store
-			this Vector.data fetch 0 = if false return end
+	this Vector._capacity fetch size < if
+		this Vector._capacity fetch if
+			capacity cells this Vector._data fetch resize this Vector._data store
+			this Vector._data fetch 0 = if false return end
 		else
-			this Vector.data capacity cells alloc over store fetch 0 = if false return end
+			this Vector._data capacity cells alloc over store fetch 0 = if false return end
 		end
-		capacity this Vector.capacity store
+		capacity this Vector._capacity store
 	end
 	true
 end
@@ -45,7 +61,7 @@ end
 $Vector.resize method ( u:size Vector:this -- b )
 	$size set
 	size this Vector.reserve if
-		size this Vector.size store
+		size this Vector._size store
 		true
 	else false
 	end
@@ -53,36 +69,24 @@ end
 
 $Vector.push_back method ( x:item Vector:this -- b )
 	$item set
-	this dup Vector.size fetch 1 + swap Vector.resize if
-		item this dup Vector.size fetch 1 - swap Vector.data fetch at store
+	this dup Vector.size 1 + swap Vector.resize if
+		item this dup Vector.size 1 - swap Vector._data fetch at store
 		true
 	else false
 	end
 end
 
 $Vector.pop_back method ( Vector:this -- b )
-	this Vector.size fetch if
-		this Vector.size --store
+	this Vector.size if
+		this Vector._size --store
 		true
 	else false
 	end
 end
 
-#Vector.at {
-	Vector.data fetch at
-} define ( u Vector -- addr )
-
-#Vector.front {
-	Vector.data fetch
-} define ( Vector -- addr )
-
-#Vector.back {
-	dup Vector.size fetch 1 - swap Vector.data fetch at
-} define ( Vector -- addr )
-
 #Vector.foreach {
-	dup Vector.data fetch
-	swap Vector.size fetch
+	dup Vector._data fetch
+	swap Vector.size
 	loop
 		dup 0 >
 	while
