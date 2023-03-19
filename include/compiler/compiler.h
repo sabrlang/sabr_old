@@ -117,14 +117,14 @@ inline preproc_data* compiler_last_preproc_data(compiler* comp, size_t index) {
 }
 
 inline preproc_data preproc_data_copy(preproc_data token) {
-	preproc_data new;
-	new = token;
+	preproc_data new_data;
+	new_data = token;
 	size_t len = strlen(token.code);
 	char* code = (char*) malloc(len + 1);
 	code[len] = '\0';
 	strcpy(code, token.code);
-	new.code = code;
-	return new;
+	new_data.code = code;
+	return new_data;
 }
 
 bool is_can_be_keyword(char* token);
