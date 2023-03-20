@@ -2,6 +2,7 @@
 #define __INTERPRETER_DATA_H__
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "value.h"
 
