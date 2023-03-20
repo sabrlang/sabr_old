@@ -380,9 +380,9 @@ $cr macro 10 putc end \ 매크로 'cr'을 선언합니다.
 $cr call \ 매크로 'cr'을 호출합니다.
 cr \ 매크로 'cr'을 호출합니다.
 ```
-* `address` ( id -- addr ) *미구현*  
+* `address` ( id -- addr )  
 id가 변수일 경우, *id*의 주소를 반환합니다. 
-* `ref` ( addr id -- ) *미구현*  
+* `ref` ( addr id -- )  
 주소 *addr*을 참조하는 변수 *id*를 선언합니다.  
 *addr*이 0일 경우 오류가 발생합니다.
 
