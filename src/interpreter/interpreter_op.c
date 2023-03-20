@@ -399,6 +399,30 @@ uint32_t interpreter_op_call(interpreter* inter, size_t* index) {
 	return interpreter_call_kwrd(inter, index, kwrd);
 }
 
+uint32_t interpreter_op_addr(interpreter* inter, size_t* index) {
+	value kwrd;
+	value v;
+
+	if (!interpreter_pop(inter, &kwrd)) return OPERR_STACK;
+	v.p = (uint64_t*) interpreter_get_variable_addr(inter, kwrd);
+
+	if (!interpreter_push(inter, v)) return OPERR_STACK;
+
+	return OPERR_NONE;
+}
+
+uint32_t interpreter_op_ref(interpreter* inter, size_t* index) {
+	value kwrd;
+	value addr;
+
+	if (!interpreter_pop(inter, &kwrd)) return OPERR_STACK;
+	if (!interpreter_pop(inter, &addr)) return OPERR_STACK;
+
+	if (addr.u == 0) return OPERR_DEFINE;
+
+	return interpreter_ref_variable(inter, index, kwrd, (value*) addr.p);
+}
+
 uint32_t interpreter_op_add(interpreter* inter, size_t* index) {
 	value a, b;
 				
@@ -1259,6 +1283,8 @@ const uint32_t (*interpreter_op_functions[])(interpreter*, size_t*) = {
 	interpreter_op_call_member,
 	interpreter_op_set,
 	interpreter_op_call,
+	interpreter_op_addr,
+	interpreter_op_ref,
 	interpreter_op_add,
 	interpreter_op_sub,
 	interpreter_op_mul,

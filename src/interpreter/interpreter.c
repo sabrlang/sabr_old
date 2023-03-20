@@ -245,6 +245,36 @@ uint32_t interpreter_set_variable(interpreter* inter, size_t* index, value kwrd,
 	return OPERR_NONE;
 }
 
+
+uint32_t interpreter_ref_variable(interpreter* inter, size_t* index, value kwrd, value* addr) {
+	rbt* words = NULL;
+	rbt_node* node = NULL;
+
+	node = rbt_search(inter->global_words, kwrd.u);
+	if (!node) {
+		if (inter->local_memory_size_stack.size > 0) {
+			words = *deque_back(cctl_ptr(rbt), &inter->local_words_stack);
+			node = rbt_search(words, kwrd.u);
+		}
+		else {
+			words = inter->global_words;
+		}
+	}
+	if (!node) {
+		node = rbt_node_new(kwrd.u);
+		if (!node) return OPERR_DEFINE;
+		node->type = KWRD_VAR;
+
+		value* p = addr;
+		node->data = (size_t) p;
+
+		rbt_insert(words, node);
+	}
+	else return OPERR_REDEFINE;
+
+	return OPERR_NONE;
+}
+
 uint32_t interpreter_call_kwrd(interpreter* inter, size_t* index, value kwrd) {
 	rbt* local_words = NULL;
 	rbt_node* node = NULL;

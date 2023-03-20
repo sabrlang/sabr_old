@@ -63,6 +63,7 @@ bool interpreter_pop(interpreter* inter, value* v);
 bool interpreter_push(interpreter* inter, value v);
 
 uint32_t interpreter_set_variable(interpreter* inter, size_t* index, value kwrd, value v);
+uint32_t interpreter_ref_variable(interpreter* inter, size_t* index, value kwrd, value* addr);
 uint32_t interpreter_call_kwrd(interpreter* inter, size_t* index, value kwrd);
 value* interpreter_get_variable_addr(interpreter* inter, value kwrd);
 

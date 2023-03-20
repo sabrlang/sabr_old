@@ -32,6 +32,8 @@ typedef enum opcode_enum {
 	
 	OP_SET,
 	OP_CALL,
+	OP_ADDR,
+	OP_REF,
 
 	OP_ADD,
 	OP_SUB,
