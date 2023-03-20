@@ -1,11 +1,11 @@
 #include "interpreter_op.h"
 
-uint32_t interpreter_op_exit(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_exit(interpreter* inter, size_t* index) {
 	*index = inter->bytecode_size;
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_value(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_value(interpreter* inter, size_t* index) {
 	value v;
 	for (int i = 0; i < 8; i++) {
 		v.bytes[i] = inter->bytecode[++(*index)];
@@ -15,7 +15,7 @@ uint32_t interpreter_op_value(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_if(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_if(interpreter* inter, size_t* index) {
 	value pos;
 	value v;
 	for (int i = 0; i < 8; i++) {
@@ -27,7 +27,7 @@ uint32_t interpreter_op_if(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_jump(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_jump(interpreter* inter, size_t* index) {
 	value pos;
 	for (int i = 0; i < 8; i++) {
 		pos.bytes[i] = inter->bytecode[++(*index)];
@@ -37,7 +37,7 @@ uint32_t interpreter_op_jump(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_for(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_for(interpreter* inter, size_t* index) {
 	for_data data = for_data_init();
 	value kwrd;
 	value foty;
@@ -65,7 +65,7 @@ uint32_t interpreter_op_for(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_for_from(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_for_from(interpreter* inter, size_t* index) {
 	for_data* data = NULL;
 	value v;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
@@ -76,7 +76,7 @@ uint32_t interpreter_op_for_from(interpreter* inter, size_t* index) {
 	return interpreter_set_variable(inter, index, data->variable_kwrd, data->start);
 }
 
-uint32_t interpreter_op_for_to(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_for_to(interpreter* inter, size_t* index) {
 	for_data* data = NULL;
 	value v;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
@@ -105,7 +105,7 @@ uint32_t interpreter_op_for_to(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_for_step(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_for_step(interpreter* inter, size_t* index) {
 	for_data* data = NULL;
 	value v;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
@@ -116,7 +116,7 @@ uint32_t interpreter_op_for_step(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_for_incjmp(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_for_incjmp(interpreter* inter, size_t* index) {
 	for_data* data = NULL;
 	value pos;
 
@@ -145,7 +145,7 @@ uint32_t interpreter_op_for_incjmp(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_for_check(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_for_check(interpreter* inter, size_t* index) {
 	for_data* data = NULL;
 	value pos;
 
@@ -192,13 +192,13 @@ uint32_t interpreter_op_for_check(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_end_for(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_end_for(interpreter* inter, size_t* index) {
 	if (!deque_pop_back(for_data, &inter->for_data_stack)) return OPERR_FOR;
 
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_switch(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_switch(interpreter* inter, size_t* index) {
 	value v;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
 	if (!deque_push_back(value, &inter->switch_stack, v)) return OPERR_SWITCH;
@@ -206,7 +206,7 @@ uint32_t interpreter_op_switch(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_case(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_case(interpreter* inter, size_t* index) {
 	value v;
 	v = *deque_back(value, &inter->switch_stack);
 	if (!interpreter_push(inter, v)) return OPERR_STACK;
@@ -214,13 +214,13 @@ uint32_t interpreter_op_case(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_end_switch(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_end_switch(interpreter* inter, size_t* index) {
 	if (!deque_pop_back(value, &inter->switch_stack)) return OPERR_SWITCH;
 
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_func(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_func(interpreter* inter, size_t* index) {
 	value kwrd;
 	value pos;
 
@@ -243,7 +243,7 @@ uint32_t interpreter_op_func(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_macro(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_macro(interpreter* inter, size_t* index) {
 	value kwrd;
 	value pos;
 	if (!interpreter_pop(inter, &kwrd)) return OPERR_STACK;
@@ -265,11 +265,11 @@ uint32_t interpreter_op_macro(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_callable(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_callable(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_return_func(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_return_func(interpreter* inter, size_t* index) {
 	if (inter->call_stack.size < 1) return OPERR_CALL;
 	cs_data csd = *deque_back(cs_data, &inter->call_stack);
 	if (!deque_pop_back(cs_data, &inter->call_stack)) return OPERR_CALL;
@@ -298,7 +298,7 @@ uint32_t interpreter_op_return_func(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_return_macro(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_return_macro(interpreter* inter, size_t* index) {
 	if (inter->call_stack.size < 1) return OPERR_CALL;
 	cs_data csd = *deque_back(cs_data, &inter->call_stack);
 	if (!deque_pop_back(cs_data, &inter->call_stack)) return OPERR_CALL;
@@ -307,7 +307,7 @@ uint32_t interpreter_op_return_macro(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_struct(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_struct(interpreter* inter, size_t* index) {
 	value kwrd;
 	if (!interpreter_pop(inter, &kwrd)) return OPERR_STACK;
 
@@ -329,7 +329,7 @@ uint32_t interpreter_op_struct(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_member(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_member(interpreter* inter, size_t* index) {
 	value kwrd;
 	if (!interpreter_pop(inter, &kwrd)) return OPERR_STACK;
 
@@ -344,11 +344,11 @@ uint32_t interpreter_op_member(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_end_struct(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_end_struct(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_call_member(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_call_member(interpreter* inter, size_t* index) {
 	value kwrd_struct;
 	value kwrd_member;
 	value addr;
@@ -382,7 +382,7 @@ uint32_t interpreter_op_call_member(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_set(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_set(interpreter* inter, size_t* index) {
 	value kwrd;
 	value v;
 
@@ -392,14 +392,14 @@ uint32_t interpreter_op_set(interpreter* inter, size_t* index) {
 	return interpreter_set_variable(inter, index, kwrd, v);
 }
 
-uint32_t interpreter_op_call(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_call(interpreter* inter, size_t* index) {
 	value kwrd;
 
 	if (!interpreter_pop(inter, &kwrd)) return OPERR_STACK;
 	return interpreter_call_kwrd(inter, index, kwrd);
 }
 
-uint32_t interpreter_op_addr(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_addr(interpreter* inter, size_t* index) {
 	value kwrd;
 	value v;
 
@@ -411,7 +411,7 @@ uint32_t interpreter_op_addr(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_ref(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_ref(interpreter* inter, size_t* index) {
 	value kwrd;
 	value addr;
 
@@ -423,7 +423,7 @@ uint32_t interpreter_op_ref(interpreter* inter, size_t* index) {
 	return interpreter_ref_variable(inter, index, kwrd, (value*) addr.p);
 }
 
-uint32_t interpreter_op_add(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_add(interpreter* inter, size_t* index) {
 	value a, b;
 				
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
@@ -434,7 +434,7 @@ uint32_t interpreter_op_add(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_sub(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_sub(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -444,7 +444,7 @@ uint32_t interpreter_op_sub(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_mul(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_mul(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -454,7 +454,7 @@ uint32_t interpreter_op_mul(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_div(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_div(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -467,7 +467,7 @@ uint32_t interpreter_op_div(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_mod(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_mod(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -480,7 +480,7 @@ uint32_t interpreter_op_mod(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_udiv(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_udiv(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -493,7 +493,7 @@ uint32_t interpreter_op_udiv(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_umod(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_umod(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -506,7 +506,7 @@ uint32_t interpreter_op_umod(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_neg(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_neg(interpreter* inter, size_t* index) {
 	value v;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
 	v.u = -v.u;
@@ -515,7 +515,7 @@ uint32_t interpreter_op_neg(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_inc(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_inc(interpreter* inter, size_t* index) {
 	value v;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
 	v.i++;
@@ -524,7 +524,7 @@ uint32_t interpreter_op_inc(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_dec(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_dec(interpreter* inter, size_t* index) {
 	value v;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
 	v.i--;
@@ -533,7 +533,7 @@ uint32_t interpreter_op_dec(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_equ(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_equ(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -543,7 +543,7 @@ uint32_t interpreter_op_equ(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_neq(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_neq(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -553,7 +553,7 @@ uint32_t interpreter_op_neq(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_grt(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_grt(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -563,7 +563,7 @@ uint32_t interpreter_op_grt(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_geq(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_geq(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -573,7 +573,7 @@ uint32_t interpreter_op_geq(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_lst(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_lst(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -583,7 +583,7 @@ uint32_t interpreter_op_lst(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_leq(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_leq(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -593,7 +593,7 @@ uint32_t interpreter_op_leq(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_ugrt(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_ugrt(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -603,7 +603,7 @@ uint32_t interpreter_op_ugrt(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_ugeq(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_ugeq(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -613,7 +613,7 @@ uint32_t interpreter_op_ugeq(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_ulst(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_ulst(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -623,7 +623,7 @@ uint32_t interpreter_op_ulst(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_uleq(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_uleq(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -633,7 +633,7 @@ uint32_t interpreter_op_uleq(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_fadd(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_fadd(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -643,7 +643,7 @@ uint32_t interpreter_op_fadd(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_fsub(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_fsub(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -653,7 +653,7 @@ uint32_t interpreter_op_fsub(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_fmul(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_fmul(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -663,7 +663,7 @@ uint32_t interpreter_op_fmul(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_fdiv(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_fdiv(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -676,7 +676,7 @@ uint32_t interpreter_op_fdiv(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_fmod(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_fmod(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -689,7 +689,7 @@ uint32_t interpreter_op_fmod(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_fneg(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_fneg(interpreter* inter, size_t* index) {
 	value v;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
 	v.f = -v.f;
@@ -698,7 +698,7 @@ uint32_t interpreter_op_fneg(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_fequ(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_fequ(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -708,7 +708,7 @@ uint32_t interpreter_op_fequ(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_fneq(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_fneq(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -718,7 +718,7 @@ uint32_t interpreter_op_fneq(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_fgrt(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_fgrt(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -728,7 +728,7 @@ uint32_t interpreter_op_fgrt(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_fgeq(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_fgeq(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -738,7 +738,7 @@ uint32_t interpreter_op_fgeq(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_flst(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_flst(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -748,7 +748,7 @@ uint32_t interpreter_op_flst(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_fleq(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_fleq(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -758,7 +758,7 @@ uint32_t interpreter_op_fleq(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_and(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_and(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -768,7 +768,7 @@ uint32_t interpreter_op_and(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_or(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_or(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -778,7 +778,7 @@ uint32_t interpreter_op_or(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_xor(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_xor(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -788,7 +788,7 @@ uint32_t interpreter_op_xor(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_not(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_not(interpreter* inter, size_t* index) {
 	value v;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
 	v.u = ~v.u;
@@ -797,7 +797,7 @@ uint32_t interpreter_op_not(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_lsft(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_lsft(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -807,7 +807,7 @@ uint32_t interpreter_op_lsft(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_rsft(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_rsft(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -817,14 +817,14 @@ uint32_t interpreter_op_rsft(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_drop(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_drop(interpreter* inter, size_t* index) {
 	value v;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
 
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_nip(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_nip(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -833,7 +833,7 @@ uint32_t interpreter_op_nip(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_dup(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_dup(interpreter* inter, size_t* index) {
 	value v;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
 	if (!interpreter_push(inter, v)) return OPERR_STACK;
@@ -842,7 +842,7 @@ uint32_t interpreter_op_dup(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_over(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_over(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -853,7 +853,7 @@ uint32_t interpreter_op_over(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_tuck(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_tuck(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -864,7 +864,7 @@ uint32_t interpreter_op_tuck(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_swap(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_swap(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -874,7 +874,7 @@ uint32_t interpreter_op_swap(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_rot(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_rot(interpreter* inter, size_t* index) {
 	value a, b, c;
 	if (!interpreter_pop(inter, &c)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
@@ -886,7 +886,7 @@ uint32_t interpreter_op_rot(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_tdrop(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_tdrop(interpreter* inter, size_t* index) {
 	value v;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
@@ -894,7 +894,7 @@ uint32_t interpreter_op_tdrop(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_tnip(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_tnip(interpreter* inter, size_t* index) {
 	value a, b, c;
 	if (!interpreter_pop(inter, &c)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
@@ -906,7 +906,7 @@ uint32_t interpreter_op_tnip(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_tdup(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_tdup(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -917,7 +917,7 @@ uint32_t interpreter_op_tdup(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_tover(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_tover(interpreter* inter, size_t* index) {
 	value a, b, c, d;
 	if (!interpreter_pop(inter, &d)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &c)) return OPERR_STACK;
@@ -932,7 +932,7 @@ uint32_t interpreter_op_tover(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_ttuck(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_ttuck(interpreter* inter, size_t* index) {
 	value a, b, c, d;
 	if (!interpreter_pop(inter, &d)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &c)) return OPERR_STACK;
@@ -947,7 +947,7 @@ uint32_t interpreter_op_ttuck(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_tswap(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_tswap(interpreter* inter, size_t* index) {
 	value a, b, c, d;
 	if (!interpreter_pop(inter, &d)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &c)) return OPERR_STACK;
@@ -961,7 +961,7 @@ uint32_t interpreter_op_tswap(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_trot(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_trot(interpreter* inter, size_t* index) {
 	value a, b, c, d, e, f;
 	if (!interpreter_pop(inter, &f)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &e)) return OPERR_STACK;
@@ -979,7 +979,7 @@ uint32_t interpreter_op_trot(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_alloc(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_alloc(interpreter* inter, size_t* index) {
 	value v;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
 	if (!v.u) v.p = NULL;
@@ -989,7 +989,7 @@ uint32_t interpreter_op_alloc(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_resize(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_resize(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -1003,7 +1003,7 @@ uint32_t interpreter_op_resize(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_free(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_free(interpreter* inter, size_t* index) {
 	value v;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
 	free(v.p);
@@ -1011,7 +1011,7 @@ uint32_t interpreter_op_free(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_allot(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_allot(interpreter* inter, size_t* index) {
 	value v;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
 
@@ -1036,7 +1036,7 @@ uint32_t interpreter_op_allot(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_fetch(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_fetch(interpreter* inter, size_t* index) {
 	value v;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
 	v.u = *v.p;
@@ -1045,7 +1045,7 @@ uint32_t interpreter_op_fetch(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_store(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_store(interpreter* inter, size_t* index) {
 	value a, b;
 	if (!interpreter_pop(inter, &b)) return OPERR_STACK;
 	if (!interpreter_pop(inter, &a)) return OPERR_STACK;
@@ -1054,7 +1054,7 @@ uint32_t interpreter_op_store(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_stof(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_stof(interpreter* inter, size_t* index) {
 	value v;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
 	v.f = (double) v.i;
@@ -1063,7 +1063,7 @@ uint32_t interpreter_op_stof(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_utof(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_utof(interpreter* inter, size_t* index) {
 	value v;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
 	v.f = (double) v.u;
@@ -1072,7 +1072,7 @@ uint32_t interpreter_op_utof(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_ftos(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_ftos(interpreter* inter, size_t* index) {
 	value v;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
 	v.i = (int64_t) v.f;
@@ -1081,7 +1081,7 @@ uint32_t interpreter_op_ftos(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_ftou(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_ftou(interpreter* inter, size_t* index) {
 	value v;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
 	v.u = (uint64_t) v.f;
@@ -1090,7 +1090,7 @@ uint32_t interpreter_op_ftou(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_geti(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_geti(interpreter* inter, size_t* index) {
 	value v;
 #if defined(_WIN32)
 	if (wscanf(L"%" SCNd64, &(v.i)) != 1) return OPERR_STDIN;
@@ -1102,7 +1102,7 @@ uint32_t interpreter_op_geti(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_getu(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_getu(interpreter* inter, size_t* index) {
 	value v;
 #if defined(_WIN32)
 	if (wscanf(L"%" SCNu64, &(v.u)) != 1) return OPERR_STDIN;
@@ -1114,7 +1114,7 @@ uint32_t interpreter_op_getu(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_getf(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_getf(interpreter* inter, size_t* index) {
 	value v;
 #if defined(_WIN32)
 	if (wscanf(L"%lf", &(v.f)) != 1) return OPERR_STDIN;
@@ -1126,7 +1126,7 @@ uint32_t interpreter_op_getf(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_gets(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_gets(interpreter* inter, size_t* index) {
 	value v;
 	deque(value) value_reverser;
 	deque_init(value, &value_reverser);
@@ -1205,7 +1205,7 @@ uint32_t interpreter_op_gets(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_putc(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_putc(interpreter* inter, size_t* index) {
 	value v;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
 	if (v.u < 127) {
@@ -1224,7 +1224,7 @@ uint32_t interpreter_op_putc(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_puti(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_puti(interpreter* inter, size_t* index) {
 	value v;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
 	printf("%" PRId64 " ", v.i);
@@ -1232,7 +1232,7 @@ uint32_t interpreter_op_puti(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_putu(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_putu(interpreter* inter, size_t* index) {
 	value v;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
 	printf("%" PRIu64 " ", v.u);
@@ -1240,7 +1240,7 @@ uint32_t interpreter_op_putu(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_putf(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_putf(interpreter* inter, size_t* index) {
 	value v;
 	if (!interpreter_pop(inter, &v)) return OPERR_STACK;
 	printf("%lf ", v.f);
@@ -1248,7 +1248,7 @@ uint32_t interpreter_op_putf(interpreter* inter, size_t* index) {
 	return OPERR_NONE;
 }
 
-uint32_t interpreter_op_show(interpreter* inter, size_t* index) {
+const uint32_t interpreter_op_show(interpreter* inter, size_t* index) {
 	printf("[%zu] [ ", inter->data_stack.size);
 	for (size_t i = 0; i < inter->data_stack.size; i++) {
 		printf("%" PRId64 " ", (*deque_at(value, &inter->data_stack, i)).i);
