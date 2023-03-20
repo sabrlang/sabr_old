@@ -378,9 +378,9 @@ $cr macro 10 putc end \ Define macro 'cr'.
 $cr call \ Call macro 'cr'.
 cr \ Call macro 'cr'.
 ```
-* `addr` ( id -- addr )
+* `addr` ( id -- addr )  
 If *id* is a variable, return address of variable *id*. 
-* `ref` ( addr id -- )
+* `ref` ( addr id -- )  
 Declare a variable *id* that refers to address *addr*.  
 If *addr* is 0, an error occurs.
 
