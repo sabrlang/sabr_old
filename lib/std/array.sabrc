@@ -1,58 +1,13 @@
 #std import
 
-$Array struct
-	$data member
-	$size member
-end
+#Array.allot {
+	dup ++ 8 * allot tuck store
+} define ( u -- addr )
+
+#Array.size {
+	fetch
+} define ( addr - u )
 
 #Array.at {
-	Array.data fetch at
-} define ( u Array -- addr )
-
-$Array.init method ( ... x u Array:this -- b )
-	dup this Array.size store
-	cells alloc
-	dup not if
-		loop
-			dup 0 >
-		while
-			swap drop --
-		end
-		false return
-	end
-	this Array.data store
-	0
-	loop
-		dup this Array.size fetch <
-	while
-		tuck this Array.at store
-		++
-	end
-	true
-defer
-	nip
-end
-
-#Array.init~? { Array.init not if } define ( ... x u Array:this -- )
-
-#Array.foreach {
-	dup Array.data fetch
-	swap Array.size fetch
-	loop
-		dup 0 >
-	while
-		swap dup fetch eval
-		1 cells + swap
-		--
-	end
-	2drop
-} define ( #_code Array -- )
-
-$Array.putc func ( Array -- )
-	#putc Array.foreach
-end
-
-$Array.free method ( Array:this -- )
-	this Array.data fetch free
-	0 this Array.size store
-end
+	swap 8 * + ++
+} define ( u addr -- addr )
