@@ -27,7 +27,7 @@ make
 ## 매크로로 "Hello, world!" 출력하기
 ```
 $puts macro
-	loop dup 0 > while swap putc 1- end drop
+	loop dup 0 > while swap putc -- end drop
 end
 
 "Hello, world!" puts
@@ -41,19 +41,11 @@ Hello, world!
 $cr macro '\n' putc end
 $draw func
 	$count set
-	0 $i set
-	loop
-		i count <
-	while
-		0 $j set
-		loop
-			j i <=
-		while
+	$i for count to
+		$j for i ++ to
 			'*' putc
-			j 1 + $j set
 		end
 		cr
-		i 1 + $i set
 	end
 end
 
