@@ -61,21 +61,3 @@
 #method {
 	func $this set
 } define ( id -- )
-
-\ #for {
-\ 	trot tdup eval -- trot trot tdup #$ tswap concat eval set \ _start -- $var set
-\ 	loop
-\ 		tdup #$ tswap concat eval dup call ++ swap set \ $var dup call ++ swap set
-\ 		tdup eval tdrop tnip eval < \ _var _end <
-\ 	while
-\ 		\ code
-\ } define ( #_start #_end #_var -- )
-
-\ #-for {
-\ 	trot tdup eval ++ trot trot tdup #$ tswap concat eval set \ _start ++ $var set
-\ 	loop
-\ 		tdup #$ tswap concat eval dup call -- swap set \ $var dup call -- swap set
-\ 		tdup eval tdrop tnip eval > \ _var _end <
-\ 	while
-\ 		\ code
-\ } define ( #_start #_end #_var -- )

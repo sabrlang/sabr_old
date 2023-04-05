@@ -83,15 +83,3 @@ $Vector.pop_back method ( Vector:this -- b )
 	else false
 	end
 end
-
-#Vector.foreach {
-	dup Vector._data fetch
-	swap Vector.size
-	loop
-		dup 0 >
-	while
-		swap dup fetch eval
-		1 cells + swap 1 -
-	end
-	2drop
-} define ( #_code Vector -- )
