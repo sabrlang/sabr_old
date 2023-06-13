@@ -219,6 +219,7 @@ void rbt_delete(rbt* t, rbt_node* z) {
 		y->color = z->color;
 	}
 	if (y_original_color == RBT_BLACK) rbt_delete_fixup(t, x);
+	free(x);
 }
 
 rbt_node* rbt_search_recurse(rbt* t, rbt_node* n, size_t index) {
