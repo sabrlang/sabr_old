@@ -87,7 +87,7 @@ inline bool memory_pool_alloc(memory_pool* pool, size_t size) {
 }
 
 inline bool memory_pool_free(memory_pool* pool, size_t size) {
-	if (!(pool->index - size) && pool->index - size < pool->index) return false;
+	if ((pool->index - size) && pool->index - size < pool->index) return false;
 	pool->index -= size;
 	return true;
 }
