@@ -1022,7 +1022,7 @@ const uint32_t interpreter_op_allot(interpreter* inter, size_t* index) {
 		p = memory_pool_top(&inter->memory_pool);
 		size_t* local_memory_size = deque_back(size_t, &inter->local_memory_size_stack);
 		if (!local_memory_size) return OPERR_MEMORY;
-		local_memory_size += alloted_size;
+		*local_memory_size += alloted_size;
 		if (!memory_pool_alloc(&inter->memory_pool, alloted_size)) return OPERR_MEMORY;
 	}
 	else {
