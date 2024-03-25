@@ -229,7 +229,7 @@ uint32_t interpreter_set_variable(interpreter* inter, size_t* index, value kwrd,
 			if (!memory_pool_alloc(&inter->memory_pool, 1)) return OPERR_MEMORY;
 			size_t* local_memory_size = deque_back(size_t, &inter->local_memory_size_stack);
 			if (!local_memory_size) return OPERR_MEMORY;
-			*local_memory_size++;
+			*local_memory_size += 1;
 		}
 		node->data = (size_t) p;
 
